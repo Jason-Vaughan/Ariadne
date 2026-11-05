@@ -1,57 +1,52 @@
-# Fleet Resource Plan & Charter — ARIADNE (`ARIADNE-HACK-2026`)
+# Fleet Resource Plan, Role Overlays & Durable Rules — ARIADNE (`ARIADNE-HACK-2026`)
+*Amended: Incorporating `TC-Lane-PM` Advisory Playbook (`Rule #285`, `Rule #283`, `Rule #294`)*
 
-## 1. Fleet Topology & Role Allocation
+## 1. Recommended Ariadne Fleet Topology (Modeled on TangleClaw's Fleet)
 
-To maximize throughput during the 8.5-hour H-Day window without exhausting host memory or model rate limits—and without interfering with any active TangleClaw `v5.67.0` sessions—Ariadne uses a **lean, right-sized 8-role fleet** (6 persistent TangleClaw lanes + 2 consolidated reviewer/observer functions):
+Per advisory consultation with `TC-Lane-PM`, Ariadne mirrors TangleClaw's battle-tested multi-agent role separation so that **code authors (`Lane-A..D`) never review or merge their own work**, and **4 Builder lanes execute in parallel without file collisions**:
 
-| Role / Lane Name | Engine / Model Tier | Primary Responsibility | Assigned Issues | Worktree / Checkout |
+| Project / Lane Name | Engine / Model Tier | Role Overlay | Core Responsibilities | Assigned Worktree |
 |---|---|---|---|---|
-| **`Ariadne-PM`** *(Live — ID #149)* | `antigravity` (Gemini 4 Argon / Pro) | Charter management, issue dispatch, dependency gating (`validateNextChunkDispatch`), progress telemetry, Operator escalation, and Provenance ledger (`A-015`). | `A-015` (Provenance & Demo Evidence) | `/Users/jasonvaughan/Documents/Projects/Ariadne-PM` |
-| **`Ariadne-Arc-PRR`** *(Architect + Reviewer)* | `codex` or `antigravity` | Authors foundational contracts (`A-001` design sign-off), enforces cross-lane interface boundaries, and runs Independent PR Review (`R-Gate`) on Builder PRs. | `A-001` (with Integrator), PR Review Gates | `/Users/jasonvaughan/Documents/Projects/Ariadne/wt-arc` |
-| **`Ariadne-INT`** *(Integrator + Deploy)* | `codex` or `claude` | Bootstraps repository & `A-001` contract types, owns shared `package.json`/DB schema migrations, merges reviewed PRs (`I-Gate`), manages Vercel/DB deployment (`A-014`), and records Observer release snapshots. | `A-001`, `A-014` | `/Users/jasonvaughan/Documents/Projects/Ariadne/main` |
-| **`Ariadne-Lane-A`** *(Builder A: Web & Flows)* | `claude` (Sonnet) | Mobile QR onboarding, consent UI, GitHub OAuth ownership check, private match results interface, and mutual-introduction state machine + Discord/Web delivery. | `A-002`, `A-008`, `A-012`, `A-013` | `/Users/jasonvaughan/Documents/Projects/Ariadne/wt-lane-a` |
-| **`Ariadne-Lane-B`** *(Builder B: GitHub & Intel)* | `claude` (Sonnet) | Bounded GitHub GraphQL/REST connector, caching, rate-limit handling, Profile Research Agent, and Opportunity Discovery Agent. | `A-003`, `A-004`, `A-005` | `/Users/jasonvaughan/Documents/Projects/Ariadne/wt-lane-b` |
-| **`Ariadne-Lane-C`** *(Builder C: Matching & Agents)* | `claude` (Sonnet) | Deterministic 4-factor Match Scoring Engine, Match Research & Proposal Agent, Continuous Rematching (`P2`), and optional Medusa adapter (`P2`). | `A-006`, `A-007`, `A-016`, `A-017` | `/Users/jasonvaughan/Documents/Projects/Ariadne/wt-lane-c` |
-| **`Ariadne-Lane-D`** *(Builder D: Stream & Stage)* | `claude` (Sonnet) or `antigravity` | Append-only event stream (`SSE`), 16:9 Network Mode force graph, Activity Mode feed, and Spotlight Mode stage view. | `A-009`, `A-010`, `A-011` | `/Users/jasonvaughan/Documents/Projects/Ariadne/wt-lane-d` |
+| **`Ariadne-PM`** *(Live — ID #149)* | `antigravity` (Gemini 4 Argon / Pro) | **PM Role Overlay (`Rule #285`)** | Coordinator-only (never edits app code). Owns Train charters, `LANE_QUEUE.md`, Car dispatch, `validateNextChunkDispatch` checks, and Operator escalations. | `/Users/jasonvaughan/Documents/Projects/Ariadne-PM` |
+| **`Ariadne-Arc`** | `antigravity` or `codex` | **Architect Overlay (`Rule #257`)** | Read-only architectural authority. Authors pre-dispatch export & file-envelope rulings (`W1A..W1D`) and evaluates `A-Gate` on contracts, privacy, and security boundaries. | `/Users/jasonvaughan/Documents/Projects/Ariadne-wt-arc` |
+| **`Ariadne-PRR`** | `codex` | **PR Reviewer Overlay (`R-Gate`)** | Read-only, fail-closed Reviewer. Runs the 7-Goal Critic + 4-Goal Release-Readiness protocol on exact `headRefOid` of every Builder PR (`[C1]..[C7]`, `[R1]..[R4]`). | `/Users/jasonvaughan/Documents/Projects/Ariadne-wt-prr` |
+| **`Ariadne-INT`** | `codex` | **Integrator Overlay (`I-Gate`)** | Sole merge and deploy executor. Bootstraps `Car 0-INT` (`v0.1.0`), merges approved PRs via `gh pr merge --merge`, compiles `changelog.d/*` into `CHANGELOG.md`, manages local PortHub server (`127.0.0.1:3420`) + narrow HTTPS tunnel, and reports `W<N>-REC` once per Train. | `/Users/jasonvaughan/Documents/Projects/Ariadne` (`main`) |
+| **`Ariadne-Obsr`** | `antigravity` | **Observer Overlay (`Rule #283` / `O-Gate`)** | Pure Sprint Process & Telemetry Observer. Tracks `t1..t8` timestamps per Train and runs the Python generator to publish canonical `v2.0.0` Interactive HTML Sprint Reports (`v0.1.0`..`v1.0.0`) for judges. | `/Users/jasonvaughan/Documents/Projects/Ariadne-wt-obsr` |
+| **`Ariadne-Lane-A`** | `claude` (Sonnet) | **Builder Overlay (`Rule #271`)** | Executes `Car 1-A` (`A-002`, `A-008` shell) and `Car 2-A` (`A-008` live, `A-012` Web Mutual-Intro State Machine & Intro Room). | `/Users/jasonvaughan/Documents/Projects/Ariadne-wt-lane-a` |
+| **`Ariadne-Lane-B`** | `claude` (Sonnet) | **Builder Overlay (`Rule #271`)** | Executes `Car 1-B` (`A-003` GitHub Connector + `A-004` Capability Agent + `A-005` Opportunity Discovery Agent). | `/Users/jasonvaughan/Documents/Projects/Ariadne-wt-lane-b` |
+| **`Ariadne-Lane-C`** | `claude` (Sonnet) | **Builder Overlay (`Rule #271`)** | Executes `Car 1-C` (`A-006` 40/30/20/10 Scorer + `A-007` Proposal Agent) and `Car 2-C` (`A-016` Continuous Rematching + SQLite Async Job Worker). | `/Users/jasonvaughan/Documents/Projects/Ariadne-wt-lane-c` |
+| **`Ariadne-Lane-D`** | `claude` (Sonnet) | **Builder Overlay (`Rule #271`)** | Executes `Car 1-D` (`A-009` SQLite SSE/Poll Event Bus + `A-010` Network Graph + `A-011` Activity & Spotlight Views) and `Car 2-D` (Stage Polish & Judge HUD). | `/Users/jasonvaughan/Documents/Projects/Ariadne-wt-lane-d` |
 
-> **Resource Sizing Note:** Consolidating Architect + Independent PR Reviewer into `Ariadne-Arc-PRR` and Integrator + Deployment + Telemetry into `Ariadne-INT` (alongside `Ariadne-PM`) cuts persistent coordinator overhead in half while preserving strict separation between **code authors** (`Lane-A`..`D`) and **code reviewers/mergers** (`Arc-PRR` & `INT`). If extra capacity is available on Saturday, a dedicated `Ariadne-Obsr` session can be spun up; otherwise `Ariadne-PM` + `Ariadne-INT` maintain the automated provenance log.
-
----
-
-## 2. Worktree & File-Ownership Isolation Matrix
-
-To eliminate merge conflicts during parallel H-Day execution, each Builder lane owns a dedicated directory subtree after `A-001` merges:
-
-| Directory / File Path | Exclusive Owner | Modification Rule for Other Lanes |
-|---|---|---|
-| `src/contracts/*`, `src/db/schema.ts`, `package.json` | `Ariadne-INT` + `Ariadne-Arc-PRR` | **Frozen after `A-001` (`Wave 0`).** Any schema or dependency addition requires an urgent request to `Ariadne-INT`. |
-| `src/app/(onboarding)/*`, `src/app/me/*`, `src/app/api/participants/*`, `src/app/api/matches/*`, `src/lib/intros/*`, `src/lib/discord/*` | `Ariadne-Lane-A` | Owned by Lane A. |
-| `src/lib/github/*`, `src/lib/agents/profile-research.ts`, `src/lib/agents/opportunity-discovery.ts` | `Ariadne-Lane-B` | Owned by Lane B. Exports pure functions consuming/producing `src/contracts/*` types. |
-| `src/lib/scoring/*`, `src/lib/agents/match-evaluator.ts`, `src/lib/agents/intro-writer.ts`, `src/lib/medusa/*` | `Ariadne-Lane-C` | Owned by Lane C. Exports pure functions + unit tests. |
-| `src/lib/events/*`, `src/app/api/events/stream/*`, `src/app/stage/*` | `Ariadne-Lane-D` | Owned by Lane D. Consumes `PublicEventEnvelope` contract. |
-| `docs/provenance/*`, `CHANGELOG.md`, `FEATURES.md`, `PROJECT-MAP.md` | `Ariadne-PM` / `Ariadne-INT` | Updated at wave integration checkpoints. |
-
-### Worktree Creation Commands (To Run on H-Day After Repo Creation)
-```bash
-# Executed ONLY on H-Day after Operator GO and repo initialization:
-git worktree add ../Ariadne-wt-arc -b arc/review
-git worktree add ../Ariadne-wt-lane-a -b feat/lane-a-wave1
-git worktree add ../Ariadne-wt-lane-b -b feat/lane-b-wave1
-git worktree add ../Ariadne-wt-lane-c -b feat/lane-c-wave1
-git worktree add ../Ariadne-wt-lane-d -b feat/lane-d-wave1
-```
-*(All branch retirements must run `tc branch check <branch>` first and proceed only on `safe` exit 0.)*
+> **Elastic Sizing Option:** If you prefer fewer active panes on Saturday, `Ariadne-Arc` and `Ariadne-PRR` can be combined into a single `Ariadne-Arc-PRR` (`codex`) pane (matching `SGM-Arc-PRR`), bringing the total fleet from 9 panes to **8 panes** (`PM`, `Arc-PRR`, `INT`, `Obsr`, `Lane-A..D`).
 
 ---
 
-## 3. Governance Gates & Permissions
+## 2. Durable Fleet Rules to Adopt (Mimicking TangleClaw's High-Velocity Rules)
 
-1. **Chunk-Boundary Protocol v1.0.0 Enforcement:**
-   - Every wave chunk requires a durable receipt (commit SHA, test pass output, `CHANGELOG.md` entry, JSDoc check, and Builder acknowledgment) before `Ariadne-PM` dispatches Chunk $N+1$.
-2. **Independent Review Gate (`R-Gate`):**
-   - No Builder merges their own PR.
-   - `Ariadne-Arc-PRR` verifies: (a) contract compliance, (b) unit test coverage, (c) JSDoc presence on all exported functions, (d) privacy/consent invariants (no unconsented stage fields, no raw token leaks), and (e) `CHANGELOG.md` update.
-3. **Integration & Deployment Gate (`I-Gate`):**
-   - `Ariadne-INT` merges `R-Gate`-approved PRs into `main`, verifies the integrated build (`npm test && npm run build`), tags milestone checkpoints (`v0.1.0-m1`, `v0.2.0-m2`, `v0.3.0-m3`), and monitors Vercel production health.
-4. **Coexistence with TangleClaw `v5.67.0`:**
-   - If any `TC-Lane-*` or `SGM-*` session is still active on Saturday morning, Operator can pause/park idle lanes before launching `Ariadne-Lane-A..D` so concurrent active model sessions stay `<= 6`.
+These 6 rules distill `TC-Lane-PM`'s active governing rules (`#294`, `#285`, `#283`, `#280`, `#271`, `#257`) for the Ariadne fleet:
+
+### Rule 1 — Multi-Issue File-Disjoint Car Bundling (`TC Rule #294`)
+Never split co-located issues in the same Train across multiple sequential waves. Bundle 2–3 related issues per Builder lane into a single **Car** (1 branch, 1 PR) with a strictly disjoint file write envelope so an entire Train of 8–10 issues ships in **one parallel wave of 4 PRs** with zero rebase churn.
+
+### Rule 2 — Pre-Flight Architect Export & Envelope Ruling (`TC Rule #257` / `A-Gate`)
+Before `Ariadne-PM` dispatches any Car, `Ariadne-Arc` posts a concise ruling on the issue(s) specifying:
+1. Exact TypeScript symbols/interfaces imported from frozen `src/contracts/*`.
+2. Exact function signatures the Car must export.
+3. The Car's **Allowed File Scope** (exclusive write envelope).
+4. Any Car touching `src/contracts/*`, `src/db/schema.ts`, privacy/consent checks, or public tunnel config requires explicit `Ariadne-Arc` `A-Gate ACCEPT` before merge.
+
+### Rule 3 — Single-File Changelog Fragments (`changelog.d/<car>.md`)
+Builders **never** edit root `CHANGELOG.md` or `package.json` on feature branches (the #1 cause of parallel merge conflicts). Instead, each Builder Car writes `changelog.d/<car-id>.md` (`### Added` / `### Changed` / `### Fixed`). During the Train release cut (`W-REL`), `Ariadne-INT` compiles all fragments into root `CHANGELOG.md` and bumps the version tag (`v0.1.0`, `v0.2.0`, `v0.3.0`, `v1.0.0`).
+
+### Rule 4 — Single-Turn Plan+Build Fast Path (`TC Rule #271` / `A384`)
+When a Car dispatch cites an approved `Ariadne-Arc` ruling and frozen `src/contracts/*`, the Builder executes implementation, JSDoc annotation, unit tests (`vitest run`), and PR creation in a **single turn** without stopping for an intermediate plan-approval round-trip. Any requirement question is routed via Medusa (`tc message send`) to `Ariadne-INT` or `Ariadne-PM` rather than blocking on local pane input.
+
+### Rule 5 — Formal PRR Envelope, True-Merge (`--merge`) & Chunk-Boundary Receipt (`TC Rule #286` & `#1889`)
+- Every dispatch to `Ariadne-PRR` includes the formal envelope: `{ repository, base, head, headRefOid, PR #, test_output, Allowed File Scope }`.
+- `Ariadne-PRR` verifies `headRefOid` matches before issuing `R-Gate ACCEPT`.
+- `Ariadne-INT` merges exclusively via `gh pr merge <PR#> --merge --delete-branch` (preserving true branch topology for Judge Sprint Reports) and records the durable Chunk-Boundary Receipt (`ready_after_clear`) before `Ariadne-PM` clears/dispatches the lane for the next Train.
+
+### Rule 6 — Quiet Routing & Switchboard Hygiene (`TC Rule #280`)
+- Every lane updates `tc workload set` at dispatch acceptance, task transition, external wait, and completion.
+- When receiving a Medusa message with `replyRequired: true`, always send `tc message send --in-reply-to <id>` **before** `tc message ack <id>`.
+- Do not wake `Ariadne-Obsr` on individual PRs; wake `Ariadne-Obsr` once per Train boundary (`v0.1.0`, `v0.2.0`, `v0.3.0`, `v1.0.0`) to certify `O-Gate` and generate that Train's Interactive HTML Sprint Report.

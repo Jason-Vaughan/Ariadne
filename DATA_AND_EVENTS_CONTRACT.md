@@ -1,31 +1,32 @@
 # Data & Events Contract Specification — ARIADNE (`ARIADNE-HACK-2026`)
+*Amended: Web-Only Self-Hosted Hackathon MVP (SQLite WAL + SSE/Polling)*
 
-> **Purpose:** Canonical interface contract for Issue `A-001`. All parallel H-Day lanes (Builder A: Onboarding/UI, Builder B: GitHub/Profile Intelligence, Builder C: Matching/Proposals, Builder D: Event Stream/Visualizer) must conform to these exact field names, enums, and state transitions.
+> **Purpose:** Canonical interface contract for `Car 0-INT` (`A-001`). Once `v0.1.0` merges, `src/contracts/*` and `src/db/schema.ts` are **FROZEN** so all 4 Builder lanes (`Lane-A`..`D`) execute Train 1 (`v0.2.0`) 100% in parallel against deterministic contract fixtures.
 
 ---
 
-## 1. Core Entity Contracts
+## 1. Core SQLite Entity Contracts (`data/ariadne.sqlite`)
 
-### 1.1 `Participant`
+### 1.1 `Participant` (`participants` table)
 | Field | Type | Description |
 |---|---|---|
 | `id` | `string (UUID)` | Primary key |
 | `pseudonym` | `string` | Deterministic stage-safe handle (e.g., `Thread-7C4E`) |
 | `github_username` | `string` | Normalized lowercase GitHub login |
-| `github_user_id` | `number \| null` | Immutable GitHub numeric ID (populated on fetch/OAuth) |
-| `ownership_verified` | `boolean` | `true` only after GitHub OAuth or challenge verification |
+| `github_user_id` | `number \| null` | Immutable GitHub numeric ID |
+| `avatar_url` | `string \| null` | Public GitHub avatar URL |
+| `ownership_verified` | `boolean` | `true` after GitHub OAuth or challenge verification |
 | `consent_status` | `'granted' \| 'withdrawn'` | Required before any GitHub fetch or matching |
 | `consent_granted_at` | `ISO8601 string` | Timestamp of explicit opt-in |
 | `public_display_consent` | `boolean` | Default `false`. If `true`, stage visualizer may show `github_username` & `avatar_url` |
-| `discord_handle` | `string \| null` | Optional participant Discord username / user ID |
+| `contact_card` | `string \| null` | Optional private contact note/handle shared **only** upon bilateral `completed` introduction |
 | `analysis_state` | `'registered' \| 'fetching_github' \| 'analyzing_profile' \| 'ready' \| 'failed' \| 'withdrawn'` | Current processing lifecycle state |
 | `created_at` | `ISO8601 string` | Creation timestamp |
 | `updated_at` | `ISO8601 string` | Last update timestamp |
 
 ---
 
-### 1.2 `EvidenceReceipt`
-Every capability claim, opportunity finding, and match explanation must reference one or more `EvidenceReceipt` records.
+### 1.2 `EvidenceReceipt` (`evidence_receipts` table)
 | Field | Type | Description |
 |---|---|---|
 | `id` | `string (UUID)` | Evidence receipt identifier |
@@ -39,57 +40,58 @@ Every capability claim, opportunity finding, and match explanation must referenc
 
 ---
 
-### 1.3 `CapabilityClaim`
+### 1.3 `CapabilityClaim` (`capability_claims` table)
 | Field | Type | Description |
 |---|---|---|
 | `id` | `string (UUID)` | Claim identifier |
 | `participant_id` | `string (UUID)` | Owning participant |
 | `category` | `'language' \| 'framework' \| 'domain' \| 'systems_architecture' \| 'tooling'` | Capability taxonomy |
-| `name` | `string` | Canonical capability label (e.g., `TypeScript`, `Distributed Consensus`, `WebRTC`) |
+| `name` | `string` | Canonical capability label |
 | `epistemic_type` | `'SELF_REPORTED' \| 'OBSERVED_FACT' \| 'AI_INFERENCE'` | Provenance classification |
 | `proficiency_signal` | `'primary' \| 'active' \| 'exploratory'` | Depth indicator grounded in commit/repo volume |
 | `confidence` | `number (0.0–1.0)` | Confidence score |
 | `uncertainty_note` | `string \| null` | Required if `confidence < 0.75` or `epistemic_type === 'AI_INFERENCE'` |
-| `evidence_receipt_ids` | `string[]` | Non-empty array of `EvidenceReceipt.id` values |
+| `evidence_receipt_ids` | `string[] (JSON)` | Non-empty array of `EvidenceReceipt.id` values |
 | `dismissed_by_user` | `boolean` | Default `false`. Participant can dismiss inaccurate inferences |
 
 ---
 
-### 1.4 `OpportunityNeed`
+### 1.4 `OpportunityNeed` (`opportunity_needs` table)
 | Field | Type | Description |
 |---|---|---|
 | `id` | `string (UUID)` | Opportunity identifier |
 | `participant_id` | `string (UUID)` | Owning participant |
 | `project_repo` | `string` | `owner/repo` where opportunity was detected |
 | `opportunity_type` | `'open_issue_help' \| 'complementary_skill_gap' \| 'architecture_scaling' \| 'shared_research_domain'` | Classification |
-| `label` | `'Potential Opportunity (AI Inference)' \| 'Participant Confirmed Need'` | Must default to `'Potential Opportunity (AI Inference)'` |
-| `summary` | `string` | Concise description of the potential collaboration problem (`<= 240 chars`) |
-| `desired_capabilities` | `string[]` | Canonical capability tags that would complement this opportunity |
+| `label` | `'Potential Opportunity (AI Inference)' \| 'Participant Confirmed Need'` | Defaults to `'Potential Opportunity (AI Inference)'` |
+| `summary` | `string` | Concise description (`<= 240 chars`) |
+| `desired_capabilities` | `string[] (JSON)` | Canonical capability tags that complement this opportunity |
 | `confidence` | `number (0.0–1.0)` | Confidence indicator |
-| `uncertainty_note` | `string` | Explicit caveat (e.g., *"Inferred from open issue #19 (45 days old); may not be an active blocker"*) |
-| `evidence_receipt_ids` | `string[]` | Supporting GitHub issue/PR/README receipt IDs |
+| `uncertainty_note` | `string` | Explicit caveat (especially for issues `> 120 days` old) |
+| `evidence_receipt_ids` | `string[] (JSON)` | Supporting GitHub receipt IDs |
 | `dismissed_by_user` | `boolean` | Default `false` |
 
 ---
 
-### 1.5 `MatchCandidate` & `MatchProposal`
+### 1.5 `MatchProposal` (`matches` table)
 | Field | Type | Description |
 |---|---|---|
-| `id` | `string (UUID)` | Canonical match ID (ordered pair: `participant_a_id < participant_b_id`) |
+| `id` | `string (UUID)` | Canonical match ID (`participant_a_id < participant_b_id`) |
 | `participant_a_id` | `string (UUID)` | First participant |
 | `participant_b_id` | `string (UUID)` | Second participant |
 | `composite_score` | `number (0–100)` | Weighted heuristic score (`>= 45` required to surface) |
-| `score_breakdown` | `ScoreBreakdown` | `{ complementary_skills: 0..40, project_relevance: 0..30, evidence_strength: 0..20, recency: 0..10 }` |
+| `score_breakdown` | `ScoreBreakdown (JSON)` | `{ complementary_skills: 0..40, project_relevance: 0..30, evidence_strength: 0..20, recency: 0..10 }` |
 | `complementary_summary` | `string` | Why A and B complement each other |
-| `relevant_projects` | `string[]` | Specific `owner/repo` names cited |
-| `suggested_first_collaboration` | `string` | Concrete first 15-minute topic or co-hacking task |
+| `relevant_projects` | `string[] (JSON)` | Specific `owner/repo` names cited |
+| `suggested_first_collaboration` | `string` | Concrete first 15-minute conversation or co-hacking task |
 | `confidence_limitations` | `string` | Honest disclosure of where evidence is thin or inferred |
-| `evidence_receipt_ids` | `string[]` | Combined supporting evidence receipts from A and B |
-| `intro_state` | `IntroductionState` | See Section 2 state machine |
+| `evidence_receipt_ids` | `string[] (JSON)` | Combined supporting evidence receipts from A and B |
+| `intro_state` | `IntroductionState` | `'candidate' \| 'proposed_by_a' \| 'proposed_by_b' \| 'mutual_accepted' \| 'completed' \| 'declined'` |
+| `shared_intro_notes` | `IntroRoomMessage[] (JSON)` | Lightweight shared web messages inside `/me/matches/:id` once `completed` |
 
 ---
 
-## 2. Mutual-Introduction State Machine (`A-012`)
+## 2. Web-Only Mutual-Introduction State Machine (`A-012`)
 
 ```mermaid
 stateDiagram-v2
@@ -101,42 +103,32 @@ stateDiagram-v2
     proposed_by_b --> mutual_accepted : Participant A clicks Interested (Verified)
     proposed_by_a --> declined : Participant B clicks Pass
     proposed_by_b --> declined : Participant A clicks Pass
-    mutual_accepted --> completed : Introduction delivered (Discord DM/Thread or Web Room)
+    mutual_accepted --> completed : Private Web Introduction Room (/me/matches/:id) Unlocked
 ```
 
 ### State Invariants
-1. **No Unverified Proposals:** Transition from `candidate` to `proposed_by_*` or `mutual_accepted` requires `participant.ownership_verified === true` (or explicit H-Day verified session token).
-2. **Idempotency:** Repeated `POST /api/matches/:id/decision` calls with the same actor and decision return `200 OK` with current state and **never** emit duplicate `introduction.proposed` or `introduction.completed` events or duplicate Discord messages.
-3. **Asymmetric Privacy:** While in `proposed_by_a`, Participant A sees *"Interest Sent — Waiting for response"*. If Participant B clicks **Pass** (`declined`), Participant A continues to see *"Pending / No mutual match yet"* rather than a hostile rejection alert.
+1. **Verified Ownership Required:** Transitioning to `proposed_by_*` or `mutual_accepted` requires `participant.ownership_verified === true`.
+2. **Idempotent Decisions:** Repeated `POST /api/matches/:id/decision` calls with the same actor and decision return `200 OK` and never emit duplicate `introduction.proposed` or `introduction.completed` events.
+3. **Web-Native Introduction Reveal:** Immediately upon `mutual_accepted` → `completed`, both participants' mobile browsers unlock `/me/matches/:id` showing both verified GitHub profiles, `contact_card` details, copyable collaboration starter, and a real-time shared note box.
 
 ---
 
-## 3. Structured Event Stream Contract (`A-009`)
+## 3. Structured Event Stream & Polling Fallback Contract (`A-009`)
 
-Every state transition writes a row to `domain_events` and broadcasts the sanitized `PublicEventEnvelope` over SSE (`GET /api/events/stream`).
+Every state transition inserts a row into SQLite `domain_events` (`seq_id INTEGER PRIMARY KEY AUTOINCREMENT`) and is served via:
+- **SSE Stream:** `GET /api/events/stream?after=<seq_id>` (or `Last-Event-ID` header)
+- **Polling Fallback:** `GET /api/events/poll?after=<seq_id>` → returns `{ events: PublicEventEnvelope[], latest_seq_id: number }`
 
-### 3.1 `PublicEventEnvelope`
-| Field | Type | Description |
-|---|---|---|
-| `seq_id` | `number` | Monotonically increasing cursor (`Last-Event-ID`) |
-| `event_id` | `string (UUID)` | Unique event UUID |
-| `event_type` | `EventType` | One of the 12 canonical event types below |
-| `timestamp` | `ISO8601 string` | UTC emission time |
-| `processing_state` | `'started' \| 'in_progress' \| 'completed' \| 'failed'` | Lifecycle indicator |
-| `actor_display` | `PublicParticipantRef` | `{ pseudonym, display_name: string \| null, avatar_url: string \| null }` (populated *only* if `public_display_consent === true`) |
-| `counterpart_display` | `PublicParticipantRef \| null` | Present on match/intro events (respecting counterpart's `public_display_consent`) |
-| `public_payload` | `object` | Strictly sanitized display summary (zero private messages, zero tokens, zero unconsented handles) |
-
-### 3.2 Canonical `EventType` Catalog
-1. `participant.registered` — New consenting participant joined (`{ pseudonym, total_participants }`).
-2. `github.fetch.started` — Bounded GitHub retrieval initiated (`{ pseudonym }`).
-3. `github.fetch.completed` — Public repos/issues retrieved (`{ pseudonym, repo_count, evidence_count, duration_ms }`).
-4. `profile.analysis.completed` — Capability profile extracted (`{ pseudonym, top_domains, observed_count, inferred_count }`).
-5. `opportunity.identified` — Candidate project need discovered (`{ pseudonym, opportunity_type, domain_tags, confidence_tier }`).
-6. `match.candidate.generated` — Heuristic scorer paired two profiles above threshold (`{ match_id, pseudonym_a, pseudonym_b, composite_score }`).
-7. `match.evaluated` — Match Evaluation Agent verified collaboration thesis (`{ match_id, pseudonym_a, pseudonym_b, composite_score, shared_domains }`).
-8. `introduction.proposed` — One participant expressed interest (`{ match_id, status: 'awaiting_mutual' }`).
-9. `introduction.accepted` — Counterpart accepted (`{ match_id, pseudonym_a, pseudonym_b }`).
-10. `introduction.declined` — Aggregate counter increment only (no pair details broadcast publicly on stage).
-11. `introduction.completed` — Mutual introduction delivered via Discord/Web (`{ match_id, pseudonym_a, pseudonym_b, channel: 'discord' \| 'web' }`).
-12. `analysis.failed` — Graceful failure telemetry (`{ pseudonym, stage, fallback_applied: boolean }`).
+### Canonical `EventType` Catalog
+1. `participant.registered`
+2. `github.fetch.started`
+3. `github.fetch.completed`
+4. `profile.analysis.completed`
+5. `opportunity.identified`
+6. `match.candidate.generated`
+7. `match.evaluated`
+8. `introduction.proposed`
+9. `introduction.accepted`
+10. `introduction.declined` *(aggregate counter increment only on public stream)*
+11. `introduction.completed` (`{ match_id, pseudonym_a, pseudonym_b, channel: 'web' }`)
+12. `analysis.failed`

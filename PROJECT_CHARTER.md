@@ -1,4 +1,5 @@
 # Executive Project Charter — ARIADNE (`ARIADNE-HACK-2026`)
+*Amended: Web-Only Self-Hosted Hackathon MVP*
 
 - **Project ID:** `ARIADNE-HACK-2026` (TangleClaw Project ID: `149` / `Ariadne-PM`)
 - **Working Name:** Ariadne
@@ -15,32 +16,38 @@
 
 ## 1. Mission Statement
 
-Build and deploy **Ariadne**, an AI-native professional discovery network that connects technically oriented event participants based on verifiable public GitHub work, complementary engineering capabilities, and concrete collaboration opportunities—while simultaneously demonstrating that a single human Operator can direct a TangleClaw autonomous engineering fleet to build, review, test, integrate, and ship a production application in a single 8.5-hour hackathon window.
+Build and deploy **Ariadne**, an AI-native professional discovery network that connects technically oriented event participants based on verifiable public GitHub work, complementary engineering capabilities, and concrete collaboration opportunities—while simultaneously demonstrating that a single human Operator can direct a TangleClaw autonomous engineering fleet to plan, build, review, test, integrate, and ship a production application in a single 8.5-hour hackathon window.
 
 > *"Tinder for work. Your AI finds the right people, explains why you should connect, and introduces you when you both agree."*
 
 ---
 
-## 2. Dual Strategic Objectives
+## 2. Architecture Amendment Summary (Web-Only Hackathon MVP)
 
-### Objective A — Product Delivery (Ariadne)
-Deliver a live, mobile-accessible web application and 16:9 stage visualizer where hackathon attendees scan a QR code, submit their GitHub identity with explicit consent, receive an evidence-backed capability and opportunity profile, review up to 3 high-signal collaboration matches with transparent scoring breakdowns, and mutually opt into introductions via Discord or a private web match page.
-
-### Objective B — Platform Demonstration (TangleClaw)
-Demonstrate supervised multi-agent software engineering under real-time constraints:
-- Clear separation between pre-event preparation (planning, specs, issue drafts) and H-Day implementation (100% of application code written after 09:30 AM PST on Nov 7, 2026).
-- Parallel execution across isolated Git worktrees (Builders A–D) with Architect contract governance, Independent PR Review gates, Integrator deployment checkpoints, and Observer audit telemetry.
-- High Operator leverage: allow Jason Vaughan to network with founders, researchers, and prospective clients on the hackathon floor while supervising the fleet via TangleClaw.
+Superseding the earlier cloud/Discord/Medusa draft, **Ariadne is a single, self-hosted web application running on the TangleClaw host (`cursatory`), strictly isolated from the TangleClaw control plane**:
+1. **Two Interfaces on One Backend:**
+   - **Mobile Participant Interface (`/join`, `/me`, `/me/matches/:id`):** QR onboarding, GitHub identity submission, explicit consent, live research progress, top-3 match results with 40/30/20/10 scoring breakdown, `Interested`/`Pass` controls, and mutually approved private web introductions.
+   - **Presentation Visualizer (`/stage`):** Full-screen `16:9` live network graph, participant activity feed, agent analysis states, evidence-backed connections, and introduction status. Operator-controlled with privacy-safe pseudonymous defaults (`Thread-XXXX`).
+2. **Self-Hosted Local Stack + Narrow Public HTTPS Tunnel:**
+   - Bound to a dedicated PortHub-registered local port (`127.0.0.1:3420`) exposed through a narrowly scoped public HTTPS tunnel (`cloudflared` / `ngrok` pointing solely to `127.0.0.1:3420`—never exposing TangleClaw control-plane ports, agent terminals, or internal services).
+   - **SQLite (`WAL` mode)** for persistent application state.
+   - **In-process asynchronous workers** (backed by SQLite job leases) for bounded GitHub retrieval and AI capability/match analysis.
+   - **Server-Sent Events (SSE) with automatic reconnect + HTTP polling fallback** for live mobile and stage browser updates.
+3. **Zero External Messaging Dependencies in MVP:**
+   - **No Discord, Medusa, or Morpheus dependency** is required for the hackathon MVP; all three are moved to the post-hackathon roadmap.
 
 ---
 
-## 3. Success Thresholds & Delivery Tiers
+## 3. Dual Strategic Objectives & Success Thresholds
 
-| Tier | Classification | Operational Definition | Target Checkpoint |
+### Objective A — Build Ariadne | Objective B — Demonstrate TangleClaw
+
+| Tier | Classification | Operational Definition | Target Train / Checkpoint |
 |---|---|---|---|
-| **Tier 1** | **Minimum Success (Essential)** | Real participant scans QR code, submits GitHub identity with consent, receives an evidence-grounded capability profile with GitHub source links, and appears immediately on the 16:9 live network visualizer. | **12:30 PM PST** (M1 Release) |
-| **Tier 2** | **Strong Success (Target)** | Multiple real participants join; Ariadne analyzes capabilities and project opportunities, computes transparent 4-factor match scores, and presents up to 3 evidence-backed match explanations per participant on their private results view and stage activity/spotlight views. | **15:00 PM PST** (M2 Release) |
-| **Tier 3** | **Exceptional Success (Stretch)** | Two consenting participants both click *Interested*; the mutual-introduction state machine verifies bilateral approval, triggers a private introduction via the dedicated Ariadne Discord bot (with guaranteed private web fallback), and animates the completed connection on the stage visualizer. | **16:45 PM PST** (M3 Release) |
+| **Tier 1** | **Minimum Success (Essential)** | Real participant scans QR code, submits GitHub identity with consent, receives an evidence-grounded capability profile with GitHub source links, and appears immediately on the 16:9 live network visualizer. | **Train 1 (`v0.1.0`) — 12:00 PM PST** |
+| **Tier 2** | **Strong Success (Target)** | Multiple real participants join; Ariadne analyzes capabilities and project opportunities, computes transparent 4-factor match scores, and presents up to 3 evidence-backed match explanations per participant on their private results view and stage activity/spotlight views. | **Train 2 (`v0.2.0`) — 14:15 PM PST** |
+| **Tier 3** | **Exceptional Success (Stretch)** | Two consenting, verified participants both click *Interested*; the mutual-introduction state machine verifies bilateral approval, unlocks their private **Web Introduction Room** with shared contact details & tailored collaboration starter, and animates the completed connection on the stage visualizer. | **Train 3 (`v0.3.0`) — 15:45 PM PST** |
+| **Tier 4** | **Polish, Bug Fixes & Judge Reports** | Dedicated 2-hour runway (`15:45 – 17:45 PM PST`) for UI refinement, edge-case hardening, stage rehearsal, and per-version Observer sprint reports (`v0.1.0`..`v1.0.0`). | **Train 4 (`v1.0.0`) — 17:45 PM PST** |
 
 ---
 
@@ -49,14 +56,12 @@ Demonstrate supervised multi-agent software engineering under real-time constrai
 1. **Zero Application Code Before H-Day GO:** No source code, UI components, API routes, schemas, migrations, tests, mocks, or starter templates may be created before 09:30 AM PST on Saturday, November 7, 2026, AND an explicit Operator `GO` command.
 2. **Evidence Over Fabrication:**
    - Every capability claim and project opportunity must cite a public GitHub URL and timestamp.
-   - Distinguish **observed facts** (languages, commits, repo metadata) from **AI inferences** (candidate bottlenecks, collaboration needs).
-   - If fewer than 3 meaningful matches exist above threshold, return fewer (or zero). Never fabricate profiles, events, or matches.
-   - Do not infer willingness to collaborate from public GitHub activity; interest requires explicit participant action.
-3. **Privacy, Consent & Security by Default:**
+   - Distinguish **observed facts** from **AI inferences**.
+   - If fewer than 3 meaningful matches exist above threshold (`score >= 45`), return fewer (or zero). Never fabricate profiles, events, or matches.
+   - Never infer willingness to collaborate from public GitHub activity; interest requires explicit participant action.
+3. **Privacy, Consent & Control-Plane Isolation:**
    - Explicit opt-in consent before fetching or analyzing public GitHub data.
-   - Pseudonymous stage visualizer nodes by default (`Thread-#4F9A`); public GitHub handles/avatars appear on the stage screen only if the participant explicitly checks the public-display consent toggle.
-   - Mutual opt-in required before disclosing contact channels or triggering an introduction.
-   - One-click participant withdrawal/deletion (`DELETE /api/participant/me`) that purges profile and match state and emits `participant.withdrawn`.
-   - Strict isolation from TangleClaw's internal control plane and privileged Operator Discord gateway.
-4. **Zero Interference with TangleClaw v5.67.0:** Preparation and H-Day operations must not modify TangleClaw core code, alter existing PortHub leases, or contend with active `TC-Lane-*` / `SGM-*` sessions unless explicitly reallocated by the Operator.
-5. **Provenance Integrity:** All pre-hackathon planning artifacts are hash-snapshotted prior to H-Day kickoff so judges can independently verify that 100% of executable code was authored during the build window.
+   - Pseudonymous stage visualizer nodes by default (`Thread-XXXX`); public GitHub handles/avatars appear on stage only with explicit opt-in consent.
+   - Isolated participant sessions and authenticated/defensibly bound ownership verification before outbound introduction approvals.
+   - Strict isolation: public HTTPS tunnel routes **exclusively** to Ariadne's port (`127.0.0.1:3420`). Zero TangleClaw control-plane endpoints (`:3102`, `:3100`, `:8443`), agent terminals, or Medusa services (`:3009`, `:3010`) are reachable through the public service.
+   - Per-version provenance and Observer sprint reports generated at every Train release (`v0.1.0`, `v0.2.0`, `v0.3.0`, `v1.0.0`).

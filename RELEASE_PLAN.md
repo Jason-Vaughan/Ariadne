@@ -1,34 +1,28 @@
 # Release & Deployment Plan — ARIADNE (`ARIADNE-HACK-2026`)
+*Amended: 4-Train Bundled Car Schedule + Self-Hosted SQLite WAL + Per-Version `v2.0.0` Sprint Reports*
 
-## 1. Release Train Strategy
+## 1. Four-Train Release Strategy
 
-Ariadne ships via **5 governed release checkpoints** on Saturday, November 7, 2026, between `09:30 AM` and `18:00 PM` Pacific. Every checkpoint produces:
-1. A green CI / local test suite receipt (`vitest run && next build`).
-2. An updated `CHANGELOG.md` following Keep a Changelog + TangleClaw `[Unreleased]` bump rules (`### Added`, `### Changed`, `### Fixed`, `### Internal`).
-3. An annotated Git tag (`v0.0.1`, `v0.1.0`, `v0.2.0`, `v0.3.0`, `v1.0.0`) and GitHub Release.
-4. A verified production Vercel deployment alias.
+By bundling the 15 MVP issues into file-disjoint Multi-Issue Cars (`TC Rule #294`), the entire functional application ships across **3 morning/early-afternoon Release Trains (`v0.1.0`, `v0.2.0`, `v0.3.0`) by `13:45 PM PST`**, reserving a full **4-hour afternoon runway (`13:45 – 17:45 PM PST`)** for bug fixes, UI polish, live attendee dogfooding, and Judge Sprint Reports (`v1.0.0`).
 
 ---
 
-## 2. Release Checkpoints & Acceptance Gates
+## 2. Release Trains & Gate Checkpoints
 
-| Tag | Target Time (PST) | Success Tier | Included Issues | Gate Criteria (`I-Gate`) |
-|---|---|---|---|---|
-| **`v0.0.1`** | `10:30 AM` | **Wave 0 — Contracts & Infra** | `A-001`, `A-014a`, `A-015a` | Shared TypeScript contracts compile; DB schema migrated; `/api/health` returns `200 OK` on live Vercel URL; pre-event provenance baseline committed. |
-| **`v0.1.0`** | `12:30 PM` | **Tier 1 — Minimum Success (Essential)** | `A-002`, `A-003`, `A-004`, `A-006`, `A-009`, `A-010` | Real mobile QR scan → consenting GitHub submission → real GitHub evidence fetched → grounded capability profile displayed on `/me` → pseudonymous node appears live on 16:9 `/stage` Network Graph. |
-| **`v0.2.0`** | `15:00 PM` | **Tier 2 — Strong Success (Target)** | `A-005`, `A-007`, `A-008`, `A-011` | Opportunity discovery active; top-3 evidence-backed matches with 4-factor score bars displayed on `/me`; `/stage` Activity Mode and Spotlight Mode functional. |
-| **`v0.3.0`** | `16:45 PM` | **Tier 3 — Exceptional Success (Stretch)** | `A-012`, `A-013`, `A-016` *(+ optional `A-017`)* | Bilateral `Interested` approvals unlock private web match card + trigger dedicated Ariadne Discord Bot introduction; `/stage` animates completed emerald connection. |
-| **`v1.0.0`** | `17:45 PM` | **Demo Freeze (Judging Lock)** | `A-014b`, `A-015b` | **Hard Code Freeze.** Final provenance packet published at `/provenance`; production alias pinned; zero deployments permitted after `17:45 PM` except emergency rollback. |
+| Train / Tag | Target Time (PST) | Included Cars & Issues | Gate & Deliverable Criteria (`A-Gate` / `R-Gate` / `I-Gate` / `O-Gate`) |
+|---|---|---|---|
+| **Train 0 (`v0.1.0`)** | `10:15 AM` *(45m)* | **`Car 0-INT`:** `A-001`, `A-014` (S1), `A-015` (S1) | `src/contracts/*` and SQLite WAL `src/db/schema.ts` merged and **FROZEN**; PortHub port `127.0.0.1:3420` bound; `/api/health` green; `v0.1.0` Interactive Sprint Report generated at `/reports/v0.1.0/`. |
+| **Train 1 (`v0.2.0`)** | `12:00 PM` *(1h 45m)* | **`Car 1-A`:** `A-002`, `A-008` (Shell)<br>**`Car 1-B`:** `A-003`, `A-004`, `A-005`<br>**`Car 1-C`:** `A-006`, `A-007`<br>**`Car 1-D`:** `A-009`, `A-010`, `A-011` | **10 of 15 MVP issues landed in 1 parallel wave!** Mobile QR onboarding, GitHub connector, Capability & Opportunity agents, 40/30/20/10 scorer, Proposal agent, SSE+poll bus, and all 3 Stage Visualizer modes (`16:9`) merged & tested; `v0.2.0` Sprint Report published at `/reports/v0.2.0/`. |
+| **Train 2 (`v0.3.0`)** | `13:45 PM` *(1h 45m)* | **`Car 2-A`:** `A-008` (Live), `A-012`<br>**`Car 2-C`:** `A-016` + Async Worker<br>**`Car 2-D`:** Stage Intro Polish | **Full Exceptional Success MVP Complete before 2:00 PM!** End-to-end async worker pipeline wired; `Interested`/`Pass` bilateral web introductions (`/me/matches/:id`) live; continuous rematching active; `v0.3.0` Sprint Report published at `/reports/v0.3.0/`. |
+| **Train 3 (`v1.0.0`)** | `17:30 PM` *(3h 45m polish)* | **Polish & Hardening Cars** (`Lanes A..D`) + **`Car 3-INT/Obsr`** (`A-014` S2, `A-015` S2) | **4 hours of live dogfooding, bug fixes, UI tweaks & stage enhancements.** Final `v1.0.0` Sprint Report + `v0.1.0–v1.0.0` Hackathon Retrospective published at `/reports/`. Hard Demo Freeze at `17:45 PM`. |
 
 ---
 
-## 3. Rollback & Incident Protocol
+## 3. Conflict-Free Release Cut (`W-REL`) & Rollback Protocol
 
-1. **Instant Alias Rollback (`< 30 seconds`):**
-   - At each milestone tag (`v0.1.0`, `v0.2.0`, `v0.3.0`), `Ariadne-INT` records the immutable Vercel deployment URL (`https://ariadne-<hash>.vercel.app`).
-   - If any subsequent merge degrades `/join`, `/me`, or `/stage`, `Ariadne-INT` immediately runs:
-     ```bash
-     vercel alias set <last-good-deployment-url> <production-domain>
-     ```
-2. **Database Forward-Compatibility Rule:**
-   - All H-Day database schema changes after `v0.0.1` must be **additive only** (new nullable columns or new tables—never drop or rename a column required by `v0.1.0` or `v0.2.0`), ensuring instant code rollback never conflicts with database state.
+1. **`changelog.d/` Fragment Compilation:**
+   - Feature Cars write `changelog.d/<car-id>.md` instead of editing root `CHANGELOG.md`.
+   - At each Train boundary, `Ariadne-INT` compiles `changelog.d/*.md` into root `CHANGELOG.md`, bumps `package.json` version, merges the release PR (`t5`), and tags `v0.X.0` (`t6`).
+2. **Pre-Cutover SQLite Backup & Instant Rollback (`< 15 seconds`):**
+   - Before restarting/reloading the local production process on `127.0.0.1:3420` (`t7`), `Ariadne-INT` takes an atomic SQLite backup (`sqlite3 data/ariadne.sqlite ".backup 'data/backups/ariadne-pre-v0.X.0.sqlite'"`) and records its SHA-256 digest.
+   - All schema migrations after `v0.1.0` are strictly additive. If any Train cutover fails health checks, `Ariadne-INT` checks out the prior tag (`git checkout v0.X-1.0`) and restarts `127.0.0.1:3420` in `< 15 seconds` without dropping the public HTTPS tunnel.

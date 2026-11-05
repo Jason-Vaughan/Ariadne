@@ -1,0 +1,79 @@
+{
+  "engine": "antigravity",
+  "silentPrime": true,
+  "featureIndexEnabled": true,
+  "acceptFolderTrust": true,
+  "projectMapEnabled": true,
+  "releaseMode": "agent",
+  "versionBumpEnabled": true,
+  "versionFilePath": null,
+  "wrapAutoPrEnabled": true,
+  "wrapKeepSessionRunning": null,
+  "wrapSections": null,
+  "wrapStepOverrides": {},
+  "provenanceWatermark": {
+    "enabled": true,
+    "template": "TangleClaw'd into existence by Jason Vaughan"
+  },
+  "defaultLaunchMode": "bypassPermissions",
+  "showLaunchModePicker": true,
+  "orchestrationKeyRef": null,
+  "rules": {
+    "core": {
+      "changelogPerChange": true,
+      "jsdocAllFunctions": true,
+      "unitTestRequirements": true,
+      "sessionWrapProtocol": true,
+      "porthubRegistration": true
+    },
+    "extensions": {
+      "identitySentry": false,
+      "docsParity": false,
+      "decisionFramework": false,
+      "loggingLevel": "info",
+      "zeroDebtProtocol": false,
+      "independentCritic": false,
+      "adversarialTesting": false
+    }
+  },
+  "ports": {},
+  "quickCommands": [],
+  "tags": [
+    "Ariadne"
+  ],
+  "evalAuditMode": {
+    "enabled": false,
+    "judgeModel": "claude-haiku-4-5",
+    "gateCascade": true,
+    "sampling": {
+      "enabled": true,
+      "routineInterval": 3,
+      "alwaysScoreFirst": 5,
+      "alwaysScoreLast": 3,
+      "alwaysScoreDisagreement": true,
+      "alwaysScoreLongResponses": true,
+      "longResponseThreshold": 500
+    },
+    "thinkingBlockAnalysis": true,
+    "bidirectionalScoring": false,
+    "wrapQualityScoring": true,
+    "costCapPerSession": 1,
+    "heartbeatInterval": 300000,
+    "baselineWindowDays": 14,
+    "retentionDays": 90
+  },
+  "testCommand": null,
+  "lintCommand": null,
+  "launchSequence": {
+    "pasteRules": "pull",
+    "unreadyWindowMinutes": 10,
+    "recoveryMode": "operator"
+  },
+  "releasePrepareCommand": null,
+  "workloadNudge": null,
+  "replyGuidance": null,
+  "suppressNonActionableWakes": false,
+  "decisionAuthorityPolicy": null,
+  "medusaEnabled": true,
+  "medusaWake": true
+}

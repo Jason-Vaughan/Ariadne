@@ -1,91 +1,66 @@
-# Dependency DAG & Parallel Scheduling Plan — ARIADNE (`ARIADNE-HACK-2026`)
+# Dependency DAG, Release Trains & Bundled Cars Plan — ARIADNE (`ARIADNE-HACK-2026`)
+*Amended: Web-Only MVP + TC-Lane-PM Multi-Issue Car Bundling (`Rule #294`)*
 
-## 1. Full Issue Dependency Graph (`A-001` through `A-017`)
+## 1. Why Multi-Issue Bundled Cars Beat Single-Issue Waves
+
+Per advisory consultation with `TC-Lane-PM` (`Rule #294` — *Single-Wave Multi-Issue Builder Car Bundling*):
+- With Discord (`A-013`) and Medusa (`A-017`) moved to the post-hackathon roadmap, the Ariadne MVP consists of **15 issues** (`A-001`..`A-012`, `A-014`..`A-016`).
+- Dispatching 15 individual single-issue PRs would cost ~3 hours in PR review queues, branch resets, and cross-lane rebases.
+- Instead, we freeze `src/contracts/*` and `src/db/schema.ts` in **Train 0 (`v0.1.0` at 10:15 AM)**, and then bundle co-located issues per Builder lane into **File-Disjoint Multi-Issue Cars** so **all 4 Builders execute simultaneously in Train 1 (`v0.2.0`)**, landing **10 of the 15 MVP issues by 12:00 PM PST** and completing the entire functional MVP in **Train 2 (`v0.3.0`) by 13:45 PM PST**—leaving **4 full hours (`13:45–17:45 PST`)** for bug fixes, UI tweaks, live dogfooding, and Judge Sprint Reports!
+
+---
+
+## 2. Four-Train Dependency & Car Execution Graph
 
 ```mermaid
 flowchart TD
-    subgraph Wave0["Wave 0: Foundation & Contracts (09:40 - 10:30)"]
-        A001["A-001 (P0): Core Architecture, Data & Event Contracts"]
-        A014_BOOT["A-014a (P0): Repo, DB & Vercel Pipeline Bootstrap"]
-        A015_BOOT["A-015a (P0): Provenance Ledger Initialized"]
+    subgraph Train0["Train 0 (v0.1.0): Foundation, SQLite WAL & Contracts (09:30 - 10:15 PST)"]
+        Car0["Car 0-INT (Ariadne-INT + Arc)\nIssues: A-001 + A-014 (Slice 1) + A-015 (Slice 1)\nOutput: Frozen src/contracts/*, SQLite WAL schema, /api/health, PortHub 3420"]
     end
 
-    subgraph Wave1["Wave 1: Core Parallel Build — Minimum Success M1 (10:30 - 12:30)"]
-        A002["A-002 (P0, Lane A): Mobile QR Onboarding & Consent UI"]
-        A003["A-003 (P0, Lane B): Bounded GitHub Public-Data Connector"]
-        A006["A-006 (P0, Lane C): Deterministic 4-Factor Match Scoring Engine"]
-        A009["A-009 (P0, Lane D): Append-Only Live Event Stream (SSE)"]
-        A004["A-004 (P0, Lane B): Evidence-Backed Capability Analysis Agent"]
-        A010["A-010 (P0, Lane D): 16:9 Public Network Visualizer"]
+    subgraph Train1["Train 1 (v0.2.0): Parallel Core Build — 10 Issues in 4 File-Disjoint Cars (10:15 - 12:00 PST)"]
+        Car1A["Car 1-A (Ariadne-Lane-A)\nIssues: A-002 + A-008 (UI Shell)\nQR Onboarding, Consent, Withdrawal & Mobile Results Shell"]
+        Car1B["Car 1-B (Ariadne-Lane-B)\nIssues: A-003 + A-004 + A-005\nGitHub Connector + Capability Agent + Opportunity Agent"]
+        Car1C["Car 1-C (Ariadne-Lane-C)\nIssues: A-006 + A-007\n40/30/20/10 Scorer + Match Research & Proposal Agent"]
+        Car1D["Car 1-D (Ariadne-Lane-D)\nIssues: A-009 + A-010 + A-011\nSQLite Event Bus (SSE + Poll) + 16:9 Stage Visualizer (All 3 Modes)"]
     end
 
-    subgraph Wave2["Wave 2: Intelligence & Matching — Strong Success M2 (12:30 - 15:00)"]
-        A005["A-005 (P1, Lane B): Opportunity & Bottleneck Discovery Agent"]
-        A007["A-007 (P0, Lane C): Match Research & Proposal Agent"]
-        A008["A-008 (P0, Lane A): Participant Match Results Interface"]
-        A011["A-011 (P1, Lane D): Stage Activity & Spotlight Modes"]
+    subgraph Train2["Train 2 (v0.3.0): End-to-End Integration, Mutual Intros & Rematching (12:00 - 13:45 PST)"]
+        Car2A["Car 2-A (Ariadne-Lane-A)\nIssues: A-008 (Live Wiring) + A-012\nInterested/Pass State Machine & Private Web Intro Room"]
+        Car2C["Car 2-C (Ariadne-Lane-C)\nIssue: A-016 + Async Worker Pipeline\nSQLite Job Runner Wiring (Lane B -> Lane C -> SSE) & Continuous Rematching"]
+        Car2D["Car 2-D (Ariadne-Lane-D)\nStage Live Intro Animations, Pseudonymity Hotkey & Judge HUD"]
     end
 
-    subgraph Wave3["Wave 3: Mutual Introductions & Stretch — Exceptional Success M3 (15:00 - 16:45)"]
-        A012["A-012 (P1, Lane A): Mutual-Introduction State Machine & Web Room"]
-        A013["A-013 (P1, Lane A/B): Dedicated Discord Event Bot"]
-        A016["A-016 (P2, Lane C): Continuous Rematching on New Entrants"]
-        A017["A-017 (P2, Lane C): Optional Medusa Coordination Adapter"]
+    subgraph Train3["Train 3 (v1.0.0): Bug Fixes, UI Polish & Judge Sprint Reports (13:45 - 17:45 PST — 4 Hours!)"]
+        Car3Pol["Parallel Polish & Bug-Fix Cars (Lanes A..D)\nUX Tweaks, Edge-Case Hardening & Stage Polish"]
+        Car3Obs["Car 3-INT/Obsr (A-014 Slice 2 + A-015 Slice 2)\nTunnel Verification, SQLite Snapshot & v0.1.0..v1.0.0 HTML Sprint Reports"]
     end
 
-    subgraph Wave4["Wave 4: Hardening, Provenance & Demo Freeze (16:45 - 18:00)"]
-        A014_FINAL["A-014b (P0, INT): Production Resilience, Rate Limits & Rollback Verification"]
-        A015_FINAL["A-015b (P0, PM/Obsr): Final Judge Provenance & Demo Evidence Packet"]
-    end
-
-    A001 --> A002 & A003 & A006 & A009 & A014_BOOT & A015_BOOT
-    A003 --> A004
-    A009 --> A010
-    A003 & A004 --> A005
-    A004 & A006 --> A007
-    A002 & A006 & A007 --> A008
-    A007 & A009 & A010 --> A011
-    A008 --> A012
-    A012 --> A013
-    A006 & A007 --> A016
-    A007 --> A017
-    A008 & A010 & A011 & A012 --> A014_FINAL & A015_FINAL
+    Car0 --> Car1A & Car1B & Car1C & Car1D
+    Car1A & Car1B & Car1C & Car1D --> Car2A & Car2C & Car2D
+    Car2A & Car2C & Car2D --> Car3Pol & Car3Obs
 ```
 
 ---
 
-## 2. Critical Path Analysis
+## 3. Train-by-Train Car Allocation & File-Disjoint Envelopes
 
-The **Critical Path to Minimum Success (`M1` at 12:30 PM)** is:
-`A-001 (Contracts)` → `A-003 (GitHub Connector)` → `A-004 (Capability Analysis)` + `A-002 (QR Onboarding)` + `A-009/A-010 (Event Stream & Network Graph)`.
-
-The **Critical Path to Strong Success (`M2` at 15:00 PM)** is:
-`A-001` → `A-004` + `A-006 (Scoring Engine)` → `A-007 (Match Proposal Agent)` → `A-008 (Participant Match Results UI)`.
-
-The **Critical Path to Exceptional Success (`M3` at 16:45 PM)** is:
-`A-008` → `A-012 (Mutual-Introduction Workflow)` → `A-013 (Discord Event Bot)` + `A-011 (Spotlight Mode)`.
-
-### Key Parallelization Unlock
-Notice that in the raw dependency list, `A-006` (Match Scoring Engine) depends on `A-001` and `A-004`. Because `A-001` defines the exact `CapabilityClaim`, `OpportunityNeed`, and `EvidenceReceipt` TypeScript interfaces upfront in Wave 0, **Builder C (`Lane-C`) can build and unit-test 100% of `A-006` in Wave 1 against the `A-001` contract** in parallel with Builder B building `A-003`/`A-004`!
-
----
-
-## 3. Wave-by-Wave Merge Order & Integration Gates
-
-| Wave | Window (PST) | PR Merge Order (`I-Gate`) | Release Tag | Checkpoint Deliverable |
-|---|---|---|---|---|
-| **Wave 0** | `09:40–10:30` | 1. `A-001` (Contracts + DB Schema)<br>2. `A-014a` (Vercel + DB Bootstrap)<br>3. `A-015a` (Provenance Baseline) | `v0.0.1-contracts` | All 4 Builder lanes branch off `v0.0.1-contracts` with zero type ambiguity. |
-| **Wave 1** | `10:30–12:30` | 1. `A-009` (Event Stream SSE)<br>2. `A-003` (GitHub Connector)<br>3. `A-006` (Match Scorer)<br>4. `A-002` (Onboarding UI)<br>5. `A-004` (Capability Agent)<br>6. `A-010` (Network Visualizer) | `v0.1.0-m1` (**Minimum Success**) | Live QR onboarding → GitHub fetch → grounded capability profile → node appears on 16:9 stage graph. |
-| **Wave 2** | `12:30–15:00` | 1. `A-005` (Opportunity Discovery)<br>2. `A-007` (Match Proposal Agent)<br>3. `A-008` (Match Results UI)<br>4. `A-011` (Activity & Spotlight Views) | `v0.2.0-m2` (**Strong Success**) | End-to-end top-3 match generation with 4-factor breakdown, evidence links, and stage spotlighting. |
-| **Wave 3** | `15:00–16:45` | 1. `A-012` (Mutual Intro State Machine + Web Room)<br>2. `A-016` (Continuous Rematching)<br>3. `A-013` (Discord Event Bot)<br>4. `A-017` (Optional Medusa Adapter) | `v0.3.0-m3` (**Exceptional Success**) | Mutual `Interested` approvals unlock private web room + Discord bot introduction + stage celebration animation. |
-| **Wave 4** | `16:45–17:45` | 1. `A-014b` (Hardening & Smoke Verification)<br>2. `A-015b` (Judge Provenance Report) | `v1.0.0-hackathon` (**Demo Freeze**) | Production locked 15 minutes before judging (`17:45 PST`). |
+| Train / Version | Window (PST) | Car ID | Lane | Bundled Issues | Exclusive File Write Envelope |
+|---|---|---|---|---|---|
+| **Train 0 (`v0.1.0`)** | `09:30–10:15` | **`Car 0-INT`** | `Ariadne-INT` *(+ `Arc`)* | `A-001`, `A-014` (S1), `A-015` (S1) | `package.json`, `src/contracts/*`, `src/db/*`, `src/app/api/health/*`, `docs/provenance/*`, `changelog.d/A-001.md` |
+| **Train 1 (`v0.2.0`)** | `10:15–12:00` | **`Car 1-A`** | `Ariadne-Lane-A` | `A-002`, `A-008` (Shell) | `src/app/join/*`, `src/app/me/*`, `src/app/api/participants/*`, `src/app/api/auth/*`, `tests/lane-a/*`, `changelog.d/A-002.md` |
+| **Train 1 (`v0.2.0`)** | `10:15–12:00` | **`Car 1-B`** | `Ariadne-Lane-B` | `A-003`, `A-004`, `A-005` | `src/lib/github/*`, `src/lib/agents/profile-research.ts`, `src/lib/agents/opportunity-discovery.ts`, `tests/lane-b/*`, `changelog.d/A-003-004-005.md` |
+| **Train 1 (`v0.2.0`)** | `10:15–12:00` | **`Car 1-C`** | `Ariadne-Lane-C` | `A-006`, `A-007` | `src/lib/scoring/*`, `src/lib/agents/match-evaluator.ts`, `src/lib/agents/intro-writer.ts`, `tests/lane-c/*`, `changelog.d/A-006-007.md` |
+| **Train 1 (`v0.2.0`)** | `10:15–12:00` | **`Car 1-D`** | `Ariadne-Lane-D` | `A-009`, `A-010`, `A-011` | `src/lib/events/*`, `src/app/api/events/*`, `src/app/stage/*`, `src/components/stage/*`, `tests/lane-d/*`, `changelog.d/A-009-010-011.md` |
+| **Train 2 (`v0.3.0`)** | `12:00–13:45` | **`Car 2-A`** | `Ariadne-Lane-A` | `A-008` (Live), `A-012` | `src/app/me/*`, `src/app/api/matches/*`, `src/lib/intros/*`, `tests/lane-a/intros.test.ts`, `changelog.d/A-008-012.md` |
+| **Train 2 (`v0.3.0`)** | `12:00–13:45` | **`Car 2-C`** | `Ariadne-Lane-C` | `A-016` + Worker | `src/lib/jobs/*`, `src/lib/scoring/rematcher.ts`, `src/app/api/worker/*`, `tests/lane-c/rematcher.test.ts`, `changelog.d/A-016.md` |
+| **Train 2 (`v0.3.0`)** | `12:00–13:45` | **`Car 2-D`** | `Ariadne-Lane-D` | Stage Wiring & Polish | `src/app/stage/*`, `src/components/stage/*`, `src/app/reports/*` |
+| **Train 3 (`v1.0.0`)** | `13:45–17:45` | **`Car 3-*`** | All Lanes + `Obsr`/`INT` | `A-014` (S2), `A-015` (S2), Polish & Bug Fixes | Disjoint polish assignments + `docs/reports/v0.1.0..v1.0.0/index.html` (`Sprint Reporting Standard v2.0.0`) |
 
 ---
 
-## 4. Safe Deferral Shedding Ladder (If Behind Schedule)
+## 4. Zero-Collision Shared-File Prevention Rules
 
-If any wave slips by `> 25 minutes`, `Ariadne-PM` executes the following pre-authorized shedding order:
-1. **First to Shed (`15:00` check):** `A-017` (Medusa Coordination Adapter — `P2 Optional`). Zero impact on user-facing product or stage demo.
-2. **Second to Shed (`15:30` check):** `A-016` (Continuous Rematching — `P2`). Participants can click a manual *"Refresh Matches"* button on `/me` instead of background auto-rematch triggers.
-3. **Third to Shed (`16:00` check):** `A-013` (Discord Event Bot — `P1`). `A-012` already includes the complete **Private Web Introduction Room** where mutually matched participants exchange contact info and starter prompts directly in the mobile web app.
-4. **Fourth to Shed (Partial degradation):** `A-005` deep issue scraping falls back to repository description + topic + language opportunity inference so `A-006`/`A-007` remain fast and reliable.
+1. **Frozen Root & Contracts after `v0.1.0`:** No Builder lane (`Lane-A`..`D`) ever modifies `package.json`, `tsconfig.json`, `src/contracts/*`, or `src/db/schema.ts`.
+2. **Changelog Fragments (`changelog.d/<issue>.md`):** Builders never edit root `CHANGELOG.md` on feature branches. Each Car writes its entry to `changelog.d/<car-issues>.md`, and `Ariadne-INT` compiles root `CHANGELOG.md` during each Train release cut (`v0.1.0`, `v0.2.0`, `v0.3.0`, `v1.0.0`).
+3. **Pre-Flight Architect Ruling (`A-Gate`):** Before `Ariadne-PM` dispatches any Car, `Ariadne-Arc` posts the exact exported function names and file write envelope on the issue(s), enabling same-wave file-disjoint merging without ancestor rebases.

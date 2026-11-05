@@ -1,4 +1,5 @@
 # H-Day Minute-by-Minute Launch & Execution Runbook — ARIADNE (`ARIADNE-HACK-2026`)
+*Amended: 4-Train Bundled Car Schedule + Web-Only Self-Hosted Stack*
 
 > **CRITICAL GOVERNANCE RULE:** Do NOT execute any step in Section 2 at 09:30 AM PST automatically. Wait for the Operator's explicit **`GO`** command on Saturday, November 7, 2026.
 
@@ -6,38 +7,36 @@
 
 ## 1. Pre-GO Morning Verification (`09:00 – 09:29 AM PST` — Read-Only)
 
-- **09:00 AM:** Operator arrives at venue, connects laptop to power + venue Wi-Fi (and verifies cellular hotspot backup).
-- **09:10 AM:** Operator verifies `Ariadne-PM` session is live in TangleClaw and checks that pre-provisioned credentials (`GITHUB_TOKEN`, `DATABASE_URL`, `LLM_API_KEY`, `DISCORD_BOT_TOKEN`) are ready in the Operator password manager / `.env` staging note.
-- **09:20 AM:** Confirm zero application code exists in `/Users/jasonvaughan/Documents/Projects/Ariadne-PM`. Wait for Hackathon Kickoff bell (`09:30 AM PST`).
+- **09:00 AM:** Operator arrives at venue, connects laptop to power + venue Wi-Fi (and verifies phone hotspot backup).
+- **09:10 AM:** Verify `Ariadne-PM` session is live in TangleClaw and check that the 4 local `.env` variables (`ARIADNE_GITHUB_TOKEN`, `ARIADNE_GITHUB_OAUTH_CLIENT_ID`, `ARIADNE_GITHUB_OAUTH_CLIENT_SECRET`, `ARIADNE_LLM_API_KEY`) are staged.
+- **09:20 AM:** Confirm zero application code exists before the `09:30 AM PST` kickoff bell.
 
 ---
 
-## 2. Minute-by-Minute Launch Checklist (`T+00` to `T+60` After Explicit Operator `GO`)
+## 2. Minute-by-Minute Train 0 Launch Sequence (`T+00` to `T+45` After Operator `GO`)
 
 | Offset | Clock (PST) | Actor | Action & Verification Command |
 |---|---|---|---|
 | **T+00m** | `09:30` | **Operator** | Issues explicit **`GO — AUTHORIZE ARIADNE H-DAY EXECUTION`** in `Ariadne-PM`. |
-| **T+01m** | `09:31` | **`Ariadne-PM`** | Records exact UTC/PST authorization timestamp (`date -u +"%Y-%m-%dT%H:%M:%SZ"`) and generates the SHA-256 pre-event planning snapshot (`shasum -a 256 *.md ISSUE_BACKLOG/*.md > PRE_EVENT_MANIFEST.sha256`). |
-| **T+03m** | `09:33` | **`Ariadne-PM`** | Creates public GitHub repository (`gh repo create Jason-Vaughan/ariadne --public --description "Ariadne — AI-Native Professional Discovery Network (Find Your Thread)"`) with licensing deferred (`UNLICENSED`/TBD per charter) and pushes initial pre-event planning snapshot tagged `v0.0.0-planning-baseline`. |
-| **T+06m** | `09:36` | **`Ariadne-PM`** | Creates repository labels (`P0-critical`, `P1-target`, `P2-stretch`, `lane:int`, `lane:a-web`, `lane:b-github`, `lane:c-matching`, `lane:d-stage`) and milestones (`M0`..`M4`). |
-| **T+08m** | `09:38` | **`Ariadne-PM`** | Publishes all 17 prepared issue drafts (`ISSUE_BACKLOG/A-001.md` .. `A-017.md`) to GitHub Issues via `gh issue create -F ISSUE_BACKLOG/A-00X.md`. |
-| **T+12m** | `09:42` | **`Ariadne-INT` + `Arc-PRR`** | Dispatched on **Wave 0 (`A-001`, `A-014a`, `A-015a`)**: initializes Next.js + TypeScript skeleton, `src/contracts/*`, `src/db/schema.ts`, Vitest harness, and initial Vercel production link. |
-| **T+35m** | `10:05` | **`Ariadne-Arc-PRR`** | Completes `R-Gate` review on `A-001` PR; verifies all entity/event contracts match `DATA_AND_EVENTS_CONTRACT.md`. |
-| **T+45m** | `10:15` | **`Ariadne-INT`** | Merges `A-001` + `A-014a`, runs database migration, verifies `GET /api/health` on live Vercel HTTPS URL, and tags `v0.0.1-contracts`. |
-| **T+50m** | `10:20` | **`Ariadne-INT`** | Creates isolated Git worktrees (`wt-lane-a`, `wt-lane-b`, `wt-lane-c`, `wt-lane-d`, `wt-arc`) from `v0.0.1-contracts` and registers local dev ports (`3420`, `3421`, `4420`) in TangleClaw PortHub. |
-| **T+55m** | `10:25` | **`Ariadne-PM`** | Dispatches **Wave 1** in parallel across all 4 Builder lanes via Medusa switchboard (`tc message send`):<br>- `Lane-A`: `A-002` (Onboarding & QR Intake)<br>- `Lane-B`: `A-003` → `A-004` (GitHub Connector & Capability Agent)<br>- `Lane-C`: `A-006` (Match Scoring Engine)<br>- `Lane-D`: `A-009` → `A-010` (SSE Event Stream & Network Graph) |
-| **T+60m** | `10:30` | **Operator** | Fleet is at full autonomous cruise. Operator is free to step away from the terminal to network with hackathon attendees while monitoring progress via TangleClaw mobile/MagicDNS view. |
+| **T+01m** | `09:31` | **`Ariadne-PM`** | Records `t1_first_activity` (`date -u +"%Y-%m-%dT%H:%M:%SZ"`) and locks `PRE_EVENT_MANIFEST.sha256`. |
+| **T+03m** | `09:33` | **`Ariadne-PM`** | Creates public GitHub repository (`gh repo create Jason-Vaughan/ariadne --public --description "Ariadne — AI-Native Professional Discovery Network (Find Your Thread)"`, license `UNLICENSED`/TBD) and pushes pre-event planning baseline tagged `v0.0.0-planning-baseline`. |
+| **T+05m** | `09:35` | **`Ariadne-PM`** | Creates GitHub labels (`P0-critical`, `P1-target`, `P2-stretch`, `car:0-int`, `car:1-a..d`, `car:2-a..d`), milestones (`v0.1.0`, `v0.2.0`, `v0.3.0`, `v1.0.0`), and publishes the 15 MVP issue drafts (`ISSUE_BACKLOG/A-001.md`..`A-016.md`). |
+| **T+08m** | `09:38` | **`Ariadne-Arc`** | Posts Pre-Flight Rulings (`W0-INT`, `W1-A`, `W1-B`, `W1-C`, `W1-D`) naming exact exported functions in `src/contracts/*` and exclusive file write envelopes per Car. |
+| **T+10m** | `09:40` | **`Ariadne-INT`** | Executes **`Car 0-INT` (`A-001`, `A-014` S1, `A-015` S1)**: initializes project skeleton, frozen `src/contracts/*`, SQLite WAL schema (`src/db/schema.ts`), `/api/health`, registers PortHub port `3420` (`loopback`) + narrow HTTPS tunnel (`cloudflared tunnel --url http://127.0.0.1:3420`), and opens PR #1. |
+| **T+32m** | `10:02` | **`Ariadne-PRR` & `Arc`** | Issue `R-Gate ACCEPT` + `A-Gate ACCEPT` on PR #1 (`Car 0-INT`). |
+| **T+38m** | `10:08` | **`Ariadne-INT`** | Merges PR #1 via `gh pr merge --merge`, tags **`v0.1.0` (`Train 0`)**, starts local server on `127.0.0.1:3420`, and creates isolated Git worktrees (`wt-lane-a`..`d`, `wt-arc`, `wt-prr`, `wt-obsr`). |
+| **T+42m** | `10:12` | **`Ariadne-Obsr`** | Certifies `O-Gate PASS` and generates the **`v0.1.0` Interactive HTML Sprint Report** (`/reports/v0.1.0/`). |
+| **T+45m** | `10:15` | **`Ariadne-PM`** | Dispatches **Train 1 (`v0.2.0`)** simultaneously across all 4 Builder lanes (`Single-Turn Plan+Build` fast path):<br>- `Lane-A`: **`Car 1-A`** (`A-002` + `A-008` UI Shell)<br>- `Lane-B`: **`Car 1-B`** (`A-003` + `A-004` + `A-005` GitHub & Intelligence Agents)<br>- `Lane-C`: **`Car 1-C`** (`A-006` + `A-007` 40/30/20/10 Scorer & Proposal Agent)<br>- `Lane-D`: **`Car 1-D`** (`A-009` + `A-010` + `A-011` SQLite SSE/Poll Bus & 16:9 Stage Visualizer) |
 
 ---
 
-## 3. Full-Day Wave Schedule (`10:30 AM – 18:00 PM PST`)
+## 3. Full-Day Train Execution Schedule (`10:15 AM – 18:00 PM PST`)
 
-| Time Window | Phase | Key Actions | Operator Touchpoint |
+| Time Window | Train / Version | Fleet Execution | Operator Touchpoint |
 |---|---|---|---|
-| **10:30 – 12:15** | **Wave 1 Execution** | Builders A, B, C, D implement and test `A-002`, `A-003`, `A-004`, `A-006`, `A-009`, `A-010`. `Arc-PRR` reviews PRs as they open. | Hands-off (networking on floor). |
-| **12:15 – 12:30** | **M1 Integration Gate** | `Ariadne-INT` merges Wave 1 PRs, deploys `v0.1.0-m1`, and runs live QR smoke test. Chunk receipts recorded before `/clear`. | **12:30 PM (2 min check):** Scan QR code on phone, verify own GitHub profile + stage node appear (**Minimum Success achieved**). |
-| **12:30 – 14:45** | **Wave 2 Execution** | `Ariadne-PM` verifies Wave 1 chunk receipts (`validateNextChunkDispatch`) and dispatches Wave 2: `A-005` (Lane B), `A-007` (Lane C), `A-008` (Lane A), `A-011` (Lane D). | Hands-off (invite 3–5 fellow attendees to scan QR code as early beta testers). |
-| **14:45 – 15:00** | **M2 Integration Gate** | `Ariadne-INT` merges Wave 2 PRs, deploys `v0.2.0-m2`, verifies top-3 evidence-backed matches and Spotlight view. | **15:00 PM (5 min check):** Review real matches generated between early participants (**Strong Success achieved**). Decide if any Wave 3 items need shedding. |
-| **15:00 – 16:30** | **Wave 3 Execution** | Dispatch `A-012` (Mutual Intro State Machine), `A-013` (Discord Bot), and `A-016` (Continuous Rematching). | Hands-off. |
-| **16:30 – 16:45** | **M3 Integration Gate** | `Ariadne-INT` deploys `v0.3.0-m3` and tests bilateral `Interested` → Discord/Web intro flow. | **16:45 PM (5 min check):** Complete a live mutual introduction test (**Exceptional Success achieved**). |
-| **16:45 – 17:45** | **Wave 4 Hardening & Freeze** | `A-014b` resilience checks + `A-015b` final judge provenance ledger (`/provenance`). **Hard Freeze at 17:45 PM (`v1.0.0`).** | **17:45 PM:** Stage laptop connected/verified; ready for 18:00 PM judging. |
+| **10:15 – 11:40** | **Train 1 Build (`v0.2.0`)** | All 4 Builders code & unit-test `Car 1-A`, `Car 1-B`, `Car 1-C`, `Car 1-D` in parallel against frozen `src/contracts/*` fixtures (zero file overlap). `Ariadne-PRR` reviews each PR as it opens. | **Hands-off** (networking on hackathon floor). |
+| **11:40 – 12:00** | **Train 1 Cutover (`v0.2.0`)** | `Ariadne-INT` merges all 4 Cars (`--merge`), compiles `changelog.d/*`, tags **`v0.2.0`**, reloads `127.0.0.1:3420`. `Ariadne-Obsr` publishes `/reports/v0.2.0/`. | **12:00 PM (2 min check):** View `/stage` and `/join` live; **10 of 15 MVP issues shipped by noon!** |
+| **12:00 – 13:25** | **Train 2 Build (`v0.3.0`)** | `Ariadne-PM` verifies Train 1 chunk receipts (`validateNextChunkDispatch`), clears lanes, and dispatches **Train 2**:<br>- `Car 2-A` (`A-008` live + `A-012` Web Mutual-Intro Room)<br>- `Car 2-C` (`A-016` Rematcher + SQLite Async Job Worker wiring)<br>- `Car 2-D` (Stage Intro Animations & Judge HUD) | **Hands-off** (lunch + networking). |
+| **13:25 – 13:45** | **Train 2 Cutover (`v0.3.0`)** | `Ariadne-INT` merges Train 2 Cars, tags **`v0.3.0`**, takes SQLite backup, reloads `127.0.0.1:3420`. `Ariadne-Obsr` publishes `/reports/v0.3.0/`. | **13:45 PM (5 min check):** **100% of Core & Stretch MVP (`M1` + `M2` + `M3`) is live before 2:00 PM!** |
+| **13:45 – 17:15** | **Train 3 Polish, Dogfooding & Bug Fixes (`v1.0.0`)** | **3.5+ Hours of Dedicated Polish Runway:** Invite real hackathon attendees to scan the QR code; dispatch targeted UX polish, visual tweaks, and edge-case fixes across `Lane-A..D` based on real usage. | Walk the floor inviting attendees to scan the QR code & connect. |
+| **17:15 – 17:45** | **Train 3 Final Release & Demo Freeze (`v1.0.0`)** | `Ariadne-INT` tags **`v1.0.0`**, takes final SQLite snapshot. `Ariadne-Obsr` publishes `/reports/v1.0.0/` and `/reports/v0.1.0-v1.0.0-retrospective/` (passing `validate-sprint-report.py`). **Hard Code Freeze at 17:45 PM.** | **17:45 PM:** Stage laptop connected to 16:9 display; ready for 18:00 PM judging. |
