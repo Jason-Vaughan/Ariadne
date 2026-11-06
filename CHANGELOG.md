@@ -5,6 +5,9 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Fleet Provisioning Pack & Git-Tracked Role Priming Prompts (`.tangleclaw/priming/`):**
+  - Added `FLEET_PROVISIONING_PACK.md` with the 1-Paste Operator Dashboard Console batch provisioner (`POST /api/projects` is `OPERATOR_ONLY`) and role overlay rule definitions for `Ariadne-Arc`, `Ariadne-PRR`, `Ariadne-INT`, `Ariadne-Obsr`, and `Ariadne-Lane-A..D`.
+  - Added git-tracked priming prompts in `.tangleclaw/priming/` (`pm.md`, `architect.md`, `prr.md`, `integrator.md`, `observer.md`, `builder.md`) mirrored to `.tangleclaw/plans/PRIMING_*.md`.
 - **Master SSOT Index, Per-Train Sprint Charters, Dispatch Queue & Rule Proposal (`Rule #304`):**
   - Added `PROJECT_DOCUMENTS.md` (`MASTER_SSOT.md`) as the Single Source of Truth linking all 4 Per-Train Sprint Charters (`TRAIN_0_CHARTER_v0.1.0.md` through `TRAIN_3_CHARTER_v1.0.0.md`), core specifications, runbooks, and 17 issue drafts.
   - Added `LANE_QUEUE.md` staging the 4 Release Trains (`v0.1.0`..`v1.0.0`), 8 File-Disjoint Cars (`Car 0-INT`, `Car 1-A..D`, `Car 2-A/C/D`), and Chunk-Boundary receipt ledger (`#1889`).

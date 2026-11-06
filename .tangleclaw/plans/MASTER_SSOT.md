@@ -47,7 +47,8 @@
 
 | Document | Shareable MagicDNS Link | Scope & Purpose |
 |---|---|---|
-| **Fleet Charter & Durable Rules** | [FLEET_CHARTER.md](https://cursatory.tail123678.ts.net:8443/plans/149/FLEET_CHARTER.md) | 8–9 pane fleet topology (`PM`, `Arc`, `PRR`, `INT`, `Obsr`, `Lane-A..D`), worktree isolation, and 6 Durable Fleet Rules (proposed as **`Rule #304`** on `projectId: 149`). |
+| **Fleet Charter & Durable Rules** | [FLEET_CHARTER.md](https://cursatory.tail123678.ts.net:8443/plans/149/FLEET_CHARTER.md) | 8–9 pane fleet topology (`PM`, `Arc`, `PRR`, `INT`, `Obsr`, `Lane-A..D`), worktree isolation, and 6 Durable Fleet Rules (**`Rule #304` Active** on `projectId: 149`). |
+| **Fleet Provisioning & Rule Pack** | [FLEET_PROVISIONING_PACK.md](https://cursatory.tail123678.ts.net:8443/plans/149/FLEET_PROVISIONING_PACK.md) | 1-Paste Operator Dashboard Console provisioner for the 8 remaining fleet lanes (`Ariadne-Arc`, `PRR`, `INT`, `Obsr`, `Lane-A..D`), role overlays, and priming links (`PRIMING_PM.md`, `PRIMING_ARCHITECT.md`, `PRIMING_PRR.md`, `PRIMING_INTEGRATOR.md`, `PRIMING_OBSERVER.md`, `PRIMING_BUILDER.md`). |
 | **Fleet Dispatch Queue (`LANE_QUEUE`)** | [LANE_QUEUE.md](https://cursatory.tail123678.ts.net:8443/plans/149/LANE_QUEUE.md) | Live dispatch queue staging all 4 Release Trains (`v0.1.0`–`v1.0.0`), 8 Bundled Cars, and Chunk-Boundary receipt ledger (`#1889`). |
 | **Roadmap Board & Sprint Reports Hub Spec** | [ROADMAP_AND_REPORTS_HUB_SPEC.md](https://cursatory.tail123678.ts.net:8443/plans/149/ROADMAP_AND_REPORTS_HUB_SPEC.md) | Specification for `/roadmap/index.html` and `/reports/index.html` (`v2.0.0` Sprint Reports Hub & Retrospective). |
 | **Dependency DAG & Car Schedule** | [DEPENDENCY_DAG.md](https://cursatory.tail123678.ts.net:8443/plans/149/DEPENDENCY_DAG.md) | 4-Train DAG, file-disjoint Car write envelopes, and `changelog.d/` collision prevention. |
