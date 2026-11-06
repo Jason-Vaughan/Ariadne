@@ -1,94 +1,190 @@
-# Ariadne Hackathon Fleet Provisioning & Rule Seeding Pack
+# Ariadne Hackathon Fleet Provisioning, Non-Interactive & Medusa Config + Rule Seeding Pack
 
 **Project:** `ARIADNE-HACK-2026` (*Find Your Thread.*)  
 **PM Session:** `Ariadne-PM` (`projectId: 149`, Medusa ID: `ariadne-pm-db0f895f`)  
-**Status:** Ready for Operator Execution (`POST /api/projects` is gated by `OPERATOR_ONLY`)
+**Status:** 5 of 8 Lanes Created (`#150..#154`); Ready for Final 1-Paste Complete Provisioning, Medusa + Bypass Config, Active Rule Seeding & PM Lifecycle Delegation
 
 ---
 
-## 1. Why Operator Execution Is Required for Project Creation
+## 1. What Failed in Paste #1 (And How Paste #2 Fixes Everything in One Run)
 
-When `Ariadne-PM` called `POST http://localhost:3102/api/projects`, TangleClaw enforced its project-creation boundary:
-
-```json
-{
-  "error": "Only the operator can create a project. Ask the operator to do it from the TangleClaw dashboard; no project or Project Master binding can.",
-  "code": "OPERATOR_ONLY"
-}
-```
-
-To make creating the 8 remaining Ariadne fleet lanes effortless, use **Option A (1-Paste Dashboard Console Script — takes ~3 seconds)** or **Option B (Dashboard `+ New Project` UI Table)** below.
+1. **Engine IDs (`Ariadne-Arc`, `Ariadne-PRR`, `Ariadne-INT`):**
+   - TangleClaw's exact engine IDs (`GET /api/engines`) are **`antigravity`**, **`codex`**, and **`claude-sonnet-reviewer`** (not `claude-opus` or `codex-medium`).
+2. **Medusa Disabled & Interactive Mode On:**
+   - `POST /api/projects` creates a project with default settings (`defaultLaunchMode: "default"`, `showLaunchModePicker: true`, `medusaEnabled: false`).
+   - To enable **Medusa** (`medusaEnabled: true`, `medusaWake: true`) and turn **Interactive Mode OFF** (`defaultLaunchMode: "bypassPermissions"`, `showLaunchModePicker: false`, `confirmBypassHidden: true`), the script runs **`PATCH /api/projects/<name>`** on every lane (matching `TC-Lane-*` `.tangleclaw/project.json` settings).
+3. **No Active Rules Visible in the Lanes:**
+   - `Ariadne-PM` cannot call `POST /api/session-rules` on another project (`403 OTHER_PROJECT`).
+   - When run from your Dashboard Console, **`POST /api/session-rules` with `{ projectId: p.id, content: ... }`** creates the rules as **`status: "active"`** immediately! Each lane receives two active `startup` rules matching the `TC-Lane-*` pattern:
+     1. **`TEAM COMMON CORE (ARIADNE-HACK-2026 v1)`**
+     2. **`<ROLE> ROLE OVERLAY (ARIADNE-HACK-2026 v1)`**
+4. **`Ariadne-PM` Autonomous Fleet Lifecycle Authority:**
+   - Grants `Ariadne-PM` (`projectId: 149`) the `"project-manager"` Coordinator Role (`POST /api/tc/rotation/role/grant`) and delegates `lifecycle`, `hold`, `stop`, and `releaseDelegations` on all 8 lanes (`POST /api/control/assignments`).
 
 ---
 
-## 2. Option A — 1-Paste Dashboard Console Provisioner (~3 Seconds, Recommended)
+## 2. 1-Paste Complete Dashboard Console Script (Creates Missing 3 Lanes + Configures All 8 Lanes + Seeds Active Rules + Delegates PM Authority)
 
-Open the **TangleClaw Dashboard** (`https://cursatory.tail123678.ts.net:8443/`), open Browser DevTools (**Console**), and paste the block below. It uses the dashboard's built-in `apiMutate()` helper under your active Operator login to create all 8 fleet projects with the exact `TC-Lane-*` engine mapping and tags (`["Ariadne", "Ariadne-Fleet"]`):
+Open the **TangleClaw Dashboard** (`https://cursatory.tail123678.ts.net:8443/`), open Browser DevTools (**Console**), and paste this single self-contained block:
 
 ```javascript
 (async () => {
+  const call = (url, method = 'GET', body = undefined) =>
+    fetch(url, {
+      method,
+      headers: body ? { 'Content-Type': 'application/json' } : undefined,
+      body: body ? JSON.stringify(body) : undefined,
+    }).then(async (r) => ({ ok: r.ok, status: r.status, data: await r.json().catch(() => ({})) }));
+
   const fleet = [
-    { name: 'Ariadne-Arc',    engine: 'antigravity',            role: 'Technical Architect & A-Gate Owner' },
-    { name: 'Ariadne-PRR',    engine: 'codex',                  role: 'Independent PR Reviewer & R-Gate Owner' },
-    { name: 'Ariadne-INT',    engine: 'codex',                  role: 'Sole Integrator, :3420 Deployer & I-Gate Owner' },
-    { name: 'Ariadne-Obsr',   engine: 'antigravity',            role: 'Sprint Process Observer, O-Gate & v2.0.0 Reports Owner' },
-    { name: 'Ariadne-Lane-A', engine: 'claude-sonnet-reviewer', role: 'Builder A — Backend Core, Ingestion & Introductions' },
-    { name: 'Ariadne-Lane-B', engine: 'claude-sonnet-reviewer', role: 'Builder B — Hybrid Matching & Evidence Engine' },
-    { name: 'Ariadne-Lane-C', engine: 'claude-sonnet-reviewer', role: 'Builder C — Mobile Participant Web UI' },
-    { name: 'Ariadne-Lane-D', engine: 'claude-sonnet-reviewer', role: 'Builder D — Stage Visualizer, Privacy & Resilience' },
+    { name: 'Ariadne-Arc',    engine: 'antigravity',            roleKey: 'ARC' },
+    { name: 'Ariadne-PRR',    engine: 'codex',                  roleKey: 'PRR' },
+    { name: 'Ariadne-INT',    engine: 'codex',                  roleKey: 'INT' },
+    { name: 'Ariadne-Obsr',   engine: 'antigravity',            roleKey: 'OBSR' },
+    { name: 'Ariadne-Lane-A', engine: 'claude-sonnet-reviewer', roleKey: 'BUILDER_A' },
+    { name: 'Ariadne-Lane-B', engine: 'claude-sonnet-reviewer', roleKey: 'BUILDER_B' },
+    { name: 'Ariadne-Lane-C', engine: 'claude-sonnet-reviewer', roleKey: 'BUILDER_C' },
+    { name: 'Ariadne-Lane-D', engine: 'claude-sonnet-reviewer', roleKey: 'BUILDER_D' },
   ];
 
+  const COMMON_CORE = `TEAM COMMON CORE (ARIADNE-HACK-2026 v1 — governs Ariadne-Arc, Ariadne-PRR, Ariadne-INT, Ariadne-Obsr, Ariadne-Lane-A..D)
+
+1. Authority, Pre-H-Day Gate & Scope: Work only under an active Sprint Train Charter (Train 0..3) and explicit Car dispatch from Ariadne-PM (Medusa: ariadne-pm-db0f895f). ZERO Ariadne application code (src/, public/app/, data/ariadne.db) may be written before 09:30 AM PST on Saturday, Nov 7, 2026 AND explicit Operator GO. Stay strictly inside your assigned Car's file envelope; never self-start unassigned issues or touch another lane's files.
+2. Architecture, Isolation & PortHub: Ariadne is a 100% web-only, self-hosted Node.js 22 + TypeScript + SQLite WAL (data/ariadne.db) + SSE (GET /api/events/stream) + polling fallback (GET /api/events/poll) application bound to 127.0.0.1:3420 (registered via PortHub; staging :3421; test harness :4420). Zero Ariadne runtime code or public ingress may import, proxy, or expose TangleClaw control-plane ports (:3102, :8443).
+3. Privacy, Double-Opt-In Consent & Anti-Clone Matching: Stage payloads (GET /api/stage/snapshot, stage.* SSE) must remain pseudonymous (display_alias + cluster badge only) unless stage_display_consent = 1. Contact details are NEVER returned until BOTH participants explicitly approve (approval_a = 1 AND approval_b = 1). Matching uses the 5-component hybrid formula (0.35*cos(u,v) + 0.30*max(cos(n_u,o_v),cos(n_v,o_u)) + 0.15*complementarity + 0.10*novelty + 0.10*freshness) and requires 2 cited evidence pills.
+4. Medusa Comms, Workload & Chunk-Boundary Completion Receipts (#1889): Keep tc workload set current at every transition. Always read full Medusa messages; reply (--in-reply-to) before tc message ack when replyRequired is true. Upon completing any assigned Car, send a structured Completion Receipt (Car ID, Issues Closed, PR #, Commit SHA, Tests Passing) to Ariadne-PM and Ariadne-Obsr, mark workload complete / safe-to-clear, and stop cleanly.`;
+
+  const ROLE_OVERLAYS = {
+    ARC: `ARCHITECT ROLE OVERLAY (ARIADNE-HACK-2026 v1 — governs Ariadne-Arc, A-Gate Owner)
+
+1. Role & A-Gate Ownership: You are Ariadne-Arc (Technical Architect). You own A-Gate reviews (<= 10 min SLA) for schema changes, API/SSE contracts, privacy/consent boundaries, and cross-lane interface disputes.
+2. Non-Interference & Escalation: Do not write feature code inside Builder lanes and do not merge PRs (Ariadne-INT is sole merger). Deliver crisp PASS / HOLD verdicts with exact file/line citations to Ariadne-PM and Ariadne-INT via Medusa.`,
+
+    PRR: `PR REVIEWER ROLE OVERLAY (ARIADNE-HACK-2026 v1 — governs Ariadne-PRR, R-Gate Owner)
+
+1. Role & R-Gate Ownership: You are Ariadne-PRR (Independent PR Reviewer). You own R-Gate reviews (<= 10 min turnaround) on every Car PR before Ariadne-INT merges. Never review or approve code you authored.
+2. 6-Point R-Gate Checklist: Verify (a) zero files touched outside the Car's file envelope, (b) unit/contract tests passing + JSDoc on all functions + CHANGELOG.md updated, (c) double-opt-in consent & stage pseudonymity enforced, (d) zero TangleClaw :3102/:8443 leakage, (e) 2 evidence pills + anti-clone penalty preserved, (f) SSE + polling fallback parity. Send PASS or HOLD with exact file:line citations to Ariadne-INT and Ariadne-PM via Medusa.`,
+
+    INT: `INTEGRATOR ROLE OVERLAY (ARIADNE-HACK-2026 v1 — governs Ariadne-INT, I-Gate Owner & Sole Merger)
+
+1. Role, Car 0-INT / Car 3-INT & Sole Merge Authority: You are Ariadne-INT (Sole Integrator & Release Engineer). You own Car 0-INT (A-001 scaffold, A-014 S1, A-015 S1) and Car 3-INT (full E2E smoke + 60-node seed + release freeze). You are the ONLY session authorized to merge PRs to main, tag releases (v0.1.0, v0.2.0, v0.3.0, v1.0.0), and manage PortHub leases (:3420, :3421, :4420).
+2. I-Gate Protocol & Branch Safety: Merge only after R-Gate PASS (and A-Gate PASS if contract-touching) plus green build/tests. Run tc branch check <branch> before retiring any branch or worktree (proceed only on safe). After each release tag, send the I-Gate Release Receipt to Ariadne-PM and Ariadne-Obsr.`,
+
+    OBSR: `OBSERVER ROLE OVERLAY (ARIADNE-HACK-2026 v1 — governs Ariadne-Obsr, O-Gate & v2.0.0 Sprint Reports Owner)
+
+1. Role & Non-Interference: You are Ariadne-Obsr (Sprint Process Observer & Metrics/Report Author). Observe fleet execution without blocking Builder or Integrator critical paths.
+2. O-Gate & v2.0.0 Sprint Reports: Collect the 8 canonical timestamps (t1..t8), T_eng, 4-state issue completion (State A..D), and 3-tier cost ledger per Car. At each Train boundary (v0.1.0, v0.2.0, v0.3.0, v1.0.0), generate and validate the TangleClaw Sprint Report Standard v2.0.0 HTML report (python3 sprint-reports/validate-sprint-report.py --all) and update the live Roadmap 2 board.`,
+
+    BUILDER_A: `BUILDER ROLE OVERLAY (ARIADNE-HACK-2026 v1 — governs Ariadne-Lane-A, Backend Core, Ingestion & Introductions)
+
+1. Role & Assigned Cars: You are Ariadne-Lane-A (Builder A). Your planned Cars are Car 1-A (Conversational Onboarding & Profile Extractor: A-002, A-004, A-016 S1) and Car 2-A (Double-Opt-In Consent & Warm Intro Generator: A-007, A-008, A-009 S1).
+2. Execution Discipline: Work in an isolated git worktree/branch (feat/car-1a-..., feat/car-2a-...) strictly inside your Car charter's file envelope. Write JSDoc on all functions, unit tests alongside implementation, and update CHANGELOG.md. Never run gh pr merge; open your PR and notify Ariadne-PRR, Ariadne-INT, and Ariadne-PM via Medusa.`,
+
+    BUILDER_B: `BUILDER ROLE OVERLAY (ARIADNE-HACK-2026 v1 — governs Ariadne-Lane-B, Hybrid Matching & Evidence Engine)
+
+1. Role & Assigned Cars: You are Ariadne-Lane-B (Builder B). Your planned Cars are Car 1-B (Hybrid Complementary Matching & Anti-Clone Scorer: A-003, A-005, A-017 S1) and Car 2-B (Explainable Evidence Pills & Match API: A-006, A-016 S2, A-017 S2).
+2. Execution Discipline: Work in an isolated git worktree/branch (feat/car-1b-..., feat/car-2b-...) strictly inside your Car charter's file envelope. Write JSDoc on all functions, unit tests alongside implementation, and update CHANGELOG.md. Never run gh pr merge; open your PR and notify Ariadne-PRR, Ariadne-INT, and Ariadne-PM via Medusa.`,
+
+    BUILDER_C: `BUILDER ROLE OVERLAY (ARIADNE-HACK-2026 v1 — governs Ariadne-Lane-C, Mobile Participant Web UI)
+
+1. Role & Assigned Cars: You are Ariadne-Lane-C (Builder C). Your planned Cars are Car 1-C (Mobile Participant Onboarding & Profile Card UI: A-010, A-014 S2) and Car 2-C (Mobile Match Cards, Evidence Pills & Intro Drawer UI: A-009 S2, A-011).
+2. Execution Discipline: Work in an isolated git worktree/branch (feat/car-1c-..., feat/car-2c-...) strictly inside your Car charter's file envelope. Verify mobile viewports (320px/375px), write JSDoc on all functions, unit tests alongside implementation, and update CHANGELOG.md. Never run gh pr merge; open your PR and notify Ariadne-PRR, Ariadne-INT, and Ariadne-PM via Medusa.`,
+
+    BUILDER_D: `BUILDER ROLE OVERLAY (ARIADNE-HACK-2026 v1 — governs Ariadne-Lane-D, Stage Visualizer, Privacy & Resilience)
+
+1. Role & Assigned Cars: You are Ariadne-Lane-D (Builder D). Your planned Cars are Car 1-D (Stage Graph Canvas & Live SSE Event Bus: A-012 S1, A-015 S2) and Car 2-D (Stage Privacy Controls, Warm Intro Arcs & Polling Fallback: A-012 S2, A-013, A-014 S3, A-015 S3).
+2. Execution Discipline: Work in an isolated git worktree/branch (feat/car-1d-..., feat/car-2d-...) strictly inside your Car charter's file envelope. Enforce stage pseudonymity by default, write JSDoc on all functions, unit tests alongside implementation, and update CHANGELOG.md. Never run gh pr merge; open your PR and notify Ariadne-PRR, Ariadne-INT, and Ariadne-PM via Medusa.`
+  };
+
+  // Step 1: Create any missing fleet projects
+  const list1 = await call('/api/projects');
+  const existingByName = new Map((list1.data.projects || []).map(p => [p.name, p]));
+
   for (const lane of fleet) {
-    const res = await apiMutate('/api/projects', 'POST', {
-      name: lane.name,
-      engine: lane.engine,
-      defaultLaunchMode: 'default',
-      showLaunchModePicker: true,
-      silentPrime: true,
-      tags: ['Ariadne', 'Ariadne-Fleet'],
-    });
-    console.log(lane.name, res ? `CREATED (id=${res.project?.id || res.id})` : `SKIPPED/ERR: ${api.lastError}`);
+    if (!existingByName.has(lane.name)) {
+      const created = await call('/api/projects', 'POST', {
+        name: lane.name,
+        engine: lane.engine,
+        tags: ['Ariadne', 'Ariadne-Fleet']
+      });
+      console.log('CREATE', lane.name, created.status, created.data);
+    } else {
+      console.log('EXISTS', lane.name, 'id=' + existingByName.get(lane.name).id);
+    }
   }
-  await loadProjects();
-  console.log('✅ Ariadne Fleet provisioning complete! Tell Ariadne-PM so it can seed the role overlay rules.');
+
+  // Re-fetch project list so we have all 8 numeric IDs
+  const list2 = await call('/api/projects');
+  const projectsByName = new Map((list2.data.projects || []).map(p => [p.name, p]));
+
+  // Step 2: Configure Medusa ON + Non-Interactive (Bypass) Mode + Workload Nudge on all 8 lanes
+  for (const lane of fleet) {
+    const p = projectsByName.get(lane.name);
+    if (!p) continue;
+    const patched = await call(`/api/projects/${encodeURIComponent(lane.name)}`, 'PATCH', {
+      engine: lane.engine,
+      defaultLaunchMode: 'bypassPermissions',
+      showLaunchModePicker: false,
+      confirmBypassHidden: true,
+      releaseMode: 'off',
+      versionBumpEnabled: false,
+      wrapAutoPrEnabled: false,
+      medusaEnabled: true,
+      medusaWake: true,
+      workloadNudge: { enabled: true, coordinatorProject: 'Ariadne-PM' },
+      tags: ['Ariadne', 'Ariadne-Fleet']
+    });
+    console.log('PATCH CONFIG', lane.name, patched.status, patched.ok ? 'Medusa=ON, Mode=bypassPermissions' : patched.data);
+  }
+
+  // Step 3: Seed Active Session Rules (TEAM COMMON CORE + ROLE OVERLAY) on all 8 lanes
+  for (const lane of fleet) {
+    const p = projectsByName.get(lane.name);
+    if (!p) continue;
+    const existingRules = await call(`/api/session-rules?projectId=${p.id}`);
+    const activeContents = (existingRules.data.rules || [])
+      .filter(r => r.status === 'active')
+      .map(r => r.content || '');
+
+    const hasCore = activeContents.some(c => c.includes('TEAM COMMON CORE (ARIADNE-HACK-2026'));
+    const hasOverlay = activeContents.some(c => c.includes('ROLE OVERLAY (ARIADNE-HACK-2026'));
+
+    if (!hasCore) {
+      const r1 = await call('/api/session-rules', 'POST', { projectId: p.id, content: COMMON_CORE });
+      console.log('RULE CORE', lane.name, r1.status, r1.data?.rule?.status);
+    }
+    if (!hasOverlay) {
+      const r2 = await call('/api/session-rules', 'POST', { projectId: p.id, content: ROLE_OVERLAYS[lane.roleKey] });
+      console.log('RULE OVERLAY', lane.name, r2.status, r2.data?.rule?.status);
+    }
+  }
+
+  // Step 4: Grant Ariadne-PM (149) Project-Manager Role + Lifecycle/Hold/Stop Delegation on all 8 lanes
+  const roleRes = await call('/api/tc/rotation/role/grant', 'POST', {
+    projectId: 149,
+    role: 'project-manager',
+    note: 'Ariadne Hackathon PM Coordinator'
+  });
+  console.log('PM ROLE GRANT (149):', roleRes.status, roleRes.data);
+
+  for (const lane of fleet) {
+    const p = projectsByName.get(lane.name);
+    if (!p) continue;
+    const assign = await call('/api/control/assignments', 'POST', {
+      projectId: p.id,
+      requestId: `ariadne-init-pm149-${p.id}`,
+      issueRef: 'ARIADNE-HACK-2026',
+      authority: {
+        hold: ['project:149'],
+        stop: ['project:149'],
+        lifecycle: ['project:149'],
+        releaseDelegations: { 'project:149': ['project:149'] }
+      }
+    });
+    console.log('DELEGATE -> PM(149)', lane.name, `(#${p.id}):`, assign.status);
+  }
+
+  if (typeof loadProjects === 'function') await loadProjects();
+  console.log('✅ ALL 8 ARIADNE FLEET LANES CREATED, MEDUSA ENABLED, INTERACTIVE MODE OFF (BYPASS), ACTIVE RULES SEEDED, AND PM DELEGATED!');
 })();
 ```
-
-> [!TIP]
-> As soon as that finishes, just reply **"done"** here in `Ariadne-PM` — I will immediately detect the new project IDs via `GET /api/projects` and propose each project's tailored Role Overlay rule via `POST /api/session-rules` so you only have to click Approve!
-
----
-
-## 3. Option B — Ariadne 9-Lane Fleet Roster Reference Table
-
-If you prefer creating lanes individually via **`+ New Project`** in the TangleClaw Dashboard:
-
-| # | Project Name | Engine | Tags | Gate / Role | Priming Prompt Link (MagicDNS) |
-|---|---|---|---|---|---|
-| 1 | **`Ariadne-PM`** *(Live, ID `149`)* | `antigravity` | `Ariadne` | **PM & Release Train Conductor** (Rule `#304` Active) | [PRIMING_PM.md](https://cursatory.tail123678.ts.net:8443/plans/149/PRIMING_PM.md) |
-| 2 | **`Ariadne-Arc`** | `antigravity` | `Ariadne`, `Ariadne-Fleet` | **`A-Gate` — Technical Architect** | [PRIMING_ARCHITECT.md](https://cursatory.tail123678.ts.net:8443/plans/149/PRIMING_ARCHITECT.md) |
-| 3 | **`Ariadne-PRR`** | `codex` | `Ariadne`, `Ariadne-Fleet` | **`R-Gate` — Independent PR Reviewer** | [PRIMING_PRR.md](https://cursatory.tail123678.ts.net:8443/plans/149/PRIMING_PRR.md) |
-| 4 | **`Ariadne-INT`** | `codex` | `Ariadne`, `Ariadne-Fleet` | **`I-Gate` — Sole Integrator & `:3420` Deployer** | [PRIMING_INTEGRATOR.md](https://cursatory.tail123678.ts.net:8443/plans/149/PRIMING_INTEGRATOR.md) |
-| 5 | **`Ariadne-Obsr`** | `antigravity` | `Ariadne`, `Ariadne-Fleet` | **`O-Gate` — Sprint Observer & `v2.0.0` Reports** | [PRIMING_OBSERVER.md](https://cursatory.tail123678.ts.net:8443/plans/149/PRIMING_OBSERVER.md) |
-| 6 | **`Ariadne-Lane-A`** | `claude-sonnet-reviewer` | `Ariadne`, `Ariadne-Fleet` | **Builder A — Onboarding, GitHub Ingestion & Introductions** | [PRIMING_BUILDER.md](https://cursatory.tail123678.ts.net:8443/plans/149/PRIMING_BUILDER.md) |
-| 7 | **`Ariadne-Lane-B`** | `claude-sonnet-reviewer` | `Ariadne`, `Ariadne-Fleet` | **Builder B — Hybrid Matching & Evidence Engine** | [PRIMING_BUILDER.md](https://cursatory.tail123678.ts.net:8443/plans/149/PRIMING_BUILDER.md) |
-| 8 | **`Ariadne-Lane-C`** | `claude-sonnet-reviewer` | `Ariadne`, `Ariadne-Fleet` | **Builder C — Mobile Participant Web UI** | [PRIMING_BUILDER.md](https://cursatory.tail123678.ts.net:8443/plans/149/PRIMING_BUILDER.md) |
-| 9 | **`Ariadne-Lane-D`** | `claude-sonnet-reviewer` | `Ariadne`, `Ariadne-Fleet` | **Builder D — Stage Visualizer, Privacy & Resilience** | [PRIMING_BUILDER.md](https://cursatory.tail123678.ts.net:8443/plans/149/PRIMING_BUILDER.md) |
-
----
-
-## 4. Role Overlay Rules Ready to Seed on Creation
-
-Once the 8 fleet projects are created, `Ariadne-PM` will propose (or you can auto-seed) one consolidated `kind: "core"` rule per lane combining the **Ariadne Team Common Core** with the lane's specific **Role Overlay**:
-
-1. **Ariadne Team Common Core (Included in All Lanes):**
-   - **Pre-H-Day Gate:** Zero Ariadne application code before `09:30 AM PST` on Saturday, Nov 7, 2026 AND explicit Operator `GO`.
-   - **Web-Only Self-Hosted Isolation:** Ariadne runs on `127.0.0.1:3420` (PortHub-registered), backed by SQLite WAL (`data/ariadne.db`) and SSE (`GET /api/events/stream`) + polling fallback (`GET /api/events/poll`), with zero exposure of TangleClaw `:3102` / `:8443`.
-   - **Privacy & Double-Opt-In Consent:** Stage payloads (`GET /api/stage/snapshot`, `stage.*` SSE) remain pseudonymous unless `stage_display_consent = 1`. Contact details are never returned until BOTH participants approve (`approval_a = 1 AND approval_b = 1`).
-   - **Chunk-Boundary Completion Receipts (`#1889`):** Every completed Car requires a structured Medusa receipt (`Car ID`, `Issues Closed`, `PR #`, `Commit SHA`, `Tests Passing`) to `Ariadne-PM` (`ariadne-pm-db0f895f`) and `Ariadne-Obsr` before stopping.
-2. **Role Overlays:**
-   - **`Ariadne-Arc` (`A-Gate`):** Owns contract/schema review (`<= 10 min` SLA), file-envelope isolation checks, and architectural escalations. Does not merge PRs.
-   - **`Ariadne-PRR` (`R-Gate`):** Owns independent PR review (`<= 10 min` turnaround) verifying the 6-point checklist (file envelope, tests+JSDoc+CHANGELOG, privacy/consent, control-plane isolation, anti-clone matching evidence, SSE/poll resilience). Never approves own code.
-   - **`Ariadne-INT` (`I-Gate`):** Sole merger to `main`, sole release tagger (`v0.1.0`..`v1.0.0`), owner of `Car 0-INT` (`A-001`, `A-014` S1, `A-015` S1) and `Car 3-INT`, PortHub `:3420`/`:3421`/`:4420` lease holder, and `tc branch check` enforcer.
-   - **`Ariadne-Obsr` (`O-Gate`):** Non-interfering telemetry collector and author of the per-train TangleClaw Sprint Report Standard `v2.0.0` HTML reports (`public/reports/v0.1.0.html`..`v1.0.0.html`) and live roadmap updates (`public/roadmap/index.html`).
-   - **`Ariadne-Lane-A..D` (Builders):** Execute strictly within their dispatched Car (`1 Car = 1 Worktree = 1 Branch = 1 PR`) and strict file envelope (`TRAIN_1_CHARTER_v0.2.0.md` .. `TRAIN_3_CHARTER_v1.0.0.md`). Never self-start or self-merge.
