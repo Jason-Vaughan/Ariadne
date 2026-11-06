@@ -18,7 +18,7 @@ The Ariadne Live Stage Visualizer (`/stage`) is a **first-class interactive dash
 ```
 +---------------------------------------------------------------------------------------------------+
 | ARIADNE · Find Your Thread   [Joined | Crawled | Fingerprints | Matches | Mutual Intros | Workers]|
-| VIEW TABS: [1: Under-the-Hood Pipeline] [2: Builder Fingerprints] [3: Web of Connections] [4: Spotlight]
+| VIEW TABS: [1: Pipeline] [2: Fingerprints] [3: Web of Connections] [4: Spotlight] [5: ⚡ Capacity] |
 | CONTROLS:  [📱 QR Overlay: REQUIRES GITHUB (Q)]  [🌱 Seed AI Devs: OFF/ON (+25) (S)]  [⚡ Load: 80] |
 +---------------------------------------------------------------------------------------------------+
 |                                                                     |                             |
@@ -114,6 +114,34 @@ Full-canvas side-by-side comparison of any selected match pair (or automatically
   - **Why You Two Should Talk Right Now:** Concrete collaboration thesis + suggested 3-minute starter topic.
   - **Live Connection Status:** `Suggested Top-3 Match` → `1-Sided Interest Pending` → `⚡ Mutual Match — Intro Room Unlocked!`.
 
+### View 5: `[5] ⚡ Capacity & Burst Scaler` (Stage-Visible Systems Engineering Showcase)
+Most hackathon demos break when 40 people in the audience scan a QR code at once. **View 5 (`[5: ⚡ Capacity]` or hotkey `5`/`C`)** turns Ariadne's burst-capacity engineering into a **first-class visual demo beat for the judges** right on the 16:9 big screen:
+
+```
++---------------------------------------------------------------------------------------------------+
+| VIEW 5: ⚡ LIVE CAPACITY & QR BURST SCALER     [Room Preset: (30) | (● 80) | (150) | (300+ Mega)] |
++-------------------------------------------------+-------------------------------------------------+
+| 1. DYNAMIC GEMINI FLASH WORKER POOL (16 Cores)  | 2. GITHUB RATE-LIMIT SHIELD & 24H SQLITE CACHE  |
+| [🟢 W1] [🟢 W2] [🟢 W3] [🟢 W4] [🟢 W5] [🟢 W6] | • Multi-PAT Pool: 14,840 / 15,000 req/hr (3x)   |
+| [🟢 W7] [🟢 W8] [⚪ W9] [⚪ W10][⚪ W11][⚪ W12]| • 24h SQLite Cache Hit Rate: 86% (0ms / 0 API)  |
+| [⚪ W13][⚪ W14][⚪ W15][⚪ W16]                | • Fetch Mode: Adaptive GraphQL + REST Fallback  |
+| • Model: gemini-2.5-flash (Parallel Fan-Out)    | • VIP Pre-Warm Queue: [Pre-Warm Judge Handles]  |
++-------------------------------------------------+-------------------------------------------------+
+| 3. O(N²) PAIRWISE & LLM COST REDUCTION ENGINE   | 4. TWO-STAGE PROGRESSIVE SLA & BURST SIMULATOR  |
+| • Room Size N = 80  ──► 3,160 Candidate Pairs   | • Stage 1 (Deterministic Match): 18ms (p95 <500)|
+| • Stage 1 Fast Filter: 3,160 pairs in 4.2ms     | • Stage 2 (Gemini Deep Enrich):  2.3s via SSE   |
+| • Stage 2 Top-3 Gate:  Only 240 LLM calls!      | • [🔥 Run Live Burst Stress Test]               |
+| • LLM Call Reduction:  92.4% Saved (No 429s!)   | • Guaranteed 0 Dropped Scans Under Venue Wi-Fi  |
++-------------------------------------------------+-------------------------------------------------+
+```
+
+1. **Interactive Room-Size Preset Dial (`[30]` · `[80]` · `[150]` · `[300+]`):**
+   - Clicking a room size preset live in front of the judges visibly scales the **Gemini Flash Worker Core Grid** (`8` → `16` → `24` → `32` parallel worker slots), switches the GitHub Ingestion Strategy (`Full GraphQL` vs `Fast REST Top-5`), and recalculates the $O(N^2)$ pair budget on screen!
+2. **Visual Proof of the `92%–98%` LLM Cost & Rate-Limit Reduction (`Top-3 Gate`):**
+   - Clearly shows the math to the judges: in a room of `N = 150` people, an all-to-all LLM matchmaker would fire `11,175` slow LLM calls and immediately crash on HTTP `429`. Ariadne evaluates all `11,175` pairs deterministically in **`< 12ms` (Stage 1)** and gates **Stage 2 Gemini Flash calls strictly to Top-3 (`k = 3`) slates**, cutting LLM calls by **96%+** while delivering `< 500ms` mobile responsiveness!
+3. **Live Multi-PAT GitHub Shield & 24h SQLite Cache Telemetry:**
+   - Displays the active `GITHUB_TOKENS` pool quota (`e.g., 15,000 req/hr`), live 24h SQLite cache hit ratio (`0ms` repeat scans), and a 1-click **VIP/Judge Pre-Warm input** right inside the panel.
+
 ---
 
 ## 4. Stage Operator Buttons & Keyboard Shortcuts
@@ -126,6 +154,7 @@ Every control is accessible **both** as an on-screen clickable button in the `/s
 | **`[2: Fingerprints]`** | `2` | Switch to **View 2: Builder Fingerprints Gallery** (6-axis DNA cards for the room). |
 | **`[3: Web of Connections]`** | `3` | Switch to **View 3: Sparse Top-3 Network Graph** with Golden Arcs. |
 | **`[4: Match Spotlight]`** | `4` | Switch to **View 4: Side-by-Side Match Spotlight** (`N` / `P` steps through top matches). |
+| **`[5: ⚡ Capacity]`** | `5` or `C` | Switch to **View 5: Live Capacity & QR Burst Scaler** (Room-size presets `30/80/150/300+`, Worker Grid, Multi-PAT gauge & $O(N^2)$ math). |
 | **`[📱 QR Overlay]`** | `Q` | Toggle large stage QR modal with **`⚡ SCAN TO JOIN — REQUIRES GITHUB PROFILE`**. |
 | **`[🌱 Seed AI Devs: OFF/ON]`** | `S` | Toggle the **25 Pre-Curated SF AI Builder Seed Profiles** into/out of the live matching pool ("Ace Up Your Sleeve" for small demo crowds). |
 | **`[⚡ Auto-Cycle]`** | `Space` | Hands-free rotation across Views `1 → 2 → 3 → 4` every `15s`. |

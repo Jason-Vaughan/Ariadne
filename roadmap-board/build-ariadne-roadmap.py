@@ -133,7 +133,7 @@ ISSUES = {
         "code": "A-011",
         "type": "feature",
         "state": "open",
-        "title": "A-011: Stage Views 1, 2 & 4 — Under-the-Hood 4-Stage Pipeline, Builder Fingerprints Gallery & Match Spotlight",
+        "title": "A-011: Stage Views 1, 2, 4 & 5 — Narratable 4-Stage Pipeline, Builder Fingerprints, Match Spotlight & Capacity Scaler",
         "url": "https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-011.md",
         "envelope": "public/stage/spotlight.js, public/stage/activity-feed.js, public/stage/operator-controls.js, tests/stage-modes.test.ts",
     },
