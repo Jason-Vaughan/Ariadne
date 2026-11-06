@@ -1,10 +1,35 @@
 # Master Project Documents Index (SSOT) — ARIADNE (`ARIADNE-HACK-2026`)
 
-> **Single Source of Truth (SSOT):** This index is the canonical entry point for all Ariadne pre-hackathon planning specifications, the **Published Interactive Parallel Roadmap Board (`v0.1.0`–`v1.0.0`)**, H-Day GitHub Issue Drafts (`A-001`–`A-016`), Fleet Governance Rules, and Operational Runbooks.
-> - **Hosted SSOT Link (Operator View):** [https://cursatory.tail123678.ts.net:8443/plans/149/MASTER_SSOT.md](https://cursatory.tail123678.ts.net:8443/plans/149/MASTER_SSOT.md)
-> - **Live Standalone Roadmap Board (`TangleClaw Roadmap 2` UI on PortHub `:3422`):** [http://cursatory.tail123678.ts.net:3422/](http://cursatory.tail123678.ts.net:3422/) *(Public Preview: [http://cursatory.tail123678.ts.net:3422/public](http://cursatory.tail123678.ts.net:3422/public) · Sprint Reports Hub: [http://cursatory.tail123678.ts.net:3422/reports/](http://cursatory.tail123678.ts.net:3422/reports/))*
-> - **TangleClaw Plan-Viewer Roadmap (`tc-release` UI):** [https://cursatory.tail123678.ts.net:8443/plans/149/ARIADNE_ROADMAP.md](https://cursatory.tail123678.ts.net:8443/plans/149/ARIADNE_ROADMAP.md)
+> [!IMPORTANT]
+> **Single Source of Truth (SSOT) — Prominent Live Links & Dashboards**
+> - **Master SSOT Index (`:8443`):** [https://cursatory.tail123678.ts.net:8443/plans/149/PROJECT_DOCUMENTS.md](https://cursatory.tail123678.ts.net:8443/plans/149/PROJECT_DOCUMENTS.md) *(Mirror: [MASTER_SSOT.md](https://cursatory.tail123678.ts.net:8443/plans/149/MASTER_SSOT.md))*
+> - **Live Interactive Roadmap Board (`TangleClaw Roadmap 2` UI on PortHub `:3422`):** **[http://cursatory.tail123678.ts.net:3422/](http://cursatory.tail123678.ts.net:3422/)**
+> - **Public Roadmap Preview (`:3422/public`):** **[http://cursatory.tail123678.ts.net:3422/public](http://cursatory.tail123678.ts.net:3422/public)**
+> - **Sprint Reports Hub (`v2.0.0` Standard on `:3422/reports/`):** **[http://cursatory.tail123678.ts.net:3422/reports/](http://cursatory.tail123678.ts.net:3422/reports/)**
+> - **`v0.1.0` Executive Sprint Report (`:3422/reports/v0.1.0/`):** **[http://cursatory.tail123678.ts.net:3422/reports/v0.1.0/](http://cursatory.tail123678.ts.net:3422/reports/v0.1.0/)**
+> - **Plan-Viewer Roadmap (`tc-release` on `:8443`):** **[https://cursatory.tail123678.ts.net:8443/plans/149/ARIADNE_ROADMAP.md](https://cursatory.tail123678.ts.net:8443/plans/149/ARIADNE_ROADMAP.md)**
+> - **Fleet Dispatch Queue (`LANE_QUEUE.md`):** **[https://cursatory.tail123678.ts.net:8443/plans/149/LANE_QUEUE.md](https://cursatory.tail123678.ts.net:8443/plans/149/LANE_QUEUE.md)**
+> - **Fleet Provisioning & Rule Pack (`FLEET_PROVISIONING_PACK.md`):** **[https://cursatory.tail123678.ts.net:8443/plans/149/FLEET_PROVISIONING_PACK.md](https://cursatory.tail123678.ts.net:8443/plans/149/FLEET_PROVISIONING_PACK.md)**
 > - **Authorization Status:** **PREPARATION ONLY — ZERO APPLICATION CODE BEFORE SATURDAY NOV 7, 2026 @ 09:30 AM PST OPERATOR `GO`**
+
+---
+
+## 0. Verified 9-Lane Ariadne Fleet Roster (`#149..#157`) & PM Lifecycle Delegation
+
+- **Coordinator Role (`coordinator_roles`):** `Ariadne-PM` (`projectId: 149`) holds **`role_CDwpzRB3TFL9`** (`role: "project-manager"`, `status: "active"`, `authorityVersion: 1`).
+- **All 9 Lanes Provisioned & Verified:** Every lane has `medusaEnabled: true`, `medusaWake: true`, `defaultLaunchMode: "bypassPermissions"`, `showLaunchModePicker: false`, active session rules, and active control delegation to `project:149`:
+
+| ID | Lane Name | Engine | Gate / Role | Active Rule IDs | Control Assignment (`project:149`) | Role Priming Link (MagicDNS) |
+|---|---|---|---|---|---|---|
+| **`149`** | **`Ariadne-PM`** | `antigravity` | **PM & Release Train Conductor** (`role_CDwpzRB3TFL9`) | `#304` | *Self (Coordinator)* | [PRIMING_PM.md](https://cursatory.tail123678.ts.net:8443/plans/149/PRIMING_PM.md) |
+| **`150`** | **`Ariadne-Obsr`** | `antigravity` | **`O-Gate` — Sprint Observer & `v2.0.0` Reports** | `#312`, `#313` | `asg_aW760W25RJquRzfY` (`active`) | [PRIMING_OBSERVER.md](https://cursatory.tail123678.ts.net:8443/plans/149/PRIMING_OBSERVER.md) |
+| **`151`** | **`Ariadne-Lane-A`** | `claude-sonnet-reviewer` | **Builder A — Onboarding, GitHub & Introductions** | `#314`, `#315` | `asg_z1u01SMjP7Z-fG-k` (`active`) | [PRIMING_BUILDER.md](https://cursatory.tail123678.ts.net:8443/plans/149/PRIMING_BUILDER.md) |
+| **`152`** | **`Ariadne-Lane-B`** | `claude-sonnet-reviewer` | **Builder B — Hybrid Matching & Evidence Engine** | `#316`, `#317` | `asg_45rOtnDPuLlFLFyO` (`active`) | [PRIMING_BUILDER.md](https://cursatory.tail123678.ts.net:8443/plans/149/PRIMING_BUILDER.md) |
+| **`153`** | **`Ariadne-Lane-C`** | `claude-sonnet-reviewer` | **Builder C — Mobile Participant Web UI** | `#318`, `#319` | `asg_gDuncr4ewLLit5Yu` (`active`) | [PRIMING_BUILDER.md](https://cursatory.tail123678.ts.net:8443/plans/149/PRIMING_BUILDER.md) |
+| **`154`** | **`Ariadne-Lane-D`** | `claude-sonnet-reviewer` | **Builder D — Stage Visualizer, Privacy & Resilience** | `#320`, `#321` | `asg_LlRqxB3KX-KJ-4wr` (`active`) | [PRIMING_BUILDER.md](https://cursatory.tail123678.ts.net:8443/plans/149/PRIMING_BUILDER.md) |
+| **`155`** | **`Ariadne-Arc`** | `antigravity` | **`A-Gate` — Technical Architect** | `#306`, `#307` | `asg_xItpc0jxCnaMWgPB` (`active`) | [PRIMING_ARCHITECT.md](https://cursatory.tail123678.ts.net:8443/plans/149/PRIMING_ARCHITECT.md) |
+| **`156`** | **`Ariadne-PRR`** | `codex` | **`R-Gate` — Independent PR Reviewer** | `#308`, `#309` | `asg_pkHu9jClj6o79TEj` (`active`) | [PRIMING_PRR.md](https://cursatory.tail123678.ts.net:8443/plans/149/PRIMING_PRR.md) |
+| **`157`** | **`Ariadne-INT`** | `codex` | **`I-Gate` — Sole Integrator & `:3420` Deployer** | `#310`, `#311` | `asg_huVXFxnSDERY-Ir0` (`active`) | [PRIMING_INTEGRATOR.md](https://cursatory.tail123678.ts.net:8443/plans/149/PRIMING_INTEGRATOR.md) |
 
 ---
 
