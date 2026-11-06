@@ -2,7 +2,8 @@
 
 > **Single Source of Truth (SSOT):** This index is the canonical entry point for all Ariadne pre-hackathon planning specifications, the **Published Interactive Parallel Roadmap Board (`v0.1.0`–`v1.0.0`)**, H-Day GitHub Issue Drafts (`A-001`–`A-016`), Fleet Governance Rules, and Operational Runbooks.
 > - **Hosted SSOT Link (Operator View):** [https://cursatory.tail123678.ts.net:8443/plans/149/MASTER_SSOT.md](https://cursatory.tail123678.ts.net:8443/plans/149/MASTER_SSOT.md)
-> - **Published Interactive Roadmap Board (`tc-release` UI):** [https://cursatory.tail123678.ts.net:8443/plans/149/ARIADNE_ROADMAP.md](https://cursatory.tail123678.ts.net:8443/plans/149/ARIADNE_ROADMAP.md)
+> - **Live Standalone Roadmap Board (`TangleClaw Roadmap 2` UI on PortHub `:3422`):** [http://cursatory.tail123678.ts.net:3422/](http://cursatory.tail123678.ts.net:3422/) *(Public Preview: [http://cursatory.tail123678.ts.net:3422/public](http://cursatory.tail123678.ts.net:3422/public) · Sprint Reports Hub: [http://cursatory.tail123678.ts.net:3422/reports/](http://cursatory.tail123678.ts.net:3422/reports/))*
+> - **TangleClaw Plan-Viewer Roadmap (`tc-release` UI):** [https://cursatory.tail123678.ts.net:8443/plans/149/ARIADNE_ROADMAP.md](https://cursatory.tail123678.ts.net:8443/plans/149/ARIADNE_ROADMAP.md)
 > - **Authorization Status:** **PREPARATION ONLY — ZERO APPLICATION CODE BEFORE SATURDAY NOV 7, 2026 @ 09:30 AM PST OPERATOR `GO`**
 
 ---

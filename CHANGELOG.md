@@ -5,6 +5,9 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Standalone TangleClaw-Style Roadmap Board (`roadmap-board/index.html`) & Live PortHub Server (`:3422`):**
+  - Built `roadmap-board/build-ariadne-roadmap.py`, `roadmap-board/index.html`, `roadmap-board/Ariadne-Public-Roadmap-preview.html`, `roadmap-board/publish-public-roadmap.sh`, and `sprint-reports/index.html` using the exact `https://jason-vaughan.github.io/TangleClaw/` HTML/CSS release-drawer layout.
+  - Leased PortHub port `3422` (`project: "Ariadne-PM"`, `service: "roadmap-board"`, `reach: "tailnet"`, `permanent: true`) and started `roadmap-board/serve-roadmap.py` at `http://cursatory.tail123678.ts.net:3422/`.
 - **Published Interactive Parallel Roadmap Board (`ARIADNE_ROADMAP.md`) & Pairwise Disjoint Solo-Issue Sorting:**
   - Consulted `TC-Lane-PM` (`#74`, `328ce4a2-76c0-417f-9e97-6772f4f8604b`) on the 3-Bucket File-Collision Sorting Methodology (`Envelope(A) ∩ Envelope(B) = ∅`).
   - Sorted all 15 MVP issues (`A-001`–`A-012`, `A-014`–`A-016`) into 100% file-disjoint Solo-Issue Parallel Waves (`v0.1.0`, `v0.2.0`, `v0.3.0`, `v0.4.0`, `v1.0.0`) so every issue executes solo (`1 Issue = 1 Builder Lane = 1 PR`) with zero shared-file overlap and no artificial multi-issue bundling.

@@ -1,0 +1,289 @@
+{
+  "repo": "Jason-Vaughan/Ariadne",
+  "public_projection": {
+    "launch_approved": true,
+    "withheld_issues": [],
+    "exclude_labels": [
+      "security",
+      "internal-only"
+    ],
+    "exclude_title_prefixes": [
+      "[security]",
+      "[internal]"
+    ]
+  },
+  "releases": [
+    {
+      "version": "0.1.0",
+      "name": "Foundation, Contracts, Auto-Loader Server & Live Event Bus (09:30 \u2013 10:05 PST)",
+      "public_status": "Staged for Saturday Nov 7 @ 09:30 AM PST Operator GO. 4 solo parallel workstreams with 0 shared files.",
+      "deliverables": [
+        "Freeze canonical TypeScript interfaces (src/contracts/*) and SQLite WAL schema (src/db/schema.sql).",
+        "Boot Express server on PortHub port 127.0.0.1:3420 with auto-discovery route loader (src/routes/*.ts) so feature waves never touch src/server.ts.",
+        "Stand up append-only SQLite event bus with SSE (GET /api/events/stream) and automatic HTTP polling fallback (GET /api/events/poll).",
+        "Mount live /roadmap and /reports (TangleClaw Sprint Report Standard v2.0.0) static hubs."
+      ],
+      "trains": [
+        {
+          "kind": "bucket",
+          "name": "Contracts & SQLite WAL Schema",
+          "owner": "Ariadne-Lane-A",
+          "note": "Exclusive file envelope: src/contracts/types.ts, src/contracts/events.ts, src/db/schema.sql, tests/contracts.test.ts",
+          "cars": [
+            1
+          ]
+        },
+        {
+          "kind": "bucket",
+          "name": "Self-Hosted :3420 Server & Auto-Discovery Route Loader",
+          "owner": "Ariadne-Lane-B",
+          "note": "Exclusive file envelope: src/server.ts, src/db/client.ts, src/routes/health.ts, scripts/tunnel.sh, tests/server.test.ts",
+          "cars": [
+            14
+          ]
+        },
+        {
+          "kind": "bucket",
+          "name": "SQLite Append-Only Event Stream (SSE + Polling Fallback)",
+          "owner": "Ariadne-Lane-C",
+          "note": "Exclusive file envelope: src/events/bus.ts, src/routes/events.ts, tests/events.test.ts",
+          "cars": [
+            9
+          ]
+        },
+        {
+          "kind": "bucket",
+          "name": "Interactive Roadmap & v2.0.0 Sprint Reports Hub",
+          "owner": "Ariadne-Lane-D",
+          "note": "Exclusive file envelope: public/reports/index.html, public/roadmap/index.html, scripts/build-sprint-report.js, tests/reports.test.ts",
+          "cars": [
+            15
+          ]
+        }
+      ]
+    },
+    {
+      "version": "0.2.0",
+      "name": "QR Onboarding, GitHub Connector, Deterministic Scorer & Stage Network Graph (10:05 \u2013 11:00 PST)",
+      "public_status": "Wave 2 \u2014 4 solo issues running in parallel across 4 disjoint directories (public/app/join.*, src/github/*, src/matching/scorer.ts, public/stage/network-graph.js).",
+      "deliverables": [
+        "Mobile QR onboarding (/join), GitHub handle validation, two-tier privacy consent, and HttpOnly session binding (#2).",
+        "Bounded 1-query GraphQL GitHub public-data connector, 30-minute SQLite snapshot cache, and prompt-injection sanitizer (#3).",
+        "Deterministic 4-factor match scoring engine (40/30/20/10 + <=0.72 cosine similarity anti-clone penalty) with 5 unit test cases (#6).",
+        "16:9 Presentation Visualizer Network Mode (/stage), pseudonymous node rendering (Thread-XXXX), and 6-KPI ribbon (#10)."
+      ],
+      "trains": [
+        {
+          "kind": "bucket",
+          "name": "Mobile QR Onboarding & Session Isolation",
+          "owner": "Ariadne-Lane-A",
+          "note": "Exclusive file envelope: src/routes/onboarding.ts, src/auth/session.ts, public/app/join.html, public/app/join.js, tests/onboarding.test.ts",
+          "cars": [
+            2
+          ],
+          "waits_on": {
+            "2": [
+              1,
+              14
+            ]
+          }
+        },
+        {
+          "kind": "bucket",
+          "name": "Bounded GitHub Public-Data Connector & Cache",
+          "owner": "Ariadne-Lane-B",
+          "note": "Exclusive file envelope: src/github/connector.ts, src/github/cache.ts, src/github/sanitize.ts, tests/github-connector.test.ts",
+          "cars": [
+            3
+          ],
+          "waits_on": {
+            "3": [
+              1
+            ]
+          }
+        },
+        {
+          "kind": "bucket",
+          "name": "Deterministic 4-Factor Match Scoring Engine (40/30/20/10)",
+          "owner": "Ariadne-Lane-C",
+          "note": "Exclusive file envelope: src/matching/scorer.ts, src/matching/anti-clone.ts, tests/scorer.test.ts",
+          "cars": [
+            6
+          ],
+          "waits_on": {
+            "6": [
+              1
+            ]
+          }
+        },
+        {
+          "kind": "bucket",
+          "name": "16:9 Stage Visualizer \u2014 Network Graph & KPI Ribbon",
+          "owner": "Ariadne-Lane-D",
+          "note": "Exclusive file envelope: public/stage/index.html, public/stage/network-graph.js, public/stage/stage.css, src/routes/stage-snapshot.ts, tests/stage-snapshot.test.ts",
+          "cars": [
+            10
+          ],
+          "waits_on": {
+            "10": [
+              1,
+              9
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "version": "0.3.0",
+      "name": "Capability AI Agent, Match Explanations, Mobile Match Cards & Stage Spotlight (11:00 \u2013 12:00 PST)",
+      "public_status": "Wave 3 \u2014 Sequenced after v0.2.0 so shared subsystems (public/app/*, src/intelligence/*, src/matching/*, public/stage/*) have zero concurrent writers.",
+      "deliverables": [
+        "Mobile participant profile (/me), live research progress stepper, and top-3 evidence-backed match cards with Interested/Pass controls (#8).",
+        "Evidence-backed Capability Analysis Agent citing real GitHub repositories and commits (#4).",
+        "Match Research & Proposal Explanation Agent generating concrete collaboration hypotheses (#7).",
+        "16:9 Presentation Visualizer Activity Feed & Match Spotlight modes plus Operator privacy/hotkey HUD (#11)."
+      ],
+      "trains": [
+        {
+          "kind": "bucket",
+          "name": "Mobile Profile & Top-3 Match Results UI",
+          "owner": "Ariadne-Lane-A",
+          "note": "Exclusive file envelope: public/app/me.html, public/app/me.js, public/app/app.css, src/routes/me.ts, tests/me-routes.test.ts",
+          "cars": [
+            8
+          ],
+          "waits_on": {
+            "8": [
+              2,
+              9
+            ]
+          }
+        },
+        {
+          "kind": "bucket",
+          "name": "Evidence-Backed Capability Analysis Agent",
+          "owner": "Ariadne-Lane-B",
+          "note": "Exclusive file envelope: src/intelligence/capability-agent.ts, src/intelligence/prompts.ts, tests/capability-agent.test.ts",
+          "cars": [
+            4
+          ],
+          "waits_on": {
+            "4": [
+              3
+            ]
+          }
+        },
+        {
+          "kind": "bucket",
+          "name": "Match Research & Proposal Explanation Agent",
+          "owner": "Ariadne-Lane-C",
+          "note": "Exclusive file envelope: src/matching/explanation-agent.ts, src/matching/evidence-formatter.ts, tests/explanation-agent.test.ts",
+          "cars": [
+            7
+          ],
+          "waits_on": {
+            "7": [
+              6
+            ]
+          }
+        },
+        {
+          "kind": "bucket",
+          "name": "16:9 Stage Visualizer \u2014 Activity Feed & Spotlight Modes",
+          "owner": "Ariadne-Lane-D",
+          "note": "Exclusive file envelope: public/stage/spotlight.js, public/stage/activity-feed.js, public/stage/operator-controls.js, tests/stage-modes.test.ts",
+          "cars": [
+            11
+          ],
+          "waits_on": {
+            "11": [
+              10
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "version": "0.4.0",
+      "name": "Mutual Introduction Room, Opportunity Agent & Async Rematch Worker (12:00 \u2013 13:00 PST)",
+      "public_status": "Wave 4 \u2014 Completes all 15 Hackathon MVP issues by 1:00 PM PST via 3 disjoint solo dispatches, leaving 4h 45m for v1.0.0 dogfooding & polish.",
+      "deliverables": [
+        "Web-native double-opt-in Mutual Introduction state machine (approval_a = 1 AND approval_b = 1), contact reveal gate, and private Intro Room (/me/matches/:id) (#12).",
+        "Opportunity & Bottleneck Discovery Agent extracting complementary collaboration needs (#5).",
+        "In-process SQLite-leased async job worker, continuous incremental rematching, and 24-persona golden seed fixture (#16)."
+      ],
+      "trains": [
+        {
+          "kind": "bucket",
+          "name": "Web-Native Mutual Introduction Workflow & Private Intro Room",
+          "owner": "Ariadne-Lane-A",
+          "note": "Exclusive file envelope: src/routes/introductions.ts, src/matching/intro-state-machine.ts, public/app/intro-room.js, tests/introductions.test.ts",
+          "cars": [
+            12
+          ],
+          "waits_on": {
+            "12": [
+              8
+            ]
+          }
+        },
+        {
+          "kind": "bucket",
+          "name": "Opportunity & Bottleneck Discovery Agent",
+          "owner": "Ariadne-Lane-B",
+          "note": "Exclusive file envelope: src/intelligence/opportunity-agent.ts, tests/opportunity-agent.test.ts",
+          "cars": [
+            5
+          ],
+          "waits_on": {
+            "5": [
+              4
+            ]
+          }
+        },
+        {
+          "kind": "bucket",
+          "name": "In-Process Async SQLite Job Worker & Continuous Rematching",
+          "owner": "Ariadne-Lane-C",
+          "note": "Exclusive file envelope: src/worker/job-runner.ts, src/worker/seed-personas.ts, data/golden-seed-24.json, tests/worker.test.ts",
+          "cars": [
+            16
+          ],
+          "waits_on": {
+            "16": [
+              3,
+              4,
+              6,
+              7
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "version": "1.0.0",
+      "name": "Live QR Dogfooding, Stage Polish, Demo Rehearsal & Final Judge Sprint Reports (13:00 \u2013 17:45 PST)",
+      "public_status": "4h 45m afternoon polish & dogfooding runway prior to 18:00 PST Hackathon Stage Demo & Judging.",
+      "deliverables": [
+        "Live multi-phone QR onboarding dogfooding, mobile UX polish, and 60fps stage graph animations.",
+        "Offline snapshot fallback verification, SQLite WAL backup check, and 3-minute stage demo rehearsal.",
+        "Final TangleClaw Sprint Report Standard v2.0.0 reports (v0.1.0..v1.0.0) and H-Day Provenance Proof published to /reports/ and GitHub Pages."
+      ],
+      "trains": []
+    }
+  ],
+  "backlog": [
+    {
+      "name": "Post-Hackathon V2 Integrations",
+      "holding": {
+        "title": "Post-Hackathon V2 holding (Deferred per Web-Only MVP Amendment)",
+        "public_note": "Deferred outside the Saturday Hackathon MVP so Ariadne runs as a single self-hosted Node.js + SQLite WAL + SSE web application with zero external bot/broker dependencies."
+      },
+      "note": "Explicitly moved out of H-Day MVP per Operator Web-Only Architecture Amendment.",
+      "cars": [
+        13,
+        17
+      ]
+    }
+  ]
+}
