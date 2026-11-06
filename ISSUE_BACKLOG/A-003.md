@@ -1,36 +1,37 @@
-# [feature] A-003: GitHub public-data connector
+# [feature] A-003: GitHub public-data connector, Multi-PAT pool, 24h SQLite cache & VIP pre-warmer
 
 - **Issue ID:** `A-003`
 - **Priority:** `P0`
-- **Assigned Lane:** `Ariadne-Lane-B` (Builder B)
-- **Milestone:** `Wave 1 — Minimum Success (v0.1.0-m1)`
+- **Assigned Lane & Car:** `Ariadne-Lane-B` (`Car 1-B`)
+- **Milestone / Train:** `Train 1 — Core Pipeline & Stage Shell (v0.2.0)`
 - **Dependencies:** `A-001`
 
 ## 1. Description
-Implement the bounded GitHub public-data connector (`src/lib/github/*`) that retrieves a consenting participant's public profile metadata, top/recent non-fork repositories, truncated `README.md` excerpts, language distributions, and recent public issues/PRs, normalizing them into verifiable `EvidenceReceipt` records with caching and rate-limit resilience.
+Implement the bounded GitHub public-data connector (`src/lib/github/*`) that retrieves a participant's public profile metadata, top/recent non-fork repositories, truncated `README.md` excerpts, language distributions, and recent public issues/PRs, normalizing them into verifiable `EvidenceReceipt` records and computing an initial **6-Axis Builder Fingerprint** (`Systems/Infra`, `Agent Orchestration`, `LLM/Eval`, `Frontend/UX`, `Product/GTM`, `Data/Pipelines`). Includes **Multi-PAT Token Rotation (`GITHUB_TOKENS`)**, a **24-hour SQLite Snapshot Cache**, and a **VIP / Judge Pre-Warm Endpoint (`POST /api/admin/prewarm`)**.
 
 ## 2. Rationale
-All capability claims and collaboration matches in Ariadne must be grounded in verifiable public GitHub evidence with direct URLs and timestamps, while staying well within GitHub API rate limits and a 10-second wall-clock latency budget.
+When 40–150 people scan the QR code simultaneously during a stage pitch, Ariadne must never hit GitHub API rate limits or stall on slow network calls. Rotating across 2–3 GitHub PATs (`15,000+ req/hr`), caching snapshots for 24h in SQLite, and allowing the Operator to pre-warm judge/VIP handles ahead of time guarantees sub-second reliability.
 
 ## 3. Dependencies
 - Depends on `A-001` (`EvidenceReceipt` contract, `github_snapshots` table, event contracts `github.fetch.started`, `github.fetch.completed`, `analysis.failed`).
 
 ## 4. Implementation Boundaries
-- **In Scope:** `src/lib/github/client.ts`, `src/lib/github/normalizer.ts`, `src/lib/github/sanitizer.ts`, 30-minute snapshot caching in `github_snapshots`, and REST fallback if GraphQL is unavailable.
-- **Out of Scope:** LLM capability extraction (`A-004`) or opportunity inference (`A-005`).
+- **In Scope:** `src/lib/github/client.ts` (with `GITHUB_TOKENS` round-robin rotation + adaptive `full` vs `fast-rest` mode), `src/lib/github/normalizer.ts` (including deterministic 6-axis Builder Fingerprint baseline), `src/lib/github/sanitizer.ts`, 24-hour snapshot caching in `github_snapshots`, and `POST /api/admin/prewarm` (accepts an array of GitHub handles to pre-fetch into SQLite cache).
+- **Out of Scope:** Gemini Flash deep capability synthesis (`A-004`) or opportunity inference (`A-005`).
 
 ## 5. Acceptance Criteria
-- [ ] Retrieves public profile, up to 10 non-fork public repositories, languages, topics, truncated `README.md` (`<= 3,500 chars`), and recent open issues/PRs in `< 10s`.
-- [ ] Emits `github.fetch.started` and `github.fetch.completed` with exact repository and evidence receipt counts.
-- [ ] Produces normalized `EvidenceReceipt[]` records with valid `https://github.com/...` URLs and `source_updated_at` timestamps.
-- [ ] Handles unknown usernames (`404`), users with 0 public repos, and rate limits (`403/429`) gracefully without crashing the worker.
+- [ ] Supports comma-separated `GITHUB_TOKENS` (or single `GITHUB_TOKEN`) with automatic token rotation on `X-RateLimit-Remaining < 50` or `403/429`.
+- [ ] Retrieves public profile, up to 10 non-fork public repositories, languages, topics, and truncated `README.md` (`<= 3,500 chars`), emitting `github.fetch.started` and `github.fetch.completed` with repo count and duration (`ms`).
+- [ ] Computes a deterministic baseline **6-Axis Builder Fingerprint** (`0–100` across `Systems/Infra`, `Agent Orchestration`, `LLM/Eval`, `Frontend/UX`, `Product/GTM`, `Data/Pipelines`) from repo languages/topics in `< 50ms` so Stage 1 progressive UX renders immediately.
+- [ ] Serves repeat or pre-warmed handles from the 24-hour `github_snapshots` SQLite cache in `< 10ms` (`0` external GitHub API calls).
+- [ ] `POST /api/admin/prewarm` accepts `{ handles: ["user1", "user2", ...] }` and caches their GitHub snapshots in the background before demo time.
 
 ## 6. Test Requirements
-- Unit tests covering GraphQL/REST response normalization, 30-minute cache hits, `404`/`429` graceful error state transitions, and HTML/prompt-injection sanitization on untrusted README/issue strings.
+- Unit tests covering Multi-PAT token rotation, GraphQL/REST response normalization, 24-hour SQLite cache hits, 6-axis Builder Fingerprint calculation, `POST /api/admin/prewarm`, and HTML/prompt-injection sanitization.
 
 ## 7. Security & Privacy Considerations
 - Query **only** public endpoints; filter out any private repository references.
-- Sanitize all external GitHub text (strip HTML tags, scripts, and markdown tracking images) before storing or passing downstream.
+- Sanitize all external GitHub text before storing or passing downstream.
 
 ## 8. Expected Demonstration Impact
-Powers the live evidence receipts shown on both the participant's mobile profile and the stage Activity/Spotlight views, proving Ariadne reads real engineering history rather than hallucinating skills.
+Powers **Column 1 (`GitHub Crawl`)** and **Column 3 (`Builder Fingerprint`)** on the 16:9 Stage Visualizer with sub-second cached speed and bulletproof rate-limit headroom.

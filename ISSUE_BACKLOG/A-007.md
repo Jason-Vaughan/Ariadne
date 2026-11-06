@@ -1,34 +1,37 @@
-# [feature] A-007: Match research and proposal agent
+# [feature] A-007: Two-stage match explanation & collaboration thesis agent (Stage 1 Instant + Stage 2 Gemini Flash)
 
 - **Issue ID:** `A-007`
 - **Priority:** `P0`
-- **Assigned Lane:** `Ariadne-Lane-C` (Builder C)
-- **Milestone:** `Wave 2 — Strong Success (v0.2.0-m2)`
+- **Assigned Lane & Car:** `Ariadne-Lane-C` (`Car 1-C`)
+- **Milestone / Train:** `Train 1 — Core Pipeline & Stage Shell (v0.2.0)`
 - **Dependencies:** `A-006`
 
 ## 1. Description
-Implement the Match Evaluation Agent and Introduction Agent (`src/lib/agents/match-evaluator.ts` and `src/lib/agents/intro-writer.ts`) plus Verification Gate checks that inspect the top candidate pairs from `A-006`, validate that the collaboration thesis is grounded in real repository evidence, and generate all 7 required match proposal fields—including a concrete *"Suggested First Conversation or Collaboration"*.
+Implement the Two-Stage Match Evaluation & Introduction Thesis Agent (`src/lib/agents/match-evaluator.ts` and `src/lib/agents/intro-writer.ts`):
+- **Stage 1 (`< 50ms` Instant Deterministic Explanation & Repo Evidence Pills):** Immediately formats the Top-3 scored candidate pairs from `A-006` with all 7 required `MatchProposal` fields using deterministic evidence templates citing both builders' actual repositories and complementary 6-Axis Fingerprint strengths.
+- **Stage 2 (`Gemini Flash` `gemini-2.5-flash` Parallel Enrichment):** Streams a tailored, human-readable *"Why You Two Should Talk Right Now"* collaboration thesis and *"First 3 Minutes Icebreaker"* over SSE (`match.enriched`), validated by the Verification Gate.
 
 ## 2. Rationale
-While `A-006` ranks pairs mathematically, participants need a concise, specific, human-readable explanation of *why* they should talk and *what* they could build or discuss in their first 15 minutes together.
+Under our Two-Stage Progressive UX, attendees must see their Top-3 matches + clickable GitHub repo evidence pills in **`< 500ms`** (Stage 1), while Gemini Flash enriches the narrative explanation in the background (`2–5s`, Stage 2) without ever blocking the UI.
 
 ## 3. Dependencies
 - Depends on `A-006` (top scored candidate pairs and `ScoreBreakdown`).
 
 ## 4. Implementation Boundaries
-- **In Scope:** `src/lib/agents/match-evaluator.ts`, `src/lib/agents/intro-writer.ts`, deterministic template fallback (if LLM times out), Verification Gate check that all cited repos/URLs belong to the two matched participants, and emission of `match.evaluated`.
+- **In Scope:** `src/lib/agents/match-evaluator.ts`, `src/lib/agents/intro-writer.ts` (Stage 1 instant template + Stage 2 `gemini-2.5-flash` enrichment), Verification Gate check that all cited repos/URLs belong to the two matched participants, and emission of `match.evaluated` and `match.enriched`.
 - **Out of Scope:** UI rendering (`A-008`) and bilateral state transitions (`A-012`).
 
 ## 5. Acceptance Criteria
-- [ ] Produces complete `MatchProposal` records containing all 7 required fields: score + breakdown, complementary capabilities, relevant project names, why they benefit from meeting, 1 concrete suggested first conversation, confidence limitations, and verified GitHub evidence links.
+- [ ] Stage 1 produces complete, valid `MatchProposal` records (all 7 required fields + 2 cited repo evidence pills) in `< 50ms` immediately after `A-006` scoring.
+- [ ] Stage 2 `gemini-2.5-flash` enrichment upgrades the collaboration thesis and concrete 3-minute starter topic asynchronously and emits `match.enriched`.
 - [ ] Verification Gate rejects or strips any cited repository URL that does not exist in Participant A or Participant B's `EvidenceReceipt` set.
-- [ ] Emits `match.evaluated` with privacy-safe stage payload.
+- [ ] Emits `match.evaluated` (Stage 1) and `match.enriched` (Stage 2) with privacy-safe stage payloads.
 
 ## 6. Test Requirements
-- Unit tests verifying schema completeness (all 7 required outputs present), cross-participant citation verification, and deterministic template fallback under LLM timeout.
+- Unit tests verifying `< 50ms` Stage 1 output completeness (all 7 required fields present), cross-participant citation verification, and Stage 2 Gemini Flash enrichment + fallback.
 
 ## 7. Security & Privacy Considerations
-- Do not include private contact details (`discord_handle`, email) in `MatchProposal` text; contact details are unlocked strictly after bilateral approval in `A-012`.
+- Do not include private contact details in `MatchProposal` text; contact details are unlocked strictly after bilateral approval in `A-012`.
 
 ## 8. Expected Demonstration Impact
-Delivers the core "Aha!" moment of **Strong Success (`M2`)**: reading a specific, evidence-backed explanation of why two attendees at the hackathon should collaborate on a concrete problem.
+Guarantees sub-500ms match cards on mobile phones during a 40-person QR scan burst while streaming custom Gemini Flash collaboration pitches seconds later.
