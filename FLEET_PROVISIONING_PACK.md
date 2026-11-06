@@ -2,39 +2,48 @@
 
 **Project:** `ARIADNE-HACK-2026` (*Find Your Thread.*)  
 **PM Session:** `Ariadne-PM` (`projectId: 149`, Medusa ID: `ariadne-pm-db0f895f`)  
-**Status:** 5 of 8 Lanes Created (`#150..#154`); Ready for Final 1-Paste Complete Provisioning, Medusa + Bypass Config, Active Rule Seeding & PM Lifecycle Delegation
+**Status:** Ready for Final 1-Line Console Execution on the Main Dashboard Tab (`https://cursatory.tail123678.ts.net:8443/`)
 
 ---
 
-## 1. What Failed in Paste #1 (And How Paste #2 Fixes Everything in One Run)
+## 1. Why the Previous Run Printed "Done" Without Writing (`403 CSRF_REQUIRED`)
 
-1. **Engine IDs (`Ariadne-Arc`, `Ariadne-PRR`, `Ariadne-INT`):**
-   - TangleClaw's exact engine IDs (`GET /api/engines`) are **`antigravity`**, **`codex`**, and **`claude-sonnet-reviewer`** (not `claude-opus` or `codex-medium`).
-2. **Medusa Disabled & Interactive Mode On:**
-   - `POST /api/projects` creates a project with default settings (`defaultLaunchMode: "default"`, `showLaunchModePicker: true`, `medusaEnabled: false`).
-   - To enable **Medusa** (`medusaEnabled: true`, `medusaWake: true`) and turn **Interactive Mode OFF** (`defaultLaunchMode: "bypassPermissions"`, `showLaunchModePicker: false`, `confirmBypassHidden: true`), the script runs **`PATCH /api/projects/<name>`** on every lane (matching `TC-Lane-*` `.tangleclaw/project.json` settings).
-3. **No Active Rules Visible in the Lanes:**
-   - `Ariadne-PM` cannot call `POST /api/session-rules` on another project (`403 OTHER_PROJECT`).
-   - When run from your Dashboard Console, **`POST /api/session-rules` with `{ projectId: p.id, content: ... }`** creates the rules as **`status: "active"`** immediately! Each lane receives two active `startup` rules matching the `TC-Lane-*` pattern:
-     1. **`TEAM COMMON CORE (ARIADNE-HACK-2026 v1)`**
-     2. **`<ROLE> ROLE OVERLAY (ARIADNE-HACK-2026 v1)`**
-4. **`Ariadne-PM` Autonomous Fleet Lifecycle Authority:**
-   - Grants `Ariadne-PM` (`projectId: 149`) the `"project-manager"` Coordinator Role (`POST /api/tc/rotation/role/grant`) and delegates `lifecycle`, `hold`, `stop`, and `releaseDelegations` on all 8 lanes (`POST /api/control/assignments`).
+TangleClaw's armed authentication gate (`public/api-helper.js`) requires **`tcFetch`** (which attaches `X-CSRF-Token` from the `tc_csrf` cookie and `X-TangleClaw-Client: dashboard`) on every `POST` and `PATCH` request. Bare `fetch()` without `X-CSRF-Token` was rejected with `403`, while the script still reached the final `console.log` line.
+
+The updated script below uses **`tcFetch` + `X-CSRF-Token` + `X-TangleClaw-Client: dashboard`** and verifies the HTTP status of every step.
 
 ---
 
-## 2. 1-Paste Complete Dashboard Console Script (Creates Missing 3 Lanes + Configures All 8 Lanes + Seeds Active Rules + Delegates PM Authority)
+## 2. 1-Line Loader (Run in the Main TangleClaw Dashboard Tab Console at `https://cursatory.tail123678.ts.net:8443/`)
 
-Open the **TangleClaw Dashboard** (`https://cursatory.tail123678.ts.net:8443/`), open Browser DevTools (**Console**), and paste this single self-contained block:
+> [!IMPORTANT]
+> Run this in the DevTools Console of your **main TangleClaw Dashboard tab** (`https://cursatory.tail123678.ts.net:8443/`), **not** inside the `/plans/149/...` tab (plan tabs enforce `Content-Security-Policy: default-src 'none'`).
+
+```javascript
+tcFetch('/plans/149/FLEET_PROVISIONING_PACK.md').then(r=>r.text()).then(h=>eval(new DOMParser().parseFromString(h,'text/html').querySelectorAll('code.language-javascript')[1].textContent))
+```
+
+---
+
+## 3. Full Self-Contained Script (Loaded Automatically by the 1-Liner Above)
 
 ```javascript
 (async () => {
-  const call = (url, method = 'GET', body = undefined) =>
-    fetch(url, {
+  const csrf = (document.cookie.split(';').map(s => s.trim()).find(s => s.startsWith('tc_csrf=')) || '').slice(8);
+  const fetcher = typeof tcFetch === 'function' ? tcFetch : fetch;
+  const call = async (url, method = 'GET', body = undefined) => {
+    const headers = { 'X-TangleClaw-Client': 'dashboard' };
+    if (csrf) headers['X-CSRF-Token'] = decodeURIComponent(csrf);
+    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    const r = await fetcher(url, {
       method,
-      headers: body ? { 'Content-Type': 'application/json' } : undefined,
-      body: body ? JSON.stringify(body) : undefined,
-    }).then(async (r) => ({ ok: r.ok, status: r.status, data: await r.json().catch(() => ({})) }));
+      headers,
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) console.error(`❌ ${method} ${url} -> ${r.status}`, data);
+    return { ok: r.ok, status: r.status, data };
+  };
 
   const fleet = [
     { name: 'Ariadne-Arc',    engine: 'antigravity',            roleKey: 'ARC' },
@@ -96,7 +105,9 @@ Open the **TangleClaw Dashboard** (`https://cursatory.tail123678.ts.net:8443/`),
 2. Execution Discipline: Work in an isolated git worktree/branch (feat/car-1d-..., feat/car-2d-...) strictly inside your Car charter's file envelope. Enforce stage pseudonymity by default, write JSDoc on all functions, unit tests alongside implementation, and update CHANGELOG.md. Never run gh pr merge; open your PR and notify Ariadne-PRR, Ariadne-INT, and Ariadne-PM via Medusa.`
   };
 
-  // Step 1: Create any missing fleet projects
+  let failures = 0;
+
+  // Step 1: Create any missing fleet projects (Ariadne-Arc, Ariadne-PRR, Ariadne-INT)
   const list1 = await call('/api/projects');
   const existingByName = new Map((list1.data.projects || []).map(p => [p.name, p]));
 
@@ -107,6 +118,7 @@ Open the **TangleClaw Dashboard** (`https://cursatory.tail123678.ts.net:8443/`),
         engine: lane.engine,
         tags: ['Ariadne', 'Ariadne-Fleet']
       });
+      if (!created.ok) failures++;
       console.log('CREATE', lane.name, created.status, created.data);
     } else {
       console.log('EXISTS', lane.name, 'id=' + existingByName.get(lane.name).id);
@@ -120,7 +132,7 @@ Open the **TangleClaw Dashboard** (`https://cursatory.tail123678.ts.net:8443/`),
   // Step 2: Configure Medusa ON + Non-Interactive (Bypass) Mode + Workload Nudge on all 8 lanes
   for (const lane of fleet) {
     const p = projectsByName.get(lane.name);
-    if (!p) continue;
+    if (!p) { failures++; continue; }
     const patched = await call(`/api/projects/${encodeURIComponent(lane.name)}`, 'PATCH', {
       engine: lane.engine,
       defaultLaunchMode: 'bypassPermissions',
@@ -134,6 +146,7 @@ Open the **TangleClaw Dashboard** (`https://cursatory.tail123678.ts.net:8443/`),
       workloadNudge: { enabled: true, coordinatorProject: 'Ariadne-PM' },
       tags: ['Ariadne', 'Ariadne-Fleet']
     });
+    if (!patched.ok) failures++;
     console.log('PATCH CONFIG', lane.name, patched.status, patched.ok ? 'Medusa=ON, Mode=bypassPermissions' : patched.data);
   }
 
@@ -151,10 +164,12 @@ Open the **TangleClaw Dashboard** (`https://cursatory.tail123678.ts.net:8443/`),
 
     if (!hasCore) {
       const r1 = await call('/api/session-rules', 'POST', { projectId: p.id, content: COMMON_CORE });
+      if (!r1.ok) failures++;
       console.log('RULE CORE', lane.name, r1.status, r1.data?.rule?.status);
     }
     if (!hasOverlay) {
       const r2 = await call('/api/session-rules', 'POST', { projectId: p.id, content: ROLE_OVERLAYS[lane.roleKey] });
+      if (!r2.ok) failures++;
       console.log('RULE OVERLAY', lane.name, r2.status, r2.data?.rule?.status);
     }
   }
@@ -181,10 +196,15 @@ Open the **TangleClaw Dashboard** (`https://cursatory.tail123678.ts.net:8443/`),
         releaseDelegations: { 'project:149': ['project:149'] }
       }
     });
+    if (!assign.ok) failures++;
     console.log('DELEGATE -> PM(149)', lane.name, `(#${p.id}):`, assign.status);
   }
 
   if (typeof loadProjects === 'function') await loadProjects();
-  console.log('✅ ALL 8 ARIADNE FLEET LANES CREATED, MEDUSA ENABLED, INTERACTIVE MODE OFF (BYPASS), ACTIVE RULES SEEDED, AND PM DELEGATED!');
+  if (failures === 0) {
+    console.log('✅ ALL 8 ARIADNE FLEET LANES CREATED, MEDUSA ENABLED, INTERACTIVE MODE OFF (BYPASS), ACTIVE RULES SEEDED, AND PM DELEGATED!');
+  } else {
+    console.warn(`⚠️ Completed with ${failures} failed call(s) — check red error lines above.`);
+  }
 })();
 ```
