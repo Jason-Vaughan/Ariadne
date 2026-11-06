@@ -47,7 +47,9 @@
 
 | Document | Shareable MagicDNS Link | Scope & Purpose |
 |---|---|---|
-| **Fleet Charter & Durable Rules** | [FLEET_CHARTER.md](https://cursatory.tail123678.ts.net:8443/plans/149/FLEET_CHARTER.md) | 8–9 pane fleet topology (`PM`, `Arc`, `PRR`, `INT`, `Obsr`, `Lane-A..D`), worktree isolation, and 6 Durable Fleet Rules. |
+| **Fleet Charter & Durable Rules** | [FLEET_CHARTER.md](https://cursatory.tail123678.ts.net:8443/plans/149/FLEET_CHARTER.md) | 8–9 pane fleet topology (`PM`, `Arc`, `PRR`, `INT`, `Obsr`, `Lane-A..D`), worktree isolation, and 6 Durable Fleet Rules (proposed as **`Rule #304`** on `projectId: 149`). |
+| **Fleet Dispatch Queue (`LANE_QUEUE`)** | [LANE_QUEUE.md](https://cursatory.tail123678.ts.net:8443/plans/149/LANE_QUEUE.md) | Live dispatch queue staging all 4 Release Trains (`v0.1.0`–`v1.0.0`), 8 Bundled Cars, and Chunk-Boundary receipt ledger (`#1889`). |
+| **Roadmap Board & Sprint Reports Hub Spec** | [ROADMAP_AND_REPORTS_HUB_SPEC.md](https://cursatory.tail123678.ts.net:8443/plans/149/ROADMAP_AND_REPORTS_HUB_SPEC.md) | Specification for `/roadmap/index.html` and `/reports/index.html` (`v2.0.0` Sprint Reports Hub & Retrospective). |
 | **Dependency DAG & Car Schedule** | [DEPENDENCY_DAG.md](https://cursatory.tail123678.ts.net:8443/plans/149/DEPENDENCY_DAG.md) | 4-Train DAG, file-disjoint Car write envelopes, and `changelog.d/` collision prevention. |
 | **Release & Deployment Plan** | [RELEASE_PLAN.md](https://cursatory.tail123678.ts.net:8443/plans/149/RELEASE_PLAN.md) | Train cutover gates (`A-Gate`, `R-Gate`, `I-Gate`, `O-Gate`), SQLite WAL backups, and `< 15s` rollback protocol. |
 | **H-Day Launch Runbook** | [HACKATHON_RUNBOOK.md](https://cursatory.tail123678.ts.net:8443/plans/149/HACKATHON_RUNBOOK.md) | Minute-by-minute post-`GO` launch sequence (`T+00` to `T+45`) and full-day schedule (`09:30 – 18:00 PST`). |
