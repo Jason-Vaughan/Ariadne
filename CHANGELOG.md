@@ -4,6 +4,9 @@ All notable changes to Ariadne-PM are documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **Roadmap Board HTTP Route Aliases (`roadmap-board/serve-roadmap.py`):** Added `/roadmap-board`, `/roadmap-board/`, `/roadmap-board/index.html`, `/roadmap-board/Ariadne-Public-Roadmap-preview.html`, `/roadmap-board/roadmap-sync-status.json`, and `/sprint-reports/` aliases to the allow-list in `serve-roadmap.py` so both root URLs (`http://cursatory.tail123678.ts.net:3422/`) and `/roadmap-board/index.html` return `200 OK`.
+
 ### Added
 - **TC-Lane-PM Cross-Project Roadmap Enhancement (`c6ea0050` — Execution-Mode Pills & Stale-Fallback Guard):**
   - Adopted `Jason-Vaughan/TangleClaw` commit `d304e5b356837b6ea0eadc6a595061893a29e337` in `roadmap-board/build-ariadne-roadmap.py` and `roadmap-board/publish-public-roadmap.sh`:

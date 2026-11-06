@@ -11,12 +11,20 @@ REPORTS_DIR = HERE.parent / "sprint-reports"
 FILES = {
     "/": (HERE / "index.html", "text/html; charset=utf-8"),
     "/index.html": (HERE / "index.html", "text/html; charset=utf-8"),
+    "/roadmap-board": (HERE / "index.html", "text/html; charset=utf-8"),
+    "/roadmap-board/": (HERE / "index.html", "text/html; charset=utf-8"),
+    "/roadmap-board/index.html": (HERE / "index.html", "text/html; charset=utf-8"),
     "/public": (HERE / "Ariadne-Public-Roadmap-preview.html", "text/html; charset=utf-8"),
     "/Ariadne-Public-Roadmap-preview.html": (HERE / "Ariadne-Public-Roadmap-preview.html", "text/html; charset=utf-8"),
+    "/roadmap-board/Ariadne-Public-Roadmap-preview.html": (HERE / "Ariadne-Public-Roadmap-preview.html", "text/html; charset=utf-8"),
     "/roadmap-sync-status.json": (HERE / "roadmap-sync-status.json", "application/json; charset=utf-8"),
+    "/roadmap-board/roadmap-sync-status.json": (HERE / "roadmap-sync-status.json", "application/json; charset=utf-8"),
     "/reports": (REPORTS_DIR / "index.html", "text/html; charset=utf-8"),
     "/reports/": (REPORTS_DIR / "index.html", "text/html; charset=utf-8"),
     "/reports/index.html": (REPORTS_DIR / "index.html", "text/html; charset=utf-8"),
+    "/sprint-reports": (REPORTS_DIR / "index.html", "text/html; charset=utf-8"),
+    "/sprint-reports/": (REPORTS_DIR / "index.html", "text/html; charset=utf-8"),
+    "/sprint-reports/index.html": (REPORTS_DIR / "index.html", "text/html; charset=utf-8"),
 }
 
 
