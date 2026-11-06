@@ -3,6 +3,7 @@
 > [!IMPORTANT]
 > **Single Source of Truth (SSOT) — Prominent Live Links & Dashboards**
 > - **Master SSOT Index (`:8443`):** [https://cursatory.tail123678.ts.net:8443/plans/149/PROJECT_DOCUMENTS.md](https://cursatory.tail123678.ts.net:8443/plans/149/PROJECT_DOCUMENTS.md) *(Mirror: [MASTER_SSOT.md](https://cursatory.tail123678.ts.net:8443/plans/149/MASTER_SSOT.md))*
+> - **Branded Documentation Portal (All 52 Docs with Static TangleClaw Watermark on `:3422/docs/`):** **[http://cursatory.tail123678.ts.net:3422/docs/](http://cursatory.tail123678.ts.net:3422/docs/)** *(Direct Master SSOT: **[http://cursatory.tail123678.ts.net:3422/docs/MASTER_SSOT.md](http://cursatory.tail123678.ts.net:3422/docs/MASTER_SSOT.md)**)*
 > - **Live Interactive Roadmap Board (`TangleClaw Roadmap 2` UI on PortHub `:3422`):** **[http://cursatory.tail123678.ts.net:3422/](http://cursatory.tail123678.ts.net:3422/)**
 > - **Public Roadmap Preview (`:3422/public`):** **[http://cursatory.tail123678.ts.net:3422/public](http://cursatory.tail123678.ts.net:3422/public)**
 > - **Sprint Reports Hub (`v2.0.0` Standard on `:3422/reports/`):** **[http://cursatory.tail123678.ts.net:3422/reports/](http://cursatory.tail123678.ts.net:3422/reports/)**

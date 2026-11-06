@@ -5,8 +5,12 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Added
-- **TangleClaw Background Watermark Logo on Roadmap Board & Sprint Reports Hub (`roadmap-board/tangleclaw-logo.png`, `build-ariadne-roadmap.py`, `serve-roadmap.py`, `sprint-reports/index.html`):**
-  - Cached `tangleclaw-logo.png` (`1024x1024` RGBA from `Jason-Vaughan/project-assets`) locally for offline venue reliability (with automatic fallback to GitHub Raw) and added a fixed, centered, large (`860px`), semi-transparent (`opacity: 0.08–0.10`) background watermark plus a header brand badge (`Orchestrated by TangleClaw · Autonomous 9-Lane Agentic Fleet`) on both the Roadmap Board (`/` and `/public`) and Sprint Reports Hub (`/reports`).
+- **TangleClaw Background Watermark Logo Across All Roadmap, Sprint Report & Documentation Pages (`roadmap-board/tangleclaw-logo.png`, `build-ariadne-roadmap.py`, `serve-roadmap.py`, `sprint-reports/`):**
+  - Cached `tangleclaw-logo.png` (`1024x1024` RGBA from `Jason-Vaughan/project-assets`) locally for offline venue reliability (with automatic fallback to GitHub Raw) and added a fixed, centered, large (`860px`), semi-transparent (`opacity: 0.08–0.10`, `position: fixed`) background watermark that stays static on screen as you scroll.
+  - Added the static watermark across:
+    1. **Roadmap Board (`/` & `/public`)** + top brand badge (`Orchestrated by TangleClaw · Autonomous 9-Lane Agentic Fleet`).
+    2. **Sprint Reports Hub (`/reports`) & Executive Sprint Reports (`/reports/v0.1.0/`, `base-report-template.html`, `gen_v010.py`, `enrich-sprint-reports.py`)**.
+    3. **Full Branded Documentation Portal (`/docs/` and `/docs/<FILE>.md` on PortHub `:3422`)**, rendering all 52 Ariadne markdown specifications (`MASTER_SSOT.md`, `VISUALIZER_SPEC.md`, `DEMO_RUNBOOK.md`, `ISSUE_A-001.md`..`ISSUE_A-017.md`, etc.) with the fixed static TangleClaw watermark and linked directly from every issue on the Roadmap Board.
 
 ### Fixed
 - **Roadmap Board HTTP Route Aliases (`roadmap-board/serve-roadmap.py`):** Added `/roadmap-board`, `/roadmap-board/`, `/roadmap-board/index.html`, `/roadmap-board/Ariadne-Public-Roadmap-preview.html`, `/roadmap-board/roadmap-sync-status.json`, and `/sprint-reports/` aliases to the allow-list in `serve-roadmap.py` so both root URLs (`http://cursatory.tail123678.ts.net:3422/`) and `/roadmap-board/index.html` return `200 OK`.

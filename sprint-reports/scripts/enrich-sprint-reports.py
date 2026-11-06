@@ -92,6 +92,22 @@ def enrich_report(path: str, slug: str):
     url = f"{SITE_BASE}/{slug}/"
     content = inject_og(content, raw_title, raw_desc, url)
 
+    if 'class="tc-bg-watermark"' not in content:
+        watermark_css = (
+            "    body { position: relative; min-height: 100vh; }\n"
+            "    .tc-bg-watermark { position: fixed; inset: 0; z-index: 0; pointer-events: none; display: flex; align-items: center; justify-content: center; overflow: hidden; }\n"
+            "    .tc-bg-watermark img { width: min(82vw, 860px); height: min(82vw, 860px); object-fit: contain; opacity: 0.08; filter: drop-shadow(0 0 48px rgba(52, 211, 153, 0.16)); user-select: none; -webkit-user-drag: none; }\n"
+            "    main, .container, footer { position: relative; z-index: 1; }\n"
+        )
+        content = content.replace("  </style>", watermark_css + "  </style>", 1)
+        watermark_div = (
+            '<body>\n'
+            '  <div class="tc-bg-watermark" aria-hidden="true">\n'
+            '    <img src="/tangleclaw-logo.png" onerror="this.onerror=null;this.src=\'https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png\'" alt="" />\n'
+            '  </div>'
+        )
+        content = content.replace("<body>", watermark_div, 1)
+
     if slug in CANONICAL_METRICS or slug in DETAILED_SPRINT_RECORDS:
         kpi_card, banner = render_ade_kpi_and_banner(slug)
         if "<!-- TANGLECLAW_ADE_KPI_START -->" in content:

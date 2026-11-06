@@ -1,44 +1,3 @@
-# H-Day GitHub Issue Backlog Index — ARIADNE (`ARIADNE-HACK-2026`)
-*Amended: Web-Only Self-Hosted MVP + `TC-Lane-PM` 4-Train Bundled Cars (`Rule #294`)*
-
-> **CRITICAL DIRECTIVE:** These 15 active H-Day MVP issue drafts (`A-001`–`A-012`, `A-014`–`A-016`) are prepared locally for H-Day publication. **Do NOT create remote GitHub repository or publish issues before 09:30 AM PST on Saturday, November 7, 2026, AND explicit Operator `GO`.**
-> Per the **Web-Only Hackathon MVP Amendment**, `A-013` (Discord event bot) and `A-017` (Medusa coordination adapter) have been moved to the **Post-Hackathon Roadmap**.
-
----
-
-## 1. Active H-Day MVP Backlog Arranged by Release Trains & Cars (`15 Issues`)
-
-| ID | Title | Priority | Train / Version | Bundled Car | Assigned Lane | Draft File |
-|---|---|---|---|---|---|---|
-| **A-001** | Core architecture, SQLite WAL schema & data/event contracts | `P0` | **Train 0 (`v0.1.0`)** | **`Car 0-INT`** | `Ariadne-INT` + `Arc` | `ISSUE_BACKLOG/A-001.md` |
-| **A-014** | Self-hosted server (`:3420`), SQLite WAL, narrow HTTPS tunnel & resilience | `P0` | **Train 0 (`v0.1.0`) & Train 3 (`v1.0.0`)** | **`Car 0-INT` / `Car 3-INT`** | `Ariadne-INT` | `ISSUE_BACKLOG/A-014.md` |
-| **A-015** | Hackathon provenance & Per-Version `v2.0.0` Interactive Sprint Reports | `P0` | **Train 0 (`v0.1.0`) – Train 3 (`v1.0.0`)** | **`Car 0-INT` / `Obsr`** | `Ariadne-Obsr` + `PM` | `ISSUE_BACKLOG/A-015.md` |
-| **A-002** | Mobile QR onboarding, consent & session isolation | `P0` | **Train 1 (`v0.2.0`)** | **`Car 1-A`** | `Ariadne-Lane-A` | `ISSUE_BACKLOG/A-002.md` |
-| **A-008** | Mobile participant profile & top-3 match results interface | `P0` | **Train 1 (`v0.2.0` Shell) / Train 2 (`v0.3.0` Live)** | **`Car 1-A` / `Car 2-A`** | `Ariadne-Lane-A` | `ISSUE_BACKLOG/A-008.md` |
-| **A-003** | Bounded GitHub public-data connector & SQLite snapshot cache | `P0` | **Train 1 (`v0.2.0`)** | **`Car 1-B`** | `Ariadne-Lane-B` | `ISSUE_BACKLOG/A-003.md` |
-| **A-004** | Evidence-backed capability analysis agent | `P0` | **Train 1 (`v0.2.0`)** | **`Car 1-B`** | `Ariadne-Lane-B` | `ISSUE_BACKLOG/A-004.md` |
-| **A-005** | Opportunity and bottleneck discovery agent | `P1` | **Train 1 (`v0.2.0`)** | **`Car 1-B`** | `Ariadne-Lane-B` | `ISSUE_BACKLOG/A-005.md` |
-| **A-006** | Deterministic 4-factor match scoring engine (`40/30/20/10`) | `P0` | **Train 1 (`v0.2.0`)** | **`Car 1-C`** | `Ariadne-Lane-C` | `ISSUE_BACKLOG/A-006.md` |
-| **A-007** | Match research and proposal explanation agent | `P0` | **Train 1 (`v0.2.0`)** | **`Car 1-C`** | `Ariadne-Lane-C` | `ISSUE_BACKLOG/A-007.md` |
-| **A-009** | SQLite append-only event stream (`SSE` + polling fallback) | `P0` | **Train 1 (`v0.2.0`)** | **`Car 1-D`** | `Ariadne-Lane-D` | `ISSUE_BACKLOG/A-009.md` |
-| **A-010** | 16:9 Presentation Visualizer — Network Mode & KPI ribbon | `P0` | **Train 1 (`v0.2.0`)** | **`Car 1-D`** | `Ariadne-Lane-D` | `ISSUE_BACKLOG/A-010.md` |
-| **A-011** | 16:9 Presentation Visualizer — Activity & Spotlight modes | `P1` | **Train 1 (`v0.2.0`)** | **`Car 1-D`** | `Ariadne-Lane-D` | `ISSUE_BACKLOG/A-011.md` |
-| **A-012** | Web-native mutual-introduction workflow & private intro room | `P0` | **Train 2 (`v0.3.0`)** | **`Car 2-A`** | `Ariadne-Lane-A` | `ISSUE_BACKLOG/A-012.md` |
-| **A-016** | In-process async job worker & continuous rematching | `P1` | **Train 2 (`v0.3.0`)** | **`Car 2-C`** | `Ariadne-Lane-C` | `ISSUE_BACKLOG/A-016.md` |
-
----
-
-## 2. Post-Hackathon Roadmap (Explicitly Deferred — Zero H-Day Scope)
-
-Per the **Web-Only Hackathon MVP Amendment** and Operator Charter Section 8, the following items are **deferred to the post-hackathon roadmap**:
-- **`A-013` (Deferred):** Dedicated Discord event bot for match proposals and thread creation (`ISSUE_BACKLOG/A-013.md` retained as post-hackathon reference only).
-- **`A-017` (Deferred):** Medusa A2A coordination adapter (`ISSUE_BACKLOG/A-017.md` retained as post-hackathon reference only).
-- **Morpheus Integration:** Deferred to post-hackathon roadmap.
-- Conversational interview bot.
-- Résumé, LinkedIn, X, and Instagram analysis.
-- Persistent personal agents across events.
-- Internet-wide Medusa federation & independent agent identity/trust.
-- Long-term project opportunity monitoring & TangleClaw-backed execution of agreed collaborations.
 # [feature] A-001: Core architecture and data/event contracts
 
 - **Issue ID:** `A-001`
@@ -76,149 +35,156 @@ Four concurrent Builder lanes (`Lane-A` through `Lane-D`) will execute in parall
 
 ## 8. Expected Demonstration Impact
 Provides the rock-solid architectural spine that enables 4 autonomous TangleClaw Builders to construct the application concurrently without breaking the build—a centerpiece proof point for Objective B (TangleClaw multi-agent orchestration).
-# [feature] A-002: Public onboarding and QR intake
+# [feature] A-002: Public QR onboarding — Zero-OAuth 1-tap GitHub handle entry
 
 - **Issue ID:** `A-002`
 - **Priority:** `P0`
-- **Assigned Lane:** `Ariadne-Lane-A` (Builder A)
-- **Milestone:** `Wave 1 — Minimum Success (v0.1.0-m1)`
+- **Assigned Lane & Car:** `Ariadne-Lane-A` (`Car 1-A`)
+- **Milestone / Train:** `Train 1 — Core Pipeline & Stage Shell (v0.2.0)`
 - **Dependencies:** `A-001`
 
 ## 1. Description
-Build the mobile-first QR landing and onboarding flow (`/join`), GitHub username/URL input and optional 1-click GitHub OAuth sign-in, explicit data-processing consent and optional public stage-display consent controls, provisional profile page (`/me`), and immediate emission of `participant.registered`.
+Build the mobile-first QR landing and onboarding flow (`/join`) with a prominent **`⚡ REQUIRES GITHUB PROFILE`** badge, **Zero-OAuth 1-Tap GitHub `@username` / URL entry** (so attendees join in `< 1s` on venue Wi-Fi without an OAuth login/2FA wall), optional 1-line *"What I'm building or looking for today"* note, optional 1-click GitHub OAuth for a `"Verified"` badge, explicit data-processing & stage-display consent controls, provisional profile page (`/me`), and immediate emission of `participant.registered`.
 
 ## 2. Rationale
-The onboarding page is the front door for every hackathon attendee scanning the stage QR code. It must complete in under 10 seconds on mobile cellular/venue Wi-Fi without requiring a lengthy questionnaire or interview.
+On congested hackathon venue Wi-Fi, requiring a full GitHub OAuth redirect + 2FA on mobile causes ~50% drop-off during a 3-minute stage pitch. By requiring a public GitHub `@username` directly (`Zero-OAuth`), any attendee with a GitHub profile joins in `< 1 second` and immediately triggers the live GitHub crawl and 6-axis Builder Fingerprint pipeline on the 16:9 Stage Visualizer.
 
 ## 3. Dependencies
-- Depends on `A-001` (`Participant` contract, database schema, and `participant.registered` event contract).
+- Depends on `A-001` (`Participant` contract, SQLite schema, and `participant.registered` event contract).
 
 ## 4. Implementation Boundaries
-- **In Scope:** `src/app/page.tsx`, `src/app/join/page.tsx`, `src/app/me/page.tsx` (provisional shell + progressive status indicators), `src/app/api/participants/route.ts`, `src/app/api/participants/me/route.ts` (including `DELETE` withdrawal endpoint), and `src/app/api/auth/github/*`.
+- **In Scope:** `src/app/page.tsx`, `src/app/join/page.tsx`, `src/app/me/page.tsx` (provisional shell + progressive status indicators), `src/app/api/participants/route.ts`, `src/app/api/participants/me/route.ts` (including `DELETE` withdrawal endpoint), and optional `src/app/api/auth/github/*`.
 - **Out of Scope:** Deep GitHub API repository fetching (`A-003`), LLM profile synthesis (`A-004`), or match scoring (`A-006`).
 
 ## 5. Acceptance Criteria
-- [ ] Scanning the QR code opens a mobile-responsive onboarding view that accepts either a GitHub handle (`octocat`) or profile URL (`https://github.com/octocat`).
-- [ ] Submission is blocked unless the explicit GitHub analysis consent checkbox is checked.
-- [ ] Submitting creates a persistent `Participant` record with a deterministic pseudonym (`Thread-XXXX`), sets a signed `HttpOnly` session cookie, emits `participant.registered`, and redirects to `/me` in `< 2.0s`.
-- [ ] Participant can withdraw and delete their profile at any time via a clear *"Withdraw & Delete My Data"* action (`DELETE /api/participants/me`).
+- [ ] Displays a clear, high-contrast **`⚡ REQUIRES GITHUB PROFILE`** banner at the top of `/join`.
+- [ ] Accepts any valid GitHub handle (`octocat`, `@octocat`) or profile URL (`https://github.com/octocat`) with zero OAuth login wall required, plus an optional 1-line collaboration goal (`<= 160 chars`).
+- [ ] Submission is blocked unless the explicit GitHub public-analysis consent checkbox is checked.
+- [ ] Submitting creates a persistent `Participant` record with a deterministic pseudonym (`Thread-XXXX`), sets a signed `HttpOnly` session cookie, emits `participant.registered`, and redirects to `/me` in `< 1.0s`.
+- [ ] **Hard Room Capacity Admission Gate (`maxRoomCapacity`, default `30`):** When active non-seed participants reach `maxRoomCapacity` (or when the Operator locks intake via `/stage` or `/admin`), `/join` and `POST /api/participants` display a friendly mobile notice: **`"🚧 System is currently at capacity (30/30) — please try back later!"`** with a **`[🔄 Try Again]`** button (while existing sessions and pre-warmed VIP/Judge handles continue through unimpeded).
+- [ ] Participant can withdraw and delete their profile at any time via a clear *"Withdraw & Delete My Data"* action (`DELETE /api/participants/me`), which immediately frees a capacity slot.
 
 ## 6. Test Requirements
-- Unit/API tests verifying username/URL normalization, rejection of unconsented submissions (`400`), rate-limit enforcement, session cookie creation, and complete data purge upon `DELETE /api/participants/me`.
+- Unit/API tests verifying username/URL normalization, rejection of empty/invalid handles or unconsented submissions (`400`), session cookie creation, and complete data purge upon `DELETE /api/participants/me`.
 
 ## 7. Security & Privacy Considerations
-- Enforce IP rate limiting on `POST /api/participants` (`5 req / 10 min`).
-- Ensure the optional *"Display my GitHub identity on the stage visualizer"* checkbox defaults to `false` (pseudonymous by default).
-- Request zero private repository scopes if GitHub OAuth is used (`read:user` only).
+- Enforce IP/cookie rate limiting on `POST /api/participants`.
+- Ensure the optional *"Display my @github handle on the 16:9 stage visualizer"* checkbox is clearly labeled.
+- Request zero private repository scopes if optional GitHub OAuth is used (`read:user` only).
 
 ## 8. Expected Demonstration Impact
-Enables live audience participation during the hackathon: any attendee or judge can scan the QR code on their phone and watch their `Thread-XXXX` node appear on the 16:9 stage screen within 2 seconds.
-# [feature] A-003: GitHub public-data connector
+Enables frictionless live audience participation during the hackathon: attendees scan the QR code, type their GitHub `@username` in one tap, and watch their card enter **Stage 1: GitHub Crawl** on the 16:9 big screen within 1 second.
+# [feature] A-003: GitHub public-data connector, Multi-PAT pool, 24h SQLite cache & VIP pre-warmer
 
 - **Issue ID:** `A-003`
 - **Priority:** `P0`
-- **Assigned Lane:** `Ariadne-Lane-B` (Builder B)
-- **Milestone:** `Wave 1 — Minimum Success (v0.1.0-m1)`
+- **Assigned Lane & Car:** `Ariadne-Lane-B` (`Car 1-B`)
+- **Milestone / Train:** `Train 1 — Core Pipeline & Stage Shell (v0.2.0)`
 - **Dependencies:** `A-001`
 
 ## 1. Description
-Implement the bounded GitHub public-data connector (`src/lib/github/*`) that retrieves a consenting participant's public profile metadata, top/recent non-fork repositories, truncated `README.md` excerpts, language distributions, and recent public issues/PRs, normalizing them into verifiable `EvidenceReceipt` records with caching and rate-limit resilience.
+Implement the bounded GitHub public-data connector (`src/lib/github/*`) that retrieves a participant's public profile metadata, top/recent non-fork repositories, truncated `README.md` excerpts, language distributions, and recent public issues/PRs, normalizing them into verifiable `EvidenceReceipt` records and computing an initial **6-Axis Builder Fingerprint** (`Systems/Infra`, `Agent Orchestration`, `LLM/Eval`, `Frontend/UX`, `Product/GTM`, `Data/Pipelines`). Includes **Multi-PAT Token Rotation (`GITHUB_TOKENS`)**, a **24-hour SQLite Snapshot Cache**, and a **VIP / Judge Pre-Warm Endpoint (`POST /api/admin/prewarm`)**.
 
 ## 2. Rationale
-All capability claims and collaboration matches in Ariadne must be grounded in verifiable public GitHub evidence with direct URLs and timestamps, while staying well within GitHub API rate limits and a 10-second wall-clock latency budget.
+When 40–150 people scan the QR code simultaneously during a stage pitch, Ariadne must never hit GitHub API rate limits or stall on slow network calls. Rotating across 2–3 GitHub PATs (`15,000+ req/hr`), caching snapshots for 24h in SQLite, and allowing the Operator to pre-warm judge/VIP handles ahead of time guarantees sub-second reliability.
 
 ## 3. Dependencies
 - Depends on `A-001` (`EvidenceReceipt` contract, `github_snapshots` table, event contracts `github.fetch.started`, `github.fetch.completed`, `analysis.failed`).
 
 ## 4. Implementation Boundaries
-- **In Scope:** `src/lib/github/client.ts`, `src/lib/github/normalizer.ts`, `src/lib/github/sanitizer.ts`, 30-minute snapshot caching in `github_snapshots`, and REST fallback if GraphQL is unavailable.
-- **Out of Scope:** LLM capability extraction (`A-004`) or opportunity inference (`A-005`).
+- **In Scope:** `src/lib/github/client.ts` (with `GITHUB_TOKENS` round-robin rotation + adaptive `full` vs `fast-rest` mode), `src/lib/github/normalizer.ts` (including deterministic 6-axis Builder Fingerprint baseline), `src/lib/github/sanitizer.ts`, 24-hour snapshot caching in `github_snapshots`, and `POST /api/admin/prewarm` (accepts an array of GitHub handles to pre-fetch into SQLite cache).
+- **Out of Scope:** Gemini Flash deep capability synthesis (`A-004`) or opportunity inference (`A-005`).
 
 ## 5. Acceptance Criteria
-- [ ] Retrieves public profile, up to 10 non-fork public repositories, languages, topics, truncated `README.md` (`<= 3,500 chars`), and recent open issues/PRs in `< 10s`.
-- [ ] Emits `github.fetch.started` and `github.fetch.completed` with exact repository and evidence receipt counts.
-- [ ] Produces normalized `EvidenceReceipt[]` records with valid `https://github.com/...` URLs and `source_updated_at` timestamps.
-- [ ] Handles unknown usernames (`404`), users with 0 public repos, and rate limits (`403/429`) gracefully without crashing the worker.
+- [ ] Supports comma-separated `GITHUB_TOKENS` (or single `GITHUB_TOKEN`) with automatic token rotation on `X-RateLimit-Remaining < 50` or `403/429`.
+- [ ] Retrieves public profile, up to 10 non-fork public repositories, languages, topics, and truncated `README.md` (`<= 3,500 chars`), emitting `github.fetch.started` and `github.fetch.completed` with repo count and duration (`ms`).
+- [ ] Computes a deterministic baseline **6-Axis Builder Fingerprint** (`0–100` across `Systems/Infra`, `Agent Orchestration`, `LLM/Eval`, `Frontend/UX`, `Product/GTM`, `Data/Pipelines`) from repo languages/topics in `< 50ms` so Stage 1 progressive UX renders immediately.
+- [ ] Serves repeat or pre-warmed handles from the 24-hour `github_snapshots` SQLite cache in `< 10ms` (`0` external GitHub API calls).
+- [ ] `POST /api/admin/prewarm` accepts `{ handles: ["user1", "user2", ...] }` and caches their GitHub snapshots in the background before demo time.
 
 ## 6. Test Requirements
-- Unit tests covering GraphQL/REST response normalization, 30-minute cache hits, `404`/`429` graceful error state transitions, and HTML/prompt-injection sanitization on untrusted README/issue strings.
+- Unit tests covering Multi-PAT token rotation, GraphQL/REST response normalization, 24-hour SQLite cache hits, 6-axis Builder Fingerprint calculation, `POST /api/admin/prewarm`, and HTML/prompt-injection sanitization.
 
 ## 7. Security & Privacy Considerations
 - Query **only** public endpoints; filter out any private repository references.
-- Sanitize all external GitHub text (strip HTML tags, scripts, and markdown tracking images) before storing or passing downstream.
+- Sanitize all external GitHub text before storing or passing downstream.
 
 ## 8. Expected Demonstration Impact
-Powers the live evidence receipts shown on both the participant's mobile profile and the stage Activity/Spotlight views, proving Ariadne reads real engineering history rather than hallucinating skills.
-# [feature] A-004: Evidence-backed capability analysis
+Powers **Column 1 (`GitHub Crawl`)** and **Column 3 (`Builder Fingerprint`)** on the 16:9 Stage Visualizer with sub-second cached speed and bulletproof rate-limit headroom.
+# [feature] A-004: Evidence-backed capability analysis & 6-Axis Builder Fingerprint refinement (Gemini Flash + Deterministic Stage 1)
 
 - **Issue ID:** `A-004`
 - **Priority:** `P0`
-- **Assigned Lane:** `Ariadne-Lane-B` (Builder B)
-- **Milestone:** `Wave 1 — Minimum Success (v0.1.0-m1)`
+- **Assigned Lane & Car:** `Ariadne-Lane-B` (`Car 1-B`)
+- **Milestone / Train:** `Train 1 — Core Pipeline & Stage Shell (v0.2.0)`
 - **Dependencies:** `A-003`
 
 ## 1. Description
-Implement the Profile Research Agent (`src/lib/agents/profile-research.ts`) and deterministic fallback extractor that analyze a participant's normalized `EvidenceReceipt[]` snapshot to produce structured `CapabilityClaim[]` records across languages, frameworks, domains, and systems architecture—strictly distinguishing `OBSERVED_FACT` from `AI_INFERENCE`.
+Implement the Two-Stage Profile Research Agent (`src/lib/agents/profile-research.ts`):
+- **Stage 1 (`< 100ms` Deterministic Extractor):** Immediately extracts `OBSERVED_FACT` capability pills (primary languages, frameworks, repo topics) and baseline **6-Axis Builder Fingerprint** (`Systems/Infra`, `Agent Orchestration`, `LLM/Eval`, `Frontend/UX`, `Product/GTM`, `Data/Pipelines`) from `EvidenceReceipt[]`.
+- **Stage 2 (`Gemini Flash` `gemini-2.5-flash` Parallel Enrichment):** Refines the 6-Axis Builder Fingerprint and synthesizes higher-order `AI_INFERENCE` architectural Superpowers (`Offers`) with closed-world GitHub receipt citations.
 
 ## 2. Rationale
-Participants and judges need to trust that Ariadne understands what a builder actually builds. Every claimed capability must link directly to one or more GitHub evidence receipts and disclose confidence/uncertainty.
+Participants and judges need instant (`< 500ms`) visual feedback on their phone and on the 16:9 Stage Visualizer (`View 1: Pipeline` & `View 2: Builder Fingerprints`), followed seamlessly by Gemini Flash's deep architectural synthesis.
 
 ## 3. Dependencies
 - Depends on `A-003` (normalized `EvidenceReceipt[]` and `github_snapshots`).
 
 ## 4. Implementation Boundaries
-- **In Scope:** `src/lib/agents/profile-research.ts`, closed-world evidence citation verifier, deterministic fallback capability extractor (if LLM times out), and emission of `profile.analysis.completed`.
+- **In Scope:** `src/lib/agents/profile-research.ts` (Stage 1 deterministic + Stage 2 `gemini-2.5-flash` enrichment), 6-Axis Builder Fingerprint refinement, closed-world evidence citation verifier, and emission of `profile.analysis.completed`.
 - **Out of Scope:** Project bottleneck/opportunity discovery (`A-005`) and pairwise match scoring (`A-006`).
 
 ## 5. Acceptance Criteria
-- [ ] Every generated `CapabilityClaim` cites at least one valid `EvidenceReceipt.id` from the participant's snapshot; any claim lacking a valid receipt is rejected by the Verification Gate.
-- [ ] Direct repository metadata (primary languages, explicit topics, commit activity) is labeled `OBSERVED_FACT`, while synthesized architectural/domain takeaways are labeled `AI_INFERENCE` with `confidence` and `uncertainty_note`.
-- [ ] Emits `profile.analysis.completed` with sanitized domain summary for the stage visualizer.
-- [ ] Allows participants to dismiss any `AI_INFERENCE` claim via API.
+- [ ] Stage 1 deterministic capability extraction and 6-Axis Builder Fingerprint complete in `< 100ms` with zero external LLM dependency.
+- [ ] Stage 2 `gemini-2.5-flash` enrichment produces structured `CapabilityClaim[]` records where every claim cites at least one valid `EvidenceReceipt.id` from the participant's snapshot.
+- [ ] Direct repository metadata is labeled `OBSERVED_FACT`, while synthesized architectural takeaways are labeled `AI_INFERENCE` with `confidence` and `uncertainty_note`.
+- [ ] Emits `profile.analysis.completed` with the 6-Axis Builder Fingerprint and top Superpower pills for `/me` and `/stage` (`View 1` & `View 2`).
 
 ## 6. Test Requirements
-- Unit tests verifying closed-world citation verification (hallucinated receipt IDs are stripped/rejected), `OBSERVED_FACT` vs `AI_INFERENCE` labeling, and deterministic fallback extraction when LLM is unavailable.
+- Unit tests verifying Stage 1 `< 100ms` deterministic extraction, closed-world citation verification (hallucinated receipt IDs are stripped/rejected), `OBSERVED_FACT` vs `AI_INFERENCE` labeling, and Stage 2 Gemini Flash fallback.
 
 ## 7. Security & Privacy Considerations
-- Wrap all repository text in `<untrusted_github_evidence>` delimiters inside the agent prompt so README prompt-injection attempts cannot override agent instructions.
+- Wrap all repository text in `<untrusted_github_evidence>` delimiters inside the Gemini prompt so README prompt-injection attempts cannot override agent instructions.
 
 ## 8. Expected Demonstration Impact
-Completes the **Minimum Success (`M1`)** user journey: within seconds of scanning the QR code, a participant sees an accurate, citation-backed technical capability profile of their real GitHub work.
-# [feature] A-005: Opportunity and bottleneck discovery
+Powers **Column 2 (`Capability Extraction`)** and **Column 3 (`Builder Fingerprint Synthesis`)** on the 16:9 Stage Visualizer and the participant's mobile Builder DNA card.
+# [feature] A-005: Opportunity and bottleneck discovery (Gemini Flash + Deterministic Stage 1)
 
 - **Issue ID:** `A-005`
 - **Priority:** `P1`
-- **Assigned Lane:** `Ariadne-Lane-B` (Builder B)
-- **Milestone:** `Wave 2 — Strong Success (v0.2.0-m2)`
+- **Assigned Lane & Car:** `Ariadne-Lane-B` (`Car 1-B`)
+- **Milestone / Train:** `Train 1 — Core Pipeline & Stage Shell (v0.2.0)`
 - **Dependencies:** `A-003`, `A-004`
 
 ## 1. Description
-Implement the Opportunity Discovery Agent (`src/lib/agents/opportunity-discovery.ts`) that inspects a participant's recent repository activity, open issues, PR signals, and architectural focus to identify candidate collaboration opportunities (`OpportunityNeed[]`) and desired complementary skills.
+Implement the Two-Stage Opportunity Discovery Agent (`src/lib/agents/opportunity-discovery.ts`) that inspects a participant's recent repository activity, open issues, PR signals, 6-Axis Builder Fingerprint gaps, and optional `/join` goal note to identify candidate collaboration opportunities (`OpportunityNeed[]` — what they are looking for / complementary gaps):
+- **Stage 1 (`< 100ms` Deterministic):** Infers complementary domain needs from their 6-Axis Builder Fingerprint gaps and open issue labels (`help wanted`, `bug`, `ui`, `infra`, `eval`).
+- **Stage 2 (`Gemini Flash` `gemini-2.5-flash` Parallel Enrichment):** Synthesizes specific project bottlenecks and complementary collaborator profiles with cited repository receipts.
 
 ## 2. Rationale
-Great professional discovery is not just matching two people who both write Python—it is connecting a builder who has a specific systems, UI, or domain challenge with someone who has solved that exact problem.
+Great matchmaking is complementary (`Needs ↔ Offers`), not cloning (`Python ↔ Python`). Identifying where a builder's current project has a bottleneck or missing axis allows `A-006` to pair a strong Systems/Agent builder with a strong Frontend/Visualizer or Eval builder.
 
 ## 3. Dependencies
-- Depends on `A-003` (GitHub issue/PR/README evidence receipts) and `A-004` (capability profile context).
+- Depends on `A-003` (GitHub issue/PR/README evidence receipts) and `A-004` (capability profile & 6-Axis Builder Fingerprint).
 
 ## 4. Implementation Boundaries
-- **In Scope:** `src/lib/agents/opportunity-discovery.ts`, stale-issue detection (`> 120 days`), confidence and uncertainty note generation, and emission of `opportunity.identified`.
+- **In Scope:** `src/lib/agents/opportunity-discovery.ts` (Stage 1 deterministic + Stage 2 `gemini-2.5-flash`), stale-issue detection (`> 120 days`), confidence and uncertainty note generation, and emission of `opportunity.identified`.
 - **Out of Scope:** Pairwise match scoring (`A-006`) or match explanation generation (`A-007`).
 
 ## 5. Acceptance Criteria
-- [ ] Every `OpportunityNeed` cites supporting `EvidenceReceipt` IDs and defaults `label` to `'Potential Opportunity (AI Inference)'`.
-- [ ] Stale issues (`> 120 days` since update) are never misstated as confirmed blockers and automatically carry an explicit age/uncertainty caveat in `uncertainty_note`.
-- [ ] Does not infer personal willingness to collaborate from public GitHub activity.
-- [ ] Emits `opportunity.identified` events for the stage visualizer.
+- [ ] Stage 1 deterministic complementary-need extraction runs in `< 100ms` so initial matching (`A-006`) never waits on LLM latency.
+- [ ] Stage 2 `gemini-2.5-flash` enrichment cites supporting `EvidenceReceipt` IDs and labels inferences `'Potential Opportunity (AI Inference)'`.
+- [ ] Stale issues (`> 120 days` since update) carry an explicit age/uncertainty caveat in `uncertainty_note`.
+- [ ] Emits `opportunity.identified` events for `/stage` (`View 1: Pipeline` & `View 2: Builder Fingerprints`).
 
 ## 6. Test Requirements
-- Unit tests verifying stale-issue caveat injection, mandatory `Potential Opportunity (AI Inference)` labeling, citation verification, and user dismissal toggling.
+- Unit tests verifying Stage 1 complementary gap detection, stale-issue caveat injection, mandatory `Potential Opportunity (AI Inference)` labeling, and citation verification.
 
 ## 7. Security & Privacy Considerations
-- Treat open issue and PR bodies from third-party contributors on a participant's repo as untrusted input; never attribute a third-party commenter's identity to the participant.
+- Treat open issue and PR bodies from third-party contributors on a participant's repo as untrusted input.
 
 ## 8. Expected Demonstration Impact
-Surfaces high-signal *"Here is what they are building and where a collaborator could help"* insights that make Ariadne's matches feel remarkably perceptive during live judging.
+Surfaces high-signal *"Superpower vs. Looking For"* pills on every Builder Fingerprint card on `/stage` (`View 2`) and `/me`.
 # [feature] A-006: Match scoring engine
 
 - **Issue ID:** `A-006`
@@ -254,76 +220,82 @@ Participants and judges must be able to see *why* two builders were matched with
 
 ## 8. Expected Demonstration Impact
 Provides instant, reproducible 4-bar score breakdowns on both the mobile Match Card and the 16:9 Stage Spotlight screen.
-# [feature] A-007: Match research and proposal agent
+# [feature] A-007: Two-stage match explanation & collaboration thesis agent (Stage 1 Instant + Stage 2 Gemini Flash)
 
 - **Issue ID:** `A-007`
 - **Priority:** `P0`
-- **Assigned Lane:** `Ariadne-Lane-C` (Builder C)
-- **Milestone:** `Wave 2 — Strong Success (v0.2.0-m2)`
+- **Assigned Lane & Car:** `Ariadne-Lane-C` (`Car 1-C`)
+- **Milestone / Train:** `Train 1 — Core Pipeline & Stage Shell (v0.2.0)`
 - **Dependencies:** `A-006`
 
 ## 1. Description
-Implement the Match Evaluation Agent and Introduction Agent (`src/lib/agents/match-evaluator.ts` and `src/lib/agents/intro-writer.ts`) plus Verification Gate checks that inspect the top candidate pairs from `A-006`, validate that the collaboration thesis is grounded in real repository evidence, and generate all 7 required match proposal fields—including a concrete *"Suggested First Conversation or Collaboration"*.
+Implement the Two-Stage Match Evaluation & Introduction Thesis Agent (`src/lib/agents/match-evaluator.ts` and `src/lib/agents/intro-writer.ts`):
+- **Stage 1 (`< 50ms` Instant Deterministic Explanation & Repo Evidence Pills):** Immediately formats the Top-3 scored candidate pairs from `A-006` with all 7 required `MatchProposal` fields using deterministic evidence templates citing both builders' actual repositories and complementary 6-Axis Fingerprint strengths.
+- **Stage 2 (`Gemini Flash` `gemini-2.5-flash` Parallel Enrichment):** Streams a tailored, human-readable *"Why You Two Should Talk Right Now"* collaboration thesis and *"First 3 Minutes Icebreaker"* over SSE (`match.enriched`), validated by the Verification Gate.
 
 ## 2. Rationale
-While `A-006` ranks pairs mathematically, participants need a concise, specific, human-readable explanation of *why* they should talk and *what* they could build or discuss in their first 15 minutes together.
+Under our Two-Stage Progressive UX, attendees must see their Top-3 matches + clickable GitHub repo evidence pills in **`< 500ms`** (Stage 1), while Gemini Flash enriches the narrative explanation in the background (`2–5s`, Stage 2) without ever blocking the UI.
 
 ## 3. Dependencies
 - Depends on `A-006` (top scored candidate pairs and `ScoreBreakdown`).
 
 ## 4. Implementation Boundaries
-- **In Scope:** `src/lib/agents/match-evaluator.ts`, `src/lib/agents/intro-writer.ts`, deterministic template fallback (if LLM times out), Verification Gate check that all cited repos/URLs belong to the two matched participants, and emission of `match.evaluated`.
+- **In Scope:** `src/lib/agents/match-evaluator.ts`, `src/lib/agents/intro-writer.ts` (Stage 1 instant template + Stage 2 `gemini-2.5-flash` enrichment), Verification Gate check that all cited repos/URLs belong to the two matched participants, and emission of `match.evaluated` and `match.enriched`.
 - **Out of Scope:** UI rendering (`A-008`) and bilateral state transitions (`A-012`).
 
 ## 5. Acceptance Criteria
-- [ ] Produces complete `MatchProposal` records containing all 7 required fields: score + breakdown, complementary capabilities, relevant project names, why they benefit from meeting, 1 concrete suggested first conversation, confidence limitations, and verified GitHub evidence links.
+- [ ] Stage 1 produces complete, valid `MatchProposal` records (all 7 required fields + 2 cited repo evidence pills) in `< 50ms` immediately after `A-006` scoring.
+- [ ] Stage 2 `gemini-2.5-flash` enrichment upgrades the collaboration thesis and concrete 3-minute starter topic asynchronously and emits `match.enriched`.
 - [ ] Verification Gate rejects or strips any cited repository URL that does not exist in Participant A or Participant B's `EvidenceReceipt` set.
-- [ ] Emits `match.evaluated` with privacy-safe stage payload.
+- [ ] Emits `match.evaluated` (Stage 1) and `match.enriched` (Stage 2) with privacy-safe stage payloads.
 
 ## 6. Test Requirements
-- Unit tests verifying schema completeness (all 7 required outputs present), cross-participant citation verification, and deterministic template fallback under LLM timeout.
+- Unit tests verifying `< 50ms` Stage 1 output completeness (all 7 required fields present), cross-participant citation verification, and Stage 2 Gemini Flash enrichment + fallback.
 
 ## 7. Security & Privacy Considerations
-- Do not include private contact details (`discord_handle`, email) in `MatchProposal` text; contact details are unlocked strictly after bilateral approval in `A-012`.
+- Do not include private contact details in `MatchProposal` text; contact details are unlocked strictly after bilateral approval in `A-012`.
 
 ## 8. Expected Demonstration Impact
-Delivers the core "Aha!" moment of **Strong Success (`M2`)**: reading a specific, evidence-backed explanation of why two attendees at the hackathon should collaborate on a concrete problem.
-# [feature] A-008: Participant results interface
+Guarantees sub-500ms match cards on mobile phones during a 40-person QR scan burst while streaming custom Gemini Flash collaboration pitches seconds later.
+# [feature] A-008: Mobile participant Builder Fingerprint & progressive Top-3 Match Cards UI
 
 - **Issue ID:** `A-008`
 - **Priority:** `P0`
-- **Assigned Lane:** `Ariadne-Lane-A` (Builder A)
-- **Milestone:** `Wave 2 — Strong Success (v0.2.0-m2)`
+- **Assigned Lane & Car:** `Ariadne-Lane-A` (`Car 1-A` Shell & `Car 2-A` Live Wiring)
+- **Milestone / Train:** `Train 1 (v0.2.0) & Train 2 (v0.3.0)`
 - **Dependencies:** `A-002`, `A-006`, `A-007`
 
 ## 1. Description
-Build the private participant dashboard (`/me`) and match results view showing the participant's analyzed capability/opportunity profile alongside up to 3 evidence-backed Match Cards, complete with 4-factor score bars, clickable GitHub evidence links, confidence caveats, and `Interested` / `Pass` action controls.
+Build the private mobile participant dashboard (`/me`) showing:
+1. Their own **6-Axis Builder Fingerprint Card** (`Systems/Infra`, `Agent Orchestration`, `LLM/Eval`, `Frontend/UX`, `Product/GTM`, `Data/Pipelines`) + Superpower (`Offers`) & Looking-For (`Needs`) pills,
+2. Their **Top-3 Complementary Match Cards** (`score >= 45`), rendered in **`< 500ms`** (Stage 1 deterministic match + repo evidence pills) and progressively upgraded live via SSE/poll when Stage 2 Gemini Flash enrichment (`match.enriched`) arrives,
+3. One-tap **`Interested`** and **`Pass`** buttons plus live incoming-interest alerts.
 
 ## 2. Rationale
-After scanning the QR code and consenting on `/join`, `/me` is the participant's personal command center on their phone throughout the event.
+After typing their GitHub handle on `/join`, `/me` is the participant's personal mobile command center. Seeing their own 6-Axis Builder Fingerprint and Top-3 matches in under a second—and watching the Gemini Flash deep collaboration pitch stream in live—makes the mobile experience feel magical.
 
 ## 3. Dependencies
-- Depends on `A-002` (session & provisional `/me` shell), `A-006` (scoring breakdown), and `A-007` (match explanations).
+- Depends on `A-002` (session & `/join`), `A-006` (scoring breakdown), and `A-007` (Two-Stage match proposals).
 
 ## 4. Implementation Boundaries
-- **In Scope:** `src/app/me/page.tsx`, `src/components/MatchCard.tsx`, `src/components/CapabilityBadgeList.tsx`, `src/app/api/matches/route.ts`, and empty/pending/error state views.
-- **Out of Scope:** Bilateral introduction delivery (`A-012`) and Discord bot notifications (`A-013`).
+- **In Scope:** `src/app/me/page.tsx`, `src/components/BuilderFingerprintCard.tsx`, `src/components/MatchCard.tsx`, `src/components/CapabilityBadgeList.tsx`, `src/app/api/matches/route.ts`, and progressive SSE/poll updates for Stage 1 → Stage 2 enrichment.
+- **Out of Scope:** Private Web Introduction Room (`/me/matches/:id`, `A-012`).
 
 ## 5. Acceptance Criteria
-- [ ] Displays 0 to 3 top matches ordered by `composite_score` (`>= 45`).
-- [ ] Each Match Card renders: overall score, 4-dimension breakdown bar, complementary skills, relevant repos with clickable GitHub links, confidence limitation note, and suggested first collaboration.
-- [ ] Renders clear, honest UI states for `fetching_github`, `analyzing_profile`, `0 matches yet (waiting for compatible builders)`, and `failed (retry available)`.
+- [ ] Renders the participant's **6-Axis Builder Fingerprint** and verified GitHub capability/opportunity pills at the top of `/me`.
+- [ ] Displays up to **3 Top Matches** ordered by `composite_score` (`>= 45`), rendering Stage 1 deterministic cards + clickable GitHub repo evidence pills in `< 500ms` and smoothly updating in place when `match.enriched` arrives.
+- [ ] Each Match Card renders: overall score, 4-dimension breakdown bar (`40/30/20/10`), complementary skills, cited repos with clickable GitHub links, suggested first conversation, and 1-tap `Interested` / `Pass` buttons.
 - [ ] Allows the participant to dismiss any inaccurate AI-inferred capability or opportunity on their own profile and trigger a match refresh.
 
 ## 6. Test Requirements
-- Component and API tests covering 3-match rendering, 1-match partial rendering, 0-match honest empty state, unauthenticated redirect to `/join`, and inference dismissal.
+- Component and API tests covering Builder Fingerprint rendering, 3-match rendering, Stage 1 → Stage 2 progressive update, unauthenticated redirect to `/join`, and inference dismissal.
 
 ## 7. Security & Privacy Considerations
 - `GET /api/matches` returns matches **only** for the authenticated session's `participant_id`.
-- Counterpart private contact details remain hidden until `intro_state === 'completed'`.
+- Counterpart private contact details remain hidden until both tap `Interested` (`A-012`).
 
 ## 8. Expected Demonstration Impact
-Gives every hackathon participant and judge a polished, mobile-friendly view on their own phone showing their top 3 collaborators with clickable GitHub proof.
+Gives every hackathon attendee a fast, gorgeous mobile view of their own Builder DNA and their Top 3 complementary peers in the room.
 # [feature] A-009: SQLite append-only live event stream (SSE + polling fallback)
 
 - **Issue ID:** `A-009`
@@ -359,77 +331,97 @@ Both the mobile participant progress view (`/me`) and the 16:9 Presentation Visu
 
 ## 8. Expected Demonstration Impact
 Drives live sub-second updates on both the 16:9 auditorium screen and attendee mobile phones with automatic proxy resilience.
-# [feature] A-010: Public network visualizer
+# [feature] A-010: Interactive Stage Visualizer Shell, Top-3 Web of Connections, Golden Arcs & Seed Pool Toggle
 
 - **Issue ID:** `A-010`
 - **Priority:** `P0`
-- **Assigned Lane:** `Ariadne-Lane-D` (Builder D)
-- **Milestone:** `Wave 1 — Minimum Success (v0.1.0-m1)`
+- **Assigned Lane & Car:** `Ariadne-Lane-D` (`Car 1-D`)
+- **Milestone / Train:** `Train 1 — Core Pipeline & Stage Shell (v0.2.0)`
 - **Dependencies:** `A-009`
 
 ## 1. Description
-Build the 16:9 auditorium stage shell (`/stage`), persistent 6-metric top KPI ribbon, scannable QR onboarding card, and **Mode 1: Network Mode** interactive force-directed graph showing participant nodes, progressive analysis states, and match connection edges driven live by `A-009`.
+Build the `1920x1080` (`16:9`) interactive Stage Visualizer dashboard shell (`/stage`), persistent 6-metric top KPI ribbon, **Clickable 4-View Navigation Bar (`[1: Pipeline]`, `[2: Fingerprints]`, `[3: Web of Connections]`, `[4: Spotlight]`)**, **`[📱 QR Overlay: REQUIRES GITHUB PROFILE]`** modal (`Q`), **`[🌱 Seed AI Devs: OFF / ON (+25 Profiles)]`** toggle button (`S`), and **View 3: Sparse Top-3 (`k = 3`) Web of Connections** force-directed graph with **Glowing Golden Arcs** for mutual matches.
 
 ## 2. Rationale
-The stage visualizer is Ariadne's shared physical presence in the hackathon venue—inviting attendees to scan the QR code and watching the community graph form in real time.
+At a hackathon of AI peers, drawing an all-to-all match graph creates an unreadable hairball. Capping rendered edges to each participant's **Top 3 Complementary Matches (`k = 3`)** creates a crystal-clear Web of Connections. In addition, the 1-click **`[🌱 Seed AI Devs: OFF/ON]`** button gives the presenter an "Ace Up Their Sleeve": if only 3–5 attendees scan the QR code live, toggling Seed Mode merges 25 realistic SF AI builder profiles into the live matching pool so the live attendees match with each other AND the 25 seeded builders on stage.
 
 ## 3. Dependencies
-- Depends on `A-009` (`GET /api/events/stream` and `GET /api/events/summary`).
+- Depends on `A-009` (`GET /api/events/stream` and `GET /api/events/poll`).
 
 ## 4. Implementation Boundaries
-- **In Scope:** `src/app/stage/page.tsx`, `src/components/stage/KpiRibbon.tsx`, `src/components/stage/NetworkGraph.tsx`, `src/components/stage/QrJoinBanner.tsx`, and keyboard shortcut controller (`1/2/3/Space/S`).
-- **Out of Scope:** Detailed Activity Mode matrix and Spotlight Mode deep-dive card (`A-011`).
+- **In Scope:** `src/app/stage/page.tsx`, `src/components/stage/KpiRibbon.tsx`, `src/components/stage/StageHeaderControls.tsx` (4 clickable view tabs + QR modal button + Seed Pool toggle button), `src/components/stage/NetworkGraph.tsx` (Top-3 edge cap + Golden Arcs + Stage Celebration Banner), `src/components/stage/QrJoinBanner.tsx` (with bold `⚡ SCAN TO JOIN — REQUIRES GITHUB PROFILE`), and `POST /api/stage/seed-toggle` (toggles the 25 curated AI builder profiles in/out of the active pool).
+- **Out of Scope:** View 1 Pipeline Assembly Line, View 2 Fingerprints Gallery, and View 4 Spotlight deep-dive (`A-011`).
 
 ## 5. Acceptance Criteria
-- [ ] Renders cleanly at `1920x1080` (`16:9`) with high-contrast typography legible from 30 feet away.
-- [ ] Displays the 6 required stage KPIs: Participants Joined, Profiles Analyzed, Opportunities Evaluated, Proposals Generated, Mutual Introductions Approved, and Active Agent Operations.
-- [ ] Spawns a new node within `< 1.5s` of `participant.registered` and transitions node styling through `fetching_github` → `analyzing_profile` → `ready`.
-- [ ] Draws distinct edge styles for `candidate` (dashed), `proposed` (pulsing directional amber), and `completed` (glowing emerald thread).
-- [ ] Enforces pseudonymous labels (`Thread-XXXX`) by default; shows GitHub handle/avatar only when `public_display_consent === true` (and supports pressing `S` to force 100% pseudonymity).
+- [ ] Renders at `1920x1080` (`16:9`) with clickable top navigation buttons for all 4 views (`[1: Under-the-Hood Pipeline]`, `[2: Builder Fingerprints]`, `[3: Web of Connections]`, `[4: Match Spotlight]`) plus keyboard shortcuts (`1/2/3/4/Q/S/Space`).
+- [ ] **QR Join Modal (`[📱 QR Overlay]` / `Q`):** Displays a giant scannable QR code with a high-contrast badge reading **`⚡ SCAN TO JOIN — REQUIRES GITHUB PROFILE`** and a live `"N Builders Scanned In"` counter.
+- [ ] **Seed AI Devs Toggle (`[🌱 Seed AI Devs: OFF/ON]` / `S`):** Clicking toggles 25 pre-curated SF AI developer profiles (`is_seed = 1`) into/out of the active matching pool in `< 300ms`, matching real live scanners against both live peers and seeded AI builders.
+- [ ] **Top-3 (`k = 3`) Web of Connections (`View 3`):** Renders at most the Top 3 highest-scoring match edges per node with 3 distinct visual states:
+  1. `candidate` (Suggested Top-3 Match): Dashed cyan-slate line.
+  2. `proposed_by_a/b` (1-Sided Interest): Solid pulsing amber line.
+  3. `completed` (**Mutual Match — "Golden Arc"**): Thick glowing gold arc with an expanding ripple animation + 5-second top-of-screen **Golden Thread Celebration Banner** (`"⚡ NEW GOLDEN THREAD: @userA ↔ @userB"`).
 
 ## 6. Test Requirements
-- Component and state-reducer tests verifying event replay into graph state, node removal on `participant.withdrawn`, and pseudonymity enforcement.
+- Component and API tests verifying Top-3 (`k = 3`) edge capping (no node exceeds 3 rendered primary edges), Seed Pool toggle (`OFF ↔ ON`) inclusion/exclusion in live matching, Golden Arc transition on `introduction.completed`, and QR overlay rendering.
 
 ## 7. Security & Privacy Considerations
-- Never render unconsented handles, private messages, or raw model chains-of-thought on `/stage`.
+- Enforce pseudonymous labels (`Thread-XXXX`) whenever `public_display_consent === false` (or when privacy override `P` is active).
 
 ## 8. Expected Demonstration Impact
-Completes the visual centerpiece of **Minimum Success (`M1`)**: a living, breathing network graph on the big screen that reacts immediately when anyone scans the QR code.
-# [feature] A-011: Activity and spotlight visualization
+Gives the Presenter total stage command: show the QR code (`REQUIRES GITHUB PROFILE`), flip on the 25 Seed AI Devs if the test crowd is small, and watch the Top-3 Web of Connections light up with glowing Golden Arcs.
+# [feature] A-011: Stage Views 1, 2, 4 & 5 — Narratable 4-Stage Pipeline, Builder Fingerprints, Match Spotlight & Capacity Scaler
 
 - **Issue ID:** `A-011`
-- **Priority:** `P1`
-- **Assigned Lane:** `Ariadne-Lane-D` (Builder D)
-- **Milestone:** `Wave 2 — Strong Success (v0.2.0-m2)`
+- **Priority:** `P0`
+- **Assigned Lane & Car:** `Ariadne-Lane-D` (`Car 1-D`)
+- **Milestone / Train:** `Train 1 — Core Pipeline & Stage Shell (v0.2.0)`
 - **Dependencies:** `A-007`, `A-009`, `A-010`
 
 ## 1. Description
-Extend the `/stage` visualizer with **Mode 2: Activity Mode** (structured real-time matrix of Profile Research, Opportunity Discovery, and Match Evaluation agent operations) and **Mode 3: Spotlight Mode** (stage-wide deep dive into a selected match pair showing their 4-factor score bars, complementary skills, cited repository count, suggested first collaboration, and introduction status), plus hands-free `Auto-Cycle` mode (`Space`).
+Implement the four deep-inspection views inside the `/stage` visualizer dashboard so the presenter can click between them and narrate what Ariadne is doing under the hood:
+- **View 1 (`[1: Under-the-Hood Pipeline]`):** 4-Column Narratable Assembly Line (`1. GitHub Crawl` → `2. Gemini Agent Fan-Out` → `3. 6-Axis Builder Fingerprint` → `4. Anti-Clone Matchmaking`) with **Stage Narrator Pacing (`~3s/step`)**, `[⏸ Pause]`, `[🔄 Replay]`, Anti-Clone rejection callouts, and a bottom `🎯 Live Narrator X-Ray Bar`.
+- **View 2 (`[2: Builder Fingerprints]`):** Live grid of **6-Axis Builder Fingerprint Cards** showing each person's Superpower (`Offers`), Bottleneck (`Needs`), and cited GitHub repos.
+- **View 4 (`[4: Match Spotlight]`):** Side-by-side comparison of any selected match pair (or the latest Golden Arc mutual match) showing both Builder Fingerprints, the `40/30/20/10` score bars, repo evidence pills, and collaboration thesis.
+- **View 5 (`[5: ⚡ Capacity & Burst Scaler]`):** Stage-visible **Capacity & QR Burst Engineering Panel** where clicking Room Size Presets (`30`, `80`, `150`, `300+`) visibly scales the **Gemini Flash Parallel Worker Core Grid (`8..32` cores)**, shows the **Multi-PAT GitHub Rate-Limit Shield & 24h SQLite Cache gauge**, and displays the **$O(N^2)$ Stage 1 (`< 12ms`) vs. Top-3 Gate (`96% LLM Call Reduction`)** math live on stage!
 
 ## 2. Rationale
-While Network Mode shows the macro graph, judges and attendees also need to see the *depth* of Ariadne's evidence-backed reasoning on the big screen without peering at a small phone display.
+When everyone in the room scans the QR code, a static network graph isn't enough—judges want to see the agentic pipeline visibly crawling repos, synthesizing Builder Fingerprints, and scoring complementary pairs under the hood, with 1-click buttons to switch between the Pipeline, the Fingerprints Gallery, the Web of Connections, and the Spotlight view.
 
 ## 3. Dependencies
-- Depends on `A-007` (evaluated match payload), `A-009` (SSE event stream), and `A-010` (`/stage` layout shell).
+- Depends on `A-007` (evaluated match payload), `A-009` (SSE/poll event stream), and `A-010` (`/stage` 4-view navigation shell).
 
 ## 4. Implementation Boundaries
-- **In Scope:** `src/components/stage/ActivityMatrix.tsx`, `src/components/stage/SpotlightView.tsx`, `GET /api/stage/spotlight` (sanitized top matches for stage cycling), and operator keyboard controls (`2`, `3`, `N`, `P`, `Space`).
-- **Out of Scope:** Participant mobile views (`A-008`) or Discord bot interactions (`A-013`).
+- **In Scope:** `src/components/stage/PipelineAssemblyView.tsx` (View 1), `src/components/stage/FingerprintsGalleryView.tsx` (View 2), `src/components/stage/SpotlightView.tsx` (View 4), `GET /api/stage/snapshot` (returns pipeline column counts, participant fingerprints, and top matches), and click-to-spotlight wiring from Views 1, 2, and 3.
+- **Out of Scope:** Mobile participant screens (`A-008`, `A-012`).
 
 ## 5. Acceptance Criteria
-- [ ] **Activity Mode (`2`)** displays verifiable agent task completions (`github.fetch.completed`, `profile.analysis.completed`, `opportunity.identified`, `match.evaluated`) with execution timing and evidence counts—never simulated reasoning.
-- [ ] **Spotlight Mode (`3`)** renders a selected match pair side-by-side with their 4-dimension score breakdown bars, sanitized collaboration explanation, suggested first conversation, and live introduction status badge.
-- [ ] Stage operator can cycle through real matches using `N` / `P` or enable hands-free mode rotation via `Space`.
+- [ ] **View 1 (`[1: Under-the-Hood Pipeline]`) — 4-Column Narratable Assembly Line:**
+  - **Column 1 (`1. GitHub Crawl`):** Displays `@username`, repo count, top 3 repo names, language distribution bar (`TS/Rust/Python`), and cache/live timing badge.
+  - **Column 2 (`2. Gemini Agent Fan-Out`):** Displays concurrent `🤖 Capability Agent (Offers)` + `🔍 Bottleneck Agent (Needs)` outputs with `Gemini Worker #N` badges and repo citation count.
+  - **Column 3 (`3. Builder Fingerprint Synthesis`):** Renders animated 6-axis DNA bars (`Systems/Infra`, `Agent Orchestration`, `LLM/Eval`, `Frontend/UX`, `Product/GTM`, `Data/Pipelines`) and stamps a bold Builder Archetype badge.
+  - **Column 4 (`4. Anti-Clone Matchmaking`):** Displays peer evaluation count, **1 explicit Anti-Clone rejection callout** (`"❌ Skipped @peer (Stack Clone > 0.72)"`), and the **selected Top-3 Complementary Matches** (`"✅ @match (91/100)"`).
+- [ ] **Stage Narrator Pacing, Pause & Replay Controls (`[🎬 Stage Narrator (3s/step) | Fast]`, `[⏸ Pause]`, `[🔄 Replay]`):**
+  - Decouples stage visual pacing from backend speed: while the attendee's mobile phone (`/me`) receives matches in `< 500ms`, `View 1` on `/stage` defaults to a narratable **`~2.5s–3.0s` visual dwell per column** so cards never flash past before the presenter can point to them.
+  - Includes **`[⏸ Pause Pipeline]`** (freezes the columns so the presenter can point at a specific card) and **`[🔄 Replay Walkthrough]`** (re-runs the latest scanner or a selected builder across all 4 columns on demand).
+- [ ] **Bottom `🎯 Live Narrator X-Ray Bar`:** Clicking any builder card (or enabling `[🎯 Auto-Follow Latest Scanner]`) pins a magnified 28pt single-builder horizontal stepper across the bottom of `View 1` (`1. Crawl ──► 2. Gemini Extract ──► 3. 6-Axis DNA ──► 4. Top-3 Matched`).
+- [ ] **View 2 (`[2: Builder Fingerprints]`):** Renders a responsive grid of 6-Axis Builder Fingerprint Cards (radar/bar visualization + Superpower pill + Looking-For pill + cited repo badges). Clicking any card filters/highlights their Top-3 matches.
+- [ ] **View 4 (`[4: Match Spotlight]`):** Renders Builder A and Builder B side-by-side with their 6-Axis Fingerprints, Composite Score (`e.g., 91/100`), 4-dimension breakdown bars (`40/30/20/10`), cited GitHub repo links, and `"Why You Two Should Talk"` thesis.
+- [ ] **View 5 (`[5: ⚡ Capacity & Burst Scaler]` / hotkey `5` or `C`):** Renders the stage-visible Capacity & Admission Gate showcase with:
+  1. Interactive **Hard Room Cap Buttons (`[15]`, `[● 30 (Default)]`, `[50]`, `[100]`, `[🔒 Lock Intake]`)** wired to `POST /api/admin/capacity` — showing live fill (`e.g., 18 / 30 Builders`) and a preview of the mobile *"🚧 System is at capacity — please try back later"* screen shown to overflow scanners,
+  2. Live **Gemini Flash Worker Core Grid (`8` → `16` → `24` → `32` visual worker slots)** showing active vs. idle workers,
+  3. **Multi-PAT GitHub Quota (`15,000 req/hr`) & 24h SQLite Cache Hit Rate** gauge + VIP Pre-Warm input (VIP handles bypass the hard cap),
+  4. **$O(N^2)$ Pairwise & Top-3 Gate Cost-Reduction Calculator** showing `N(N-1)/2` Stage 1 deterministic evaluations (`< 12ms`) vs. `3 × N` Stage 2 Gemini calls (`92%–98%` LLM call reduction).
+- [ ] Clicking any view tab (`1`, `2`, `3`, `4`, `5`) transitions views instantaneously (`< 50ms`) without losing live SSE state.
 
 ## 6. Test Requirements
-- Unit and component tests verifying Spotlight sanitization (pseudonymous unless consented), keyboard navigation (`1`/`2`/`3`/`N`/`P`/`Space`), and graceful rendering when 0 matches exist yet.
+- Component and state tests verifying View 1 4-stage card progression on SSE events, View 2 6-axis Builder Fingerprint rendering, View 4 Spotlight pair selection, and pseudonymity compliance.
 
 ## 7. Security & Privacy Considerations
-- `GET /api/stage/spotlight` strips all unconsented identities and private contact details before returning data to the stage client.
+- `GET /api/stage/snapshot` and `/api/stage/spotlight` strip all private contact details and respect `public_display_consent`.
 
 ## 8. Expected Demonstration Impact
-Gives the Operator a high-impact judging presentation tool: press `3` on the stage laptop to spotlight a real match made at the event and walk the judges through the exact evidence and scoring breakdown.
-# [feature] A-012: Web-native mutual-introduction workflow & private intro room
+Delivers the ultimate "Under the Hood" stage demo: as attendees scan the QR code, you click **`[1: Pipeline]`** to show live GitHub crawling & Gemini worker fan-out, **`[2: Fingerprints]`** to show the room's Builder DNA cards, **`[3: Web of Connections]`** to show the Top-3 match web, and **`[4: Spotlight]`** to inspect a live Golden Arc match!
+# [feature] A-012: Zero-blocker mutual-introduction workflow, Private Web Intro Room, Venue Locator & Golden Arc trigger
 
 - **Issue ID:** `A-012`
 - **Priority:** `P0`
@@ -438,32 +430,37 @@ Gives the Operator a high-impact judging presentation tool: press `3` on the sta
 - **Dependencies:** `A-008`
 
 ## 1. Description
-Implement the web-only bilateral mutual-introduction state machine (`POST /api/matches/:id/decision`), GitHub ownership verification gate (`ownership_verified === true` via 1-click GitHub OAuth or bio challenge), private incoming-interest notification banner on `/me`, and the unlocked **Private Web Introduction Room** (`/me/matches/:id`) when both participants click `Interested`.
+Implement the frictionless bilateral mutual-introduction state machine (`POST /api/matches/:id/decision`) with **zero OAuth login blocker** (authenticated directly by the participant's `/join` session cookie), live incoming-interest banner on `/me`, and the unlocked **Private Web Introduction Room** (`/me/matches/:id`) when both participants tap `Interested`—complete with **Mutual Contact Reveal**, **AI "First 3 Minutes" Collaboration Icebreaker**, **Physical Venue Locator (`"Where are you in the room?"`)**, **Live 2-Person Web Chat**, **1-Tap `Save Contact (vCard .vcf)` & `Copy Intro` buttons**, and immediate emission of `introduction.completed` to light up a **Glowing Golden Arc** on the 16:9 Stage Visualizer.
 
 ## 2. Rationale
-Per the Web-Only Hackathon MVP Amendment, all participant introductions happen directly inside the Ariadne mobile web interface without requiring Discord or external bots. No contact information may be disclosed and no introduction may fire without verified bilateral approval.
+When two attendees at a live hackathon both tap `Interested` on their phones, the payoff must be instantaneous (`< 500ms`), practical for meeting face-to-face in a crowded venue, and visually celebrated on the big screen (`Golden Arc`).
 
 ## 3. Dependencies
-- Depends on `A-008` (Match Cards UI and isolated participant session).
+- Depends on `A-008` (Mobile Match Cards UI and isolated participant session).
 
 ## 4. Implementation Boundaries
-- **In Scope:** `src/lib/intros/state-machine.ts`, `src/app/api/matches/[id]/decision/route.ts`, `src/app/api/matches/[id]/room/route.ts`, `src/app/me/matches/[id]/page.tsx`, ownership verification prompt modal, and emission of `introduction.proposed`, `introduction.accepted`, `introduction.declined`, and `introduction.completed` (`channel: 'web'`).
+- **In Scope:** `src/lib/intros/state-machine.ts`, `src/app/api/matches/[id]/decision/route.ts`, `src/app/api/matches/[id]/room/route.ts` (`GET` room state + `POST` live 2-person chat message / venue location update), `src/app/me/matches/[id]/page.tsx`, 1-tap `.vcf` vCard download & clipboard/SMS copy helpers, and emission of `introduction.proposed`, `introduction.accepted`, `introduction.declined`, and `introduction.completed`.
 - **Out of Scope:** External Discord/Medusa bot integrations (deferred to post-hackathon roadmap).
 
 ## 5. Acceptance Criteria
-- [ ] Clicking `Interested` requires `ownership_verified === true` (prompts 1-click GitHub OAuth or GitHub bio challenge token check if not yet verified).
-- [ ] Transitions match state deterministically (`candidate` → `proposed_by_a/b` → `mutual_accepted` → `completed`, or `declined`).
-- [ ] Repeated clicks or retries are strictly idempotent and never produce duplicate events or duplicate introductions.
-- [ ] Once `completed`, both participants unlock the **Private Web Introduction Room** (`/me/matches/:id`) displaying verified GitHub links, optional `contact_card` notes, cited repositories, copyable starter prompt, and a shared icebreaker message box.
+- [ ] **1-Tap Zero-Blocker Decision:** Tapping `Interested` on `/me` works immediately in 1 tap using the participant's `/join` session cookie (`zero` OAuth redirect wall).
+- [ ] **Deterministic State Machine:** Transitions `candidate` → `proposed_by_a/b` → `completed` (when both tap `Interested`) or `declined` (when either taps `Pass`), with strict idempotency on repeated taps.
+- [ ] **Incoming Interest Banner:** When Participant A taps `Interested`, Participant B sees a prominent live banner on `/me`: **`"⚡ @userA wants to connect with you! Tap Interested to unlock your Intro Room"`**.
+- [ ] **Private Web Introduction Room (`/me/matches/:id`):** Once `completed`, both participants unlock:
+  1. **Mutual Contact Reveal:** Verified GitHub profile links + any shared contact handles (X/LinkedIn/Email/Phone).
+  2. **AI "First 3 Minutes" Icebreaker:** Concrete starter question + collaboration thesis citing their exact repositories.
+  3. **Physical Venue Locator & Live 2-Person Chat:** Quick-tap location pills (`"Near Stage"`, `"Coffee Area"`, `"Back Tables"`, or custom text) + live SSE/polled 2-person message thread so they can find each other in the room in `< 60 seconds`.
+  4. **1-Tap Export Buttons:** **`[📇 Save Contact (vCard)]`** and **`[📋 Copy Intro / Share via SMS]`**.
+- [ ] **Stage Golden Arc Trigger:** Emits `introduction.completed`, turning their edge into a **Glowing Golden Arc** and firing the 5-second celebration banner on `/stage`.
 
 ## 6. Test Requirements
-- State-machine and API concurrency/idempotency tests verifying: (a) unverified users cannot trigger outbound proposals (`403`), (b) unilateral interest does not reveal counterpart contact info, (c) bilateral interest unlocks `/me/matches/:id` and emits `introduction.completed` exactly once, and (d) `Pass` transitions to `declined` without leaking rejection alerts.
+- State-machine and API tests verifying: (a) unilateral interest never leaks counterpart contact info or unlocks `/me/matches/:id`, (b) bilateral interest unlocks `/me/matches/:id` and emits `introduction.completed` exactly once, (c) venue locator & 2-person chat messages persist and stream to both peers, and (d) vCard `.vcf` payload formats cleanly.
 
 ## 7. Security & Privacy Considerations
-- Enforce strict row-level authorization: only `participant_a` or `participant_b` of that specific match can call `POST /api/matches/:id/decision` or access `/me/matches/:id`.
+- Enforce strict row-level authorization: only `participant_a` or `participant_b` of that specific match can access `/me/matches/:id` or post chat/location updates.
 
 ## 8. Expected Demonstration Impact
-Delivers **Exceptional Success (`M3`)** entirely in the mobile browser: two consenting attendees tap `Interested` on their phones, unlock their private Web Introduction Room, and trigger a glowing emerald connection on the 16:9 stage visualizer.
+Delivers the signature "Aha!" payoff of the demo: two people tap `Interested` on their phones, their thread turns into a **Glowing Golden Arc** on the 16:9 stage screen, and their phones open a live Intro Room with a Venue Locator (`"I'm by the front left table!"`), AI icebreaker, and 1-tap vCard download.
 # [DEFERRED TO POST-HACKATHON ROADMAP] A-013: Discord event bot
 
 - **Issue ID:** `A-013`
@@ -542,41 +539,45 @@ Objective B of the hackathon is proving to judges how a single Operator directed
 
 ## 8. Expected Demonstration Impact
 Provides a show-stopping judge presentation asset during Minute 2 of the live demo: an interactive engineering telemetry hub built automatically at each release train throughout the day.
-# [feature] A-016: In-process async job worker & continuous rematching
+# [feature] A-016: Two-stage progressive pipeline, Parallel Gemini Flash worker pool & Onsite Capacity Controller
 
 - **Issue ID:** `A-016`
-- **Priority:** `P1`
+- **Priority:** `P0`
 - **Assigned Lane & Car:** `Ariadne-Lane-C` (`Car 2-C`)
 - **Milestone / Train:** `Train 2 — End-to-End Integration & Mutual Intros (v0.3.0)`
-- **Dependencies:** `A-006`, `A-007`
+- **Dependencies:** `A-003`..`A-007`, `A-009`
 
 ## 1. Description
-Implement the SQLite-backed in-process asynchronous job runner (`src/lib/jobs/runner.ts`) that orchestrates the end-to-end pipeline (`github.fetch` → `profile-research` → `opportunity-discovery` → `match-scoring` → `proposal-writer` → `SSE event emission`) and implements continuous rematching (`src/lib/scoring/rematcher.ts`) so existing participants automatically receive updated top-3 matches as new attendees join.
+Implement the **Two-Stage Progressive Match Pipeline** and **Parallel Gemini Flash (`gemini-2.5-flash`) Worker Pool** (`src/lib/jobs/runner.ts` + `src/lib/scoring/rematcher.ts`), paired with the **Onsite Room Capacity Controller (`/admin` + `POST /api/admin/capacity`)** so the Operator can dynamically dial the expected crowd size (`30`, `80`, `150`, `300+` concurrent QR scanners) onsite and auto-scale worker concurrency, GitHub fetch mode, and continuous rematching.
 
 ## 2. Rationale
-Early event arrivers initially see a small pool. Continuous rematching inside the SQLite async worker ensures early participants automatically get high-value matches as additional attendees scan the QR code, without blocking HTTP onboarding requests.
+During the live stage pitch, dozens of attendees will scan the QR code within the same 30-second window. A **Two-Stage Progressive UX** guarantees that every attendee gets their **Stage 1 deterministic 6-axis Builder Fingerprint + Top-3 Matches + repo evidence pills in `< 500ms`**, while the **Stage 2 Parallel Gemini Flash Worker Pool** fans out `8..32` concurrent workers in the background to stream deep capability/bottleneck/thesis enrichments over SSE (`2–5s`) with zero blocking or rate-limit bottlenecks.
 
 ## 3. Dependencies
 - Depends on `A-003`..`A-007` and `A-009`.
 
 ## 4. Implementation Boundaries
-- **In Scope:** `src/lib/jobs/runner.ts`, `src/lib/scoring/rematcher.ts`, `src/app/api/worker/tick/route.ts`, preservation of acted-upon (`proposed`/`accepted`/`declined`) matches, and `changelog.d/A-016.md`.
+- **In Scope:** `src/lib/jobs/runner.ts` (Two-Stage execution + configurable `WORKER_CONCURRENCY` pool using `GEMINI_API_KEY` `gemini-2.5-flash` with deterministic fallback), `src/lib/scoring/rematcher.ts` (Top-3 continuous rematching preserving acted-upon matches), `src/app/admin/page.tsx`, and `src/app/api/admin/capacity/route.ts` (live room-size presets: `30`, `80`, `150`, `300+` + VIP pre-warm trigger UI + Seed Pool toggle button).
 - **Out of Scope:** Modifying frozen `src/contracts/*`.
 
 ## 5. Acceptance Criteria
-- [ ] Enqueued participant onboarding jobs execute asynchronously in the background worker (`< 15ms` HTTP response on `POST /api/participants`) and recover stalled leases automatically on server restart.
-- [ ] When Participant $N$ reaches `ready`, `rematcher` evaluates Participant $N$ against all active `ready` participants deterministically.
-- [ ] Triggers `A-007` explanation generation **only** when Participant $N$ enters an existing participant's top-3 slate (`score >= 45`).
-- [ ] Never overwrites or resets a match where either participant has already clicked `Interested` or `Pass`.
+- [ ] **Stage 1 (`< 500ms` Instant Deterministic Match):** Immediately upon `github.fetch.completed`, computes the participant's baseline 6-Axis Builder Fingerprint and runs `A-006` (`40/30/20/10`) against all active pool members to emit their initial **Top-3 Matches + repo evidence pills** in `< 500ms`.
+- [ ] **Stage 2 (`2–5s` Parallel Gemini Flash Fan-Out):** Fans out `A-004` (capabilities), `A-005` (bottlenecks), and `A-007` (match explanations) across a parallel worker pool (`Promise.allSettled` bounded by `workerConcurrency`, defaulting to `GEMINI_MODEL=gemini-2.5-flash`) and streams `match.enriched` events via SSE to `/me` and `/stage`.
+- [ ] **Zero-Downtime Deterministic Fallback:** If `GEMINI_API_KEY` is absent, rate-limited, or times out (`> 6s`), Stage 1 deterministic capabilities, bottlenecks, and evidence-backed match explanations remain 100% functional with zero user-visible errors.
+- [ ] **Onsite Room Capacity & Hard Admission Cap Controller (`/admin`, `/stage` View 5 & `POST /api/admin/capacity`):**
+  - Defaults `maxRoomCapacity` to **`30`** (with 1-click presets **`[15]`**, **`[30]`**, **`[50]`**, **`[100]`**, plus **`[🔒 Lock Intake]`**).
+  - Enforces the hard admission cap on new QR joins (`429 ROOM_AT_CAPACITY` -> friendly *"System is at capacity — please try back later"* notice on `/join`), while always admitting pre-warmed VIP/Judge handles.
+  - Dynamically scales `workerConcurrency` (`8` → `16` → `24` → `32` parallel Gemini Flash workers) and `githubFetchMode` (`full-graphql` vs `fast-rest-top5`) to match the selected cap.
+- [ ] **Continuous Rematching:** Preserves any match where either participant has already tapped `Interested` or `Pass`.
 
 ## 6. Test Requirements
-- Unit/integration tests verifying: (1) async job queue execution & lease recovery, (2) early participant with 0 matches receives a match when a compatible 2nd participant joins, and (3) acted-upon matches remain untouched.
+- Unit/integration tests verifying: (1) `< 500ms` Stage 1 deterministic match emission before Stage 2 LLM completion, (2) parallel worker concurrency scaling via `POST /api/admin/capacity`, (3) graceful deterministic fallback when LLM times out, and (4) preservation of acted-upon matches during continuous rematching.
 
 ## 7. Security & Privacy Considerations
 - Immediately exclude any participant with `consent_status === 'withdrawn'` from worker and rematching passes.
 
 ## 8. Expected Demonstration Impact
-Connects all 4 lanes into a seamless, self-driving pipeline that continuously discovers new collaborations as the hackathon room fills up.
+Gives the Operator a live onsite capacity dial (`/admin`) and guarantees that whether 10 people or 200 people scan the QR code at once, everyone sees matches on their phone in `< 500ms` while the 16:9 Stage Visualizer shows parallel Gemini Flash workers flying through the queue.
 # [DEFERRED TO POST-HACKATHON ROADMAP] A-017: Medusa coordination adapter
 
 - **Issue ID:** `A-017`

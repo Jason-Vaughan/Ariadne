@@ -67,6 +67,9 @@ html_part1 = f'''<!DOCTYPE html>
   {style_block}
 </head>
 <body>
+  <div class="tc-bg-watermark" aria-hidden="true">
+    <img src="/tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="" />
+  </div>
   <nav class="topnav">
     <div class="brand">
       <span class="brand-dot"></span>

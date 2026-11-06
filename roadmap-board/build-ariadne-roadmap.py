@@ -51,7 +51,7 @@ ISSUES = {
         "type": "feature",
         "state": "open",
         "title": "A-001: Core architecture, SQLite WAL schema & data/event contracts",
-        "url": "https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-001.md",
+        "url": "/docs/ISSUE_A-001.md",
         "envelope": "src/contracts/types.ts, src/contracts/events.ts, src/db/schema.sql, tests/contracts.test.ts",
     },
     2: {
@@ -60,7 +60,7 @@ ISSUES = {
         "type": "feature",
         "state": "open",
         "title": "A-002: Public QR onboarding — Zero-OAuth 1-tap GitHub handle entry ('REQUIRES GITHUB PROFILE')",
-        "url": "https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-002.md",
+        "url": "/docs/ISSUE_A-002.md",
         "envelope": "src/routes/onboarding.ts, src/auth/session.ts, public/app/join.html, public/app/join.js, tests/onboarding.test.ts",
     },
     3: {
@@ -69,7 +69,7 @@ ISSUES = {
         "type": "feature",
         "state": "open",
         "title": "A-003: GitHub public-data connector, Multi-PAT pool, 24h SQLite cache & VIP pre-warmer",
-        "url": "https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-003.md",
+        "url": "/docs/ISSUE_A-003.md",
         "envelope": "src/github/connector.ts, src/github/cache.ts, src/github/sanitize.ts, tests/github-connector.test.ts",
     },
     4: {
@@ -78,7 +78,7 @@ ISSUES = {
         "type": "feature",
         "state": "open",
         "title": "A-004: Evidence-backed capability analysis & 6-Axis Builder Fingerprint (Gemini Flash + Stage 1)",
-        "url": "https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-004.md",
+        "url": "/docs/ISSUE_A-004.md",
         "envelope": "src/intelligence/capability-agent.ts, src/intelligence/prompts.ts, tests/capability-agent.test.ts",
     },
     5: {
@@ -87,7 +87,7 @@ ISSUES = {
         "type": "feature",
         "state": "open",
         "title": "A-005: Opportunity & bottleneck discovery agent (Gemini Flash + Stage 1 complementary gaps)",
-        "url": "https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-005.md",
+        "url": "/docs/ISSUE_A-005.md",
         "envelope": "src/intelligence/opportunity-agent.ts, tests/opportunity-agent.test.ts",
     },
     6: {
@@ -96,7 +96,7 @@ ISSUES = {
         "type": "feature",
         "state": "open",
         "title": "A-006: Deterministic 4-factor match scoring engine (40/30/20/10 + <=0.72 anti-clone penalty)",
-        "url": "https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-006.md",
+        "url": "/docs/ISSUE_A-006.md",
         "envelope": "src/matching/scorer.ts, src/matching/anti-clone.ts, tests/scorer.test.ts",
     },
     7: {
@@ -105,7 +105,7 @@ ISSUES = {
         "type": "feature",
         "state": "open",
         "title": "A-007: Two-stage match explanation & collaboration thesis agent (<50ms Stage 1 + Gemini Flash)",
-        "url": "https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-007.md",
+        "url": "/docs/ISSUE_A-007.md",
         "envelope": "src/matching/explanation-agent.ts, src/matching/evidence-formatter.ts, tests/explanation-agent.test.ts",
     },
     8: {
@@ -114,7 +114,7 @@ ISSUES = {
         "type": "feature",
         "state": "open",
         "title": "A-008: Mobile participant 6-Axis Builder Fingerprint & progressive Top-3 Match Cards UI (/me)",
-        "url": "https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-008.md",
+        "url": "/docs/ISSUE_A-008.md",
         "envelope": "public/app/me.html, public/app/me.js, public/app/app.css, src/routes/me.ts, tests/me-routes.test.ts",
     },
     9: {
@@ -123,7 +123,7 @@ ISSUES = {
         "type": "feature",
         "state": "open",
         "title": "A-009: SQLite append-only live event stream (SSE /api/events/stream + HTTP polling fallback)",
-        "url": "https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-009.md",
+        "url": "/docs/ISSUE_A-009.md",
         "envelope": "src/events/bus.ts, src/routes/events.ts, tests/events.test.ts",
     },
     10: {
@@ -132,7 +132,7 @@ ISSUES = {
         "type": "feature",
         "state": "open",
         "title": "A-010: Interactive Stage Visualizer Shell, Top-3 Web of Connections, Golden Arcs & Seed Toggle (+25 AI Devs)",
-        "url": "https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-010.md",
+        "url": "/docs/ISSUE_A-010.md",
         "envelope": "public/stage/index.html, public/stage/network-graph.js, public/stage/stage.css, src/routes/stage-snapshot.ts, tests/stage-snapshot.test.ts",
     },
     11: {
@@ -141,7 +141,7 @@ ISSUES = {
         "type": "feature",
         "state": "open",
         "title": "A-011: Stage Views 1, 2, 4 & 5 — Narratable 4-Stage Pipeline, Builder Fingerprints, Match Spotlight & Capacity Scaler",
-        "url": "https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-011.md",
+        "url": "/docs/ISSUE_A-011.md",
         "envelope": "public/stage/spotlight.js, public/stage/activity-feed.js, public/stage/operator-controls.js, tests/stage-modes.test.ts",
     },
     12: {
@@ -150,7 +150,7 @@ ISSUES = {
         "type": "feature",
         "state": "open",
         "title": "A-012: Zero-blocker mutual-introduction workflow, Private Web Intro Room, Venue Locator & Golden Arc trigger",
-        "url": "https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-012.md",
+        "url": "/docs/ISSUE_A-012.md",
         "envelope": "src/routes/introductions.ts, src/matching/intro-state-machine.ts, public/app/intro-room.js, tests/introductions.test.ts",
     },
     13: {
@@ -159,7 +159,7 @@ ISSUES = {
         "type": "feature",
         "state": "dropped",
         "title": "A-013: [Deferred to V2] Discord event bot & thread creation adapter",
-        "url": "https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-013.md",
+        "url": "/docs/ISSUE_A-013.md",
         "envelope": "Deferred per Web-Only Self-Hosted Hackathon MVP Amendment",
     },
     14: {
@@ -168,7 +168,7 @@ ISSUES = {
         "type": "feature",
         "state": "open",
         "title": "A-014: Self-hosted server (:3420), auto-mounted route loader, SQLite WAL & narrow HTTPS tunnel",
-        "url": "https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-014.md",
+        "url": "/docs/ISSUE_A-014.md",
         "envelope": "src/server.ts, src/db/client.ts, src/routes/health.ts, scripts/tunnel.sh, tests/server.test.ts",
     },
     15: {
@@ -177,7 +177,7 @@ ISSUES = {
         "type": "feature",
         "state": "open",
         "title": "A-015: Hackathon provenance ledger & Per-Version v2.0.0 Interactive Sprint Reports Hub (/reports)",
-        "url": "https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-015.md",
+        "url": "/docs/ISSUE_A-015.md",
         "envelope": "public/reports/index.html, public/roadmap/index.html, scripts/build-sprint-report.js, tests/reports.test.ts",
     },
     16: {
@@ -186,7 +186,7 @@ ISSUES = {
         "type": "feature",
         "state": "open",
         "title": "A-016: Two-stage progressive pipeline (<500ms + Parallel Gemini Flash pool) & Onsite Capacity Controller (/admin)",
-        "url": "https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-016.md",
+        "url": "/docs/ISSUE_A-016.md",
         "envelope": "src/worker/job-runner.ts, src/worker/seed-personas.ts, data/golden-seed-24.json, tests/worker.test.ts",
     },
     17: {
@@ -195,7 +195,7 @@ ISSUES = {
         "type": "feature",
         "state": "dropped",
         "title": "A-017: [Deferred to V2] Medusa runtime coordination adapter",
-        "url": "https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-017.md",
+        "url": "/docs/ISSUE_A-017.md",
         "envelope": "Deferred per Web-Only Self-Hosted Hackathon MVP Amendment",
     },
 }
@@ -629,8 +629,10 @@ def build_page(public: bool, generated: str) -> str:
     nav = (
         '<p><a href="reports/">📊 Autonomous Sprint Reports Hub (v2.0.0)</a> · '
         '<a href="reports/v0.1.0/">🔬 Sprint v0.1.0 Executive Report</a> · '
-        '<a href="https://cursatory.tail123678.ts.net:8443/plans/149/MASTER_SSOT.md">Master SSOT Document Index</a> · '
-        '<a href="https://cursatory.tail123678.ts.net:8443/plans/149/LANE_QUEUE.md">Live Fleet Dispatch Queue</a></p>'
+        '<a href="/docs/">📚 Branded Documentation Portal (All 52 Specs)</a> · '
+        '<a href="/docs/MASTER_SSOT.md">⭐ Master SSOT Document Index</a> · '
+        '<a href="/docs/VISUALIZER_SPEC.md">🖥️ 5-View Stage Visualizer Spec</a> · '
+        '<a href="/docs/DEMO_RUNBOOK.md">🎬 Demo Runbook</a></p>'
     )
     notice = (
         '<div class="notice"><strong>Pre-Event Preparation View (Zero Application Code Before Saturday Nov 7 @ 09:30 AM PST GO).</strong>'

@@ -475,6 +475,27 @@
       border-radius: 5px;
       font-size: 0.78rem;
     }
+    body { position: relative; min-height: 100vh; }
+    .tc-bg-watermark {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .tc-bg-watermark img {
+      width: min(82vw, 860px);
+      height: min(82vw, 860px);
+      object-fit: contain;
+      opacity: 0.08;
+      filter: drop-shadow(0 0 48px rgba(52, 211, 153, 0.16));
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+    main, .container, footer { position: relative; z-index: 1; }
   </style>
 </head>
 <body>
