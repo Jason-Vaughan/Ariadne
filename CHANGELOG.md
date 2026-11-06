@@ -5,6 +5,13 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Full Python Sprint Reporting & Roadmap System (`sprint-reports/` + `roadmap-board/`):**
+  - Installed and configured the complete TangleClaw Python reporting toolchain inside `Ariadne-PM/sprint-reports/`:
+    - `metrics_schema.py` & `metrics-schema.json`: Single source of truth for `SPRINT_REPORT_CONTRACT v2.0.0` (8-timestamp release cadence `t1..t8`, full engineering window `T_eng`, 4-state work-completion accounting `State A..D`, 3-tier operating cost taxonomy, orthogonal throughput + legacy `ADE_v1`, and embedded `#tc-canonical-metrics` JSON).
+    - `validate-sprint-report.py` & `test_validate_sprint_report.py`: Full contract validator and 10-test unit suite (`10/10` passing) enforcing the 8-section canonical layout, 3+ SVGs, 16-row `Rule #283` table, 4-gate audit table, and mathematical consistency.
+    - `scripts/enrich-sprint-reports.py`, `scripts/generate-sprint-report.py`, and `scripts/sync-live-sprint.py`: Automated generator, Open Graph / ADE enricher, and live sprint wave tracker.
+    - `generators/gen_v010.py` & `v0.1.0/index.html`: Generated and validated the canonical 1,918-line `v0.1.0` executive report (`PASS [v0.1.0]`) and `sprint-reports/index.html` (`PASS [hub]`).
+  - Integrated `TC-Lane-PM` Advisory #3 (`813dd5b1-b210-411b-af36-4e0acaa1106f`) into `roadmap-board/build-ariadne-roadmap.py`, `serve-roadmap.py`, and `publish-public-roadmap.sh` with persistent `Train 1..4` track headers, `builds_beside` parallel summaries, and live PortHub `:3422` serving of `/reports/v0.1.0/` and `/sprint-v0.1.0.html`.
 - **Standalone TangleClaw-Style Roadmap Board (`roadmap-board/index.html`) & Live PortHub Server (`:3422`):**
   - Built `roadmap-board/build-ariadne-roadmap.py`, `roadmap-board/index.html`, `roadmap-board/Ariadne-Public-Roadmap-preview.html`, `roadmap-board/publish-public-roadmap.sh`, and `sprint-reports/index.html` using the exact `https://jason-vaughan.github.io/TangleClaw/` HTML/CSS release-drawer layout.
   - Leased PortHub port `3422` (`project: "Ariadne-PM"`, `service: "roadmap-board"`, `reach: "tailnet"`, `permanent: true`) and started `roadmap-board/serve-roadmap.py` at `http://cursatory.tail123678.ts.net:3422/`.

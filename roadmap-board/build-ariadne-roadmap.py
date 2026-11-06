@@ -453,21 +453,58 @@ def _issue_table(numbers, issues, public=False, sequence=False, waits_on=None):
 
 def _render_release(release, issues, public=False, is_current=False):
     version = release["version"]
-    stage = "current" if is_current else "upcoming"
-    stage_text = "Current target (Next up at 09:30 PST GO)" if is_current else "Upcoming wave"
-    open_attr = " open" if is_current else ""
     cars = [n for t in release.get("trains", []) for n in t.get("cars", [])]
-    count_text = f"0/{len(cars)} completed · {len(release.get('trains', []))} parallel solo workstreams" if cars else "4h 45m polish, dogfooding & certification window"
+    all_closed = bool(cars) and all(issues[n]["state"] in ("closed", "dropped") for n in cars)
+    if all_closed or release.get("released_on"):
+        stage = "released"
+        stage_text = "Released"
+    elif is_current:
+        stage = "current"
+        stage_text = "Current target (Next up at 09:30 PST GO)"
+    else:
+        stage = "upcoming"
+        stage_text = "Upcoming wave"
+    open_attr = " open" if (is_current or stage == "released") else ""
+    closed_count = sum(1 for n in cars if issues[n]["state"] in ("closed", "dropped"))
+    n_streams = len(release.get("trains", []))
+    count_text = (
+        f"{closed_count}/{len(cars)} completed · {n_streams} parallel Trains / Cars"
+        if cars
+        else "4h 45m polish, dogfooding & certification window"
+    )
+    report_link = (
+        f' · <a class="released-link" href="reports/v{html.escape(version)}/" style="color:#38bdf8;font-weight:700;">📊 Sprint Report (v{html.escape(version)})</a>'
+        if version == "0.1.0" or stage == "released"
+        else ""
+    )
     deliverables = "".join(f"<li>{html.escape(d)}</li>" for d in release.get("deliverables", []))
     status_line = (
-        f'<p class="release-progress"><strong>Wave plan:</strong> {html.escape(release["public_status"])}</p>'
+        f'<p class="release-progress"><strong>Wave plan:</strong> {html.escape(release["public_status"])}{report_link}</p>'
         if release.get("public_status") else ""
     )
+    beside_line = (
+        f'<p class="builds-beside" style="margin:0.5rem 0 0.85rem;font-size:0.86rem;color:#94a3b8;">'
+        f'<span class="parallel parallel-ok">Can run beside this release\'s other parallel workstreams</span> '
+        f'— {n_streams} pairwise file-disjoint Trains / Cars (<code>Envelope(A) ∩ Envelope(B) = ∅</code> · 0 shared files)</p>'
+        if n_streams > 1
+        else ""
+    )
+    track_names = {
+        "Ariadne-Lane-A": "Train 1 (Track A — Mobile Participant UX & Contracts)",
+        "Ariadne-Lane-B": "Train 2 (Track B — Server Spine, GitHub & Intelligence Agents)",
+        "Ariadne-Lane-C": "Train 3 (Track C — Event Stream, Scorer, Explanations & Worker)",
+        "Ariadne-Lane-D": "Train 4 (Track D — 16:9 Stage Visualizer & Sprint Reports Hub)",
+    }
     streams = []
-    for stream in release.get("trains", []):
-        meta = [f'<span class="identity">{html.escape(stream["name"])}</span>']
-        if not public and stream.get("owner"):
-            meta.append(f'<span>Lane: {html.escape(stream["owner"])}</span>')
+    for idx, stream in enumerate(release.get("trains", []), 1):
+        owner = stream.get("owner", "")
+        train_prefix = track_names.get(owner, f"Train {idx}")
+        car_total = len(stream.get("cars", []))
+        meta = [
+            f'<span class="identity">{html.escape(train_prefix)} · {html.escape(stream["name"])} ({car_total} {"Car" if car_total == 1 else "Cars"})</span>'
+        ]
+        if not public and owner:
+            meta.append(f'<span>Lane: <code>{html.escape(owner)}</code></span>')
         meta.append('<span class="parallel parallel-ok">Can run beside this release\'s other parallel workstreams (0 shared files)</span>')
         note = f'<p class="stream-note">{html.escape(stream["note"])}</p>' if (not public and stream.get("note")) else ""
         table = _issue_table(stream.get("cars", []), issues, public=public, sequence=True, waits_on=stream.get("waits_on"))
@@ -484,22 +521,22 @@ def _render_release(release, issues, public=False, is_current=False):
         f'<span class="stage stage-{stage}">{stage_text}</span>'
         f'<span class="release-count">{html.escape(count_text)}</span></summary>'
         f'<div class="release-body"><ul class="deliverables">{deliverables}</ul>'
-        f'{status_line}{empty}{"".join(streams)}</div></details>'
+        f'{status_line}{beside_line}{empty}{"".join(streams)}</div></details>'
     )
 
 
 def build_page(public: bool, generated: str) -> str:
     title = "Ariadne public roadmap" if public else "Ariadne — Roadmap Board (Internal Fleet View)"
     intro = (
-        "Each release combines lanes of agentic work that proceed 100% in parallel with pairwise disjoint file envelopes "
-        "(Envelope(A) ∩ Envelope(B) = ∅). Every issue is sorted so all 4 Builder lanes run solo (1 Issue = 1 Lane = 1 PR) "
-        "with zero shared-file collisions."
+        "Each release combines Trains and Cars of agentic work that proceed 100% in parallel with pairwise disjoint file envelopes "
+        "(Envelope(A) ∩ Envelope(B) = ∅). Every issue is sorted into 4 persistent parallel Trains across Ariadne-Lane-A..D "
+        "so all 4 Builder lanes run simultaneously with zero shared-file collisions."
     )
     metrics = [
         ("Planned versions", 5),
-        ("Released versions", 0),
+        ("Pre-staged reports", 1),
         ("Active MVP issues", 15),
-        ("Completed items", 0),
+        ("Persistent Trains", 4),
         ("Max parallel lanes", 4),
         ("Multi-issue cars needed", 0),
         ("Shared-file collisions", 0),
@@ -510,12 +547,13 @@ def build_page(public: bool, generated: str) -> str:
         for label, val in metrics
     )
     legend = (
-        '<div class="reading-guide"><strong>How to read this Roadmap (Pairwise Disjoint Solo Waves)</strong>'
-        'Issues are sorted across v0.1.0 → v0.2.0 → v0.3.0 → v0.4.0 → v1.0.0 using the TC-Lane-PM File-Collision '
-        'Sorting Algorithm. Within every release version, every workstream is a single Solo Issue with a strictly disjoint '
-        'file envelope so all 4 Builder lanes (Ariadne-Lane-A..D) build in parallel with zero merge conflicts. Issues that '
-        'touch the same subsystem (e.g. public/app/*, src/intelligence/*, src/matching/*, public/stage/*) are sequenced into '
-        'consecutive versions with explicit Waiting on badges.'
+        '<div class="reading-guide"><strong>How to read this Roadmap (Trains &amp; Cars · Pairwise Disjoint File Envelopes)</strong>'
+        'Issues are arranged across v0.1.0 → v0.2.0 → v0.3.0 → v0.4.0 → v1.0.0 into <strong>4 persistent parallel Trains</strong> '
+        '(<code>Train 1 · Track A</code>, <code>Train 2 · Track B</code>, <code>Train 3 · Track C</code>, <code>Train 4 · Track D</code>) '
+        'using the TC-Lane-PM File-Collision Sorting Algorithm. Within every release version, every Car has a strictly disjoint '
+        'file envelope (<code>Envelope(A) ∩ Envelope(B) = ∅</code>) so all 4 Builder lanes (<code>Ariadne-Lane-A..D</code>) build in parallel '
+        'with zero merge conflicts. Cars that touch the same subsystem (e.g. <code>public/app/*</code>, <code>src/intelligence/*</code>, '
+        '<code>src/matching/*</code>, <code>public/stage/*</code>) are sequenced into consecutive versions with explicit <code>Waiting on</code> badges.'
         '<div class="status-legend" aria-label="Issue status legend">'
         + "".join(f'<span class="state state-{s}">{html.escape(lbl)}</span>' for s, lbl in STATE_TEXT.items())
         + "</div></div>"
@@ -535,6 +573,7 @@ def build_page(public: bool, generated: str) -> str:
     )
     nav = (
         '<p><a href="reports/">📊 Autonomous Sprint Reports Hub (v2.0.0)</a> · '
+        '<a href="reports/v0.1.0/">🔬 Sprint v0.1.0 Executive Report</a> · '
         '<a href="https://cursatory.tail123678.ts.net:8443/plans/149/MASTER_SSOT.md">Master SSOT Document Index</a> · '
         '<a href="https://cursatory.tail123678.ts.net:8443/plans/149/LANE_QUEUE.md">Live Fleet Dispatch Queue</a></p>'
     )

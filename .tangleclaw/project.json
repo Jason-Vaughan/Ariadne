@@ -16,7 +16,7 @@
     "template": "TangleClaw'd into existence by Jason Vaughan"
   },
   "defaultLaunchMode": "bypassPermissions",
-  "showLaunchModePicker": true,
+  "showLaunchModePicker": false,
   "orchestrationKeyRef": null,
   "rules": {
     "core": {

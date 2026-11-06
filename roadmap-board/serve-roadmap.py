@@ -28,11 +28,21 @@ class Handler(BaseHTTPRequestHandler):
         item = FILES.get(path)
         if item:
             return item
-        m = re.fullmatch(r"/reports/(v\d+\.\d+\.\d+)(?:/|/index\.html|\.html)?", path)
+        m = re.fullmatch(r"/reports/(v\d+\.\d+\.\d+(?:-v\d+\.\d+\.\d+-retrospective)?)(?:/|/index\.html|\.html)?", path)
         if m:
             candidate = REPORTS_DIR / m.group(1) / "index.html"
             if candidate.is_file():
                 return (candidate, "text/html; charset=utf-8")
+        m_flat = re.fullmatch(r"/sprint-(v\d+\.\d+\.\d+(?:-v\d+\.\d+\.\d+-retrospective)?)\.html", path)
+        if m_flat:
+            candidate = REPORTS_DIR / m_flat.group(1) / "index.html"
+            if candidate.is_file():
+                return (candidate, "text/html; charset=utf-8")
+        m_asset = re.fullmatch(r"/reports/assets/([a-zA-Z0-9._-]+\.png)", path)
+        if m_asset:
+            candidate = REPORTS_DIR / "assets" / m_asset.group(1)
+            if candidate.is_file():
+                return (candidate, "image/png")
         return None
 
     def do_HEAD(self):

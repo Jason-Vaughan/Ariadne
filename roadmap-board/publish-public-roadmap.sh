@@ -11,6 +11,14 @@ BRANCH="gh-pages"
 
 python3 "$DIR/build-ariadne-roadmap.py"
 
+if [ -f "$REPORTS_DIR/scripts/enrich-sprint-reports.py" ]; then
+    python3 "$REPORTS_DIR/scripts/enrich-sprint-reports.py"
+fi
+
+if [ -f "$REPORTS_DIR/validate-sprint-report.py" ]; then
+    python3 "$REPORTS_DIR/validate-sprint-report.py" --all
+fi
+
 tmp_dir=$(mktemp -d "/tmp/ariadne-public-roadmap.XXXXXX")
 cleanup() { rm -rf "$tmp_dir"; }
 trap cleanup EXIT
@@ -31,12 +39,21 @@ mkdir -p "$site/reports"
 if [ -f "$REPORTS_DIR/index.html" ]; then
     cp "$REPORTS_DIR/index.html" "$site/reports/index.html"
 fi
+if [ -d "$REPORTS_DIR/assets" ]; then
+    mkdir -p "$site/reports/assets"
+    cp -R "$REPORTS_DIR/assets/." "$site/reports/assets/"
+fi
 for vdir in "$REPORTS_DIR"/v*; do
     [ -d "$vdir" ] || continue
     ver=$(basename "$vdir")
     if [ -f "$vdir/index.html" ]; then
         mkdir -p "$site/reports/$ver"
         cp "$vdir/index.html" "$site/reports/$ver/index.html"
+        sed \
+            -e 's|href="../"|href="reports/"|g' \
+            -e 's|href="../../"|href="./"|g' \
+            -e 's|href="../assets/|href="reports/assets/|g' \
+            "$vdir/index.html" > "$site/sprint-$ver.html"
     fi
 done
 
