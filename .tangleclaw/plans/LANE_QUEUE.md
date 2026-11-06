@@ -1,47 +1,44 @@
-# Ariadne Fleet Dispatch Queue (`LANE_QUEUE.md`) — `ARIADNE-HACK-2026`
+# Ariadne Fleet Dispatch Queue (`LANE_QUEUE.md`)
 
-- **Active Project:** `Ariadne-PM` (`#149`, `ariadne-pm-db0f895f`)
-- **Current Authorization State:** `PREPARATION ONLY — H-DAY ENGINEERING NOT AUTHORIZED`
-- **Governing Rule Proposal:** `Rule #304` (`ARIADNE PM & FLEET GOVERNANCE OVERLAY v1.0`)
-- **Master SSOT Index:** [https://cursatory.tail123678.ts.net:8443/plans/149/MASTER_SSOT.md](https://cursatory.tail123678.ts.net:8443/plans/149/MASTER_SSOT.md) (`/Users/jasonvaughan/Documents/Projects/Ariadne-PM/PROJECT_DOCUMENTS.md`)
-
----
-
-## 1. Active Train & Car Queue (`Staged for Saturday, Nov 7 @ 09:30 AM PST Operator GO`)
-
-| Train / Release | Car ID | Assigned Lane | Bundled Issues | Branch Name | I-Gate / A-Gate | Status |
-|---|---|---|---|---|---|---|
-| **Train 0 (`v0.1.0`)**<br>`09:30–10:15` | **`Car 0-INT`** | `Ariadne-INT` | `A-001`, `A-014` (S1), `A-015` (S1) | `feat/a001-a014-a015-contracts-sqlite-bootstrap` | `PRR` + `Arc` | `STAGED (Pre-GO)` |
-| **Train 1 (`v0.2.0`)**<br>`10:15–12:00` | **`Car 1-A`** | `Ariadne-Lane-A` | `A-002`, `A-008` (Shell) | `feat/a002-a008-mobile-onboarding-and-results-shell` | `PRR` + `Arc` | `STAGED (Wait v0.1.0)` |
-| **Train 1 (`v0.2.0`)**<br>`10:15–12:00` | **`Car 1-B`** | `Ariadne-Lane-B` | `A-003`, `A-004`, `A-005` | `feat/a003-a004-a005-github-connector-and-profile-agents` | `PRR` + `Arc` | `STAGED (Wait v0.1.0)` |
-| **Train 1 (`v0.2.0`)**<br>`10:15–12:00` | **`Car 1-C`** | `Ariadne-Lane-C` | `A-006`, `A-007` | `feat/a006-a007-match-scoring-and-proposal-agent` | `PRR` + `Arc` | `STAGED (Wait v0.1.0)` |
-| **Train 1 (`v0.2.0`)**<br>`10:15–12:00` | **`Car 1-D`** | `Ariadne-Lane-D` | `A-009`, `A-010`, `A-011` | `feat/a009-a010-a011-event-bus-and-stage-visualizer` | `PRR` + `Arc` | `STAGED (Wait v0.1.0)` |
-| **Train 2 (`v0.3.0`)**<br>`12:00–13:45` | **`Car 2-A`** | `Ariadne-Lane-A` | `A-008` (Live), `A-012` | `feat/a008-a012-live-matches-and-web-mutual-intros` | `PRR` + `Arc` | `STAGED (Wait v0.2.0)` |
-| **Train 2 (`v0.3.0`)**<br>`12:00–13:45` | **`Car 2-C`** | `Ariadne-Lane-C` | `A-016` + Async Worker | `feat/a016-async-worker-and-continuous-rematching` | `PRR` + `Arc` | `STAGED (Wait v0.2.0)` |
-| **Train 2 (`v0.3.0`)**<br>`12:00–13:45` | **`Car 2-D`** | `Ariadne-Lane-D` | Stage Intro Animations & HUD | `feat/stage-bilateral-intro-animations-and-judge-hud` | `PRR` + `Arc` | `STAGED (Wait v0.2.0)` |
-| **Train 3 (`v1.0.0`)**<br>`13:45–17:45` | **`Car 3-A..D`** | `Lane-A..D` | Live Dogfooding Polish & Bug Fixes | `fix/train3-lane-<x>-polish` | `PRR` | `STAGED (Wait v0.3.0)` |
-| **Train 3 (`v1.0.0`)**<br>`13:45–17:45` | **`Car 3-INT`** | `INT` + `Obsr` | `A-014` (S2), `A-015` (S2) | `chore/a014-a015-v100-hardening-and-judge-reports` | `PRR` + `Arc` + `Obsr` | `STAGED (Wait v0.3.0)` |
+**Project:** `ARIADNE-HACK-2026` (*Find Your Thread.*)  
+**PM Coordinator:** `Ariadne-PM` (`projectId: 149`, Medusa ID: `ariadne-pm-db0f895f`)  
+**Published Interactive Roadmap:** [ARIADNE_ROADMAP.md](https://cursatory.tail123678.ts.net:8443/plans/149/ARIADNE_ROADMAP.md)  
+**Sorting Methodology:** `TC-Lane-PM` Pairwise Disjoint File-Envelope Algorithm (`Envelope(A) ∩ Envelope(B) = ∅`) — **100% Solo-Issue Parallel Waves (`1 Issue = 1 Builder Lane = 1 PR`), Zero Shared-File Collisions**  
+**Authorization Gate:** **STAGED — DO NOT DISPATCH BEFORE SATURDAY NOV 7, 2026 @ `09:30 AM PST` OPERATOR `GO`**
 
 ---
 
-## 2. Chunk-Boundary Receipt Ledger (`#1889`)
+## 1. File-Collision Matrix & Wave Assignment Summary
 
-*(Populated on H-Day as each Car completes `R-Gate` + `I-Gate` merge before `/clear` and next-Train dispatch.)*
+By auditing every issue's predicted file touch-surface (`Envelope(i)`) and sequencing shared-subsystem issues across consecutive versions (`v0.1.0` → `v0.2.0` → `v0.3.0` → `v0.4.0`), **every issue in the 15-issue MVP runs as a pure 1-Issue Solo Parallel Dispatch (`1 Issue = 1 Builder Lane = 1 PR`) with zero multi-issue Cars needed**:
 
-| Train | Car ID | Lane | Merged PR & Commit SHA | Test Receipt | `changelog.d` Fragment | Builder Ack | Boundary Verdict |
-|---|---|---|---|---|---|---|---|
-| `v0.1.0` | `Car 0-INT` | `Ariadne-INT` | *Pending H-Day* | *Pending* | `changelog.d/A-001-014-015.md` | *Pending* | `PENDING` |
-| `v0.2.0` | `Car 1-A` | `Ariadne-Lane-A` | *Pending H-Day* | *Pending* | `changelog.d/A-002-008-shell.md` | *Pending* | `PENDING` |
-| `v0.2.0` | `Car 1-B` | `Ariadne-Lane-B` | *Pending H-Day* | *Pending* | `changelog.d/A-003-004-005.md` | *Pending* | `PENDING` |
-| `v0.2.0` | `Car 1-C` | `Ariadne-Lane-C` | *Pending H-Day* | *Pending* | `changelog.d/A-006-007.md` | *Pending* | `PENDING` |
-| `v0.2.0` | `Car 1-D` | `Ariadne-Lane-D` | *Pending H-Day* | *Pending* | `changelog.d/A-009-010-011.md` | *Pending* | `PENDING` |
-| `v0.3.0` | `Car 2-A` | `Ariadne-Lane-A` | *Pending H-Day* | *Pending* | `changelog.d/A-008-012.md` | *Pending* | `PENDING` |
-| `v0.3.0` | `Car 2-C` | `Ariadne-Lane-C` | *Pending H-Day* | *Pending* | `changelog.d/A-016.md` | *Pending* | `PENDING` |
-| `v0.3.0` | `Car 2-D` | `Ariadne-Lane-D` | *Pending H-Day* | *Pending* | `changelog.d/Car-2D-stage-hud.md` | *Pending* | `PENDING` |
+| Subsystem / Directory Surface | `v0.1.0` (`09:30–10:05`) | `v0.2.0` (`10:05–11:00`) | `v0.3.0` (`11:00–12:00`) | `v0.4.0` (`12:00–13:00`) | `v1.0.0` (`13:00–17:45`) |
+|---|---|---|---|---|---|
+| **Contracts / Onboarding / Mobile UI** (`src/contracts/*`, `public/app/*`) | **`A-001` (`#1`)** · `Lane-A`<br>`src/contracts/*`, `src/db/schema.sql` | **`A-002` (`#2`)** · `Lane-A`<br>`src/routes/onboarding.ts`, `public/app/join.*` | **`A-008` (`#8`)** · `Lane-A`<br>`public/app/me.*`, `src/routes/me.ts` | **`A-012` (`#12`)** · `Lane-A`<br>`src/routes/introductions.ts`, `public/app/intro-room.js` | Live QR Dogfooding & Mobile Polish (`Lane-A`) |
+| **Server / GitHub / Intelligence AI** (`src/server.ts`, `src/github/*`, `src/intelligence/*`) | **`A-014` (`#14` S1)** · `Lane-B`<br>`src/server.ts`, `src/db/client.ts`, `scripts/tunnel.sh` | **`A-003` (`#3`)** · `Lane-B`<br>`src/github/connector.ts`, `src/github/cache.ts` | **`A-004` (`#4`)** · `Lane-B`<br>`src/intelligence/capability-agent.ts` | **`A-005` (`#5`)** · `Lane-B`<br>`src/intelligence/opportunity-agent.ts` | Rate-Limit & Cache Hardening (`Lane-B`) |
+| **Event Bus / Matching / Worker** (`src/events/*`, `src/matching/*`, `src/worker/*`) | **`A-009` (`#9`)** · `Lane-C`<br>`src/events/bus.ts`, `src/routes/events.ts` | **`A-006` (`#6`)** · `Lane-C`<br>`src/matching/scorer.ts` (`40/30/20/10`) | **`A-007` (`#7`)** · `Lane-C`<br>`src/matching/explanation-agent.ts` | **`A-016` (`#16`)** · `Lane-C`<br>`src/worker/job-runner.ts`, `data/golden-seed-24.json` | Match Tuning & Seed Verification (`Lane-C`) |
+| **Reports / 16:9 Stage Visualizer** (`public/reports/*`, `public/stage/*`) | **`A-015` (`#15` S1)** · `Lane-D`<br>`public/reports/*`, `public/roadmap/*` | **`A-010` (`#10`)** · `Lane-D`<br>`public/stage/network-graph.js`, `src/routes/stage-snapshot.ts` | **`A-011` (`#11`)** · `Lane-D`<br>`public/stage/spotlight.js`, `public/stage/activity-feed.js` | Stage Intro Celebrations & HUD Polish (`Lane-D`) | **`A-014` S2 + `A-015` S2** (`INT` + `Obsr`) |
+| **Pairwise File Overlap (`∩`)** | **`∅` (`0` shared files)** | **`∅` (`0` shared files)** | **`∅` (`0` shared files)** | **`∅` (`0` shared files)** | **`∅` (`0` shared files)** |
 
 ---
 
-## 3. Waiting on the Operator
+## 2. Staged Solo-Issue Dispatch Queue (`v0.1.0` → `v1.0.0`)
 
-1. **Approve `Rule #304`** (`ARIADNE PM & FLEET GOVERNANCE OVERLAY v1.0`) in TangleClaw Settings → Project Rules (`projectId: 149`).
-2. **Saturday, Nov 7 @ 09:30 AM PST:** Issue explicit `GO — AUTHORIZE ARIADNE H-DAY EXECUTION` to unlock `Train 0`.
+| Wave / Version | Issue | Target Lane | Branch Name | Exclusive File Envelope | Status | `R-Gate` (`PRR`) | `I-Gate` (`INT`) | `O-Gate` (`Obsr`) |
+|---|---|---|---|---|---|---|---|---|
+| **`v0.1.0`** (`09:30–10:05`) | **`A-001` (`#1`)** | `Ariadne-Lane-A` | `feat/a-001-contracts-schema` | `src/contracts/*`, `src/db/schema.sql`, `tests/contracts.test.ts` | `STAGED` | Pending | Pending | Pending |
+| **`v0.1.0`** (`09:30–10:05`) | **`A-014` (`#14` S1)** | `Ariadne-Lane-B` | `feat/a-014-server-foundation` | `src/server.ts`, `src/db/client.ts`, `src/routes/health.ts`, `scripts/tunnel.sh`, `tests/server.test.ts` | `STAGED` | Pending | Pending | Pending |
+| **`v0.1.0`** (`09:30–10:05`) | **`A-009` (`#9`)** | `Ariadne-Lane-C` | `feat/a-009-event-bus-sse` | `src/events/bus.ts`, `src/routes/events.ts`, `tests/events.test.ts` | `STAGED` | Pending | Pending | Pending |
+| **`v0.1.0`** (`09:30–10:05`) | **`A-015` (`#15` S1)** | `Ariadne-Lane-D` | `feat/a-015-reports-roadmap-hub` | `public/reports/*`, `public/roadmap/*`, `scripts/build-sprint-report.js`, `tests/reports.test.ts` | `STAGED` | Pending | Pending | Pending |
+| **`v0.2.0`** (`10:05–11:00`) | **`A-002` (`#2`)** | `Ariadne-Lane-A` | `feat/a-002-qr-onboarding` | `src/routes/onboarding.ts`, `src/auth/session.ts`, `public/app/join.*`, `tests/onboarding.test.ts` | `STAGED` | Pending | Pending | Pending |
+| **`v0.2.0`** (`10:05–11:00`) | **`A-003` (`#3`)** | `Ariadne-Lane-B` | `feat/a-003-github-connector` | `src/github/connector.ts`, `src/github/cache.ts`, `src/github/sanitize.ts`, `tests/github-connector.test.ts` | `STAGED` | Pending | Pending | Pending |
+| **`v0.2.0`** (`10:05–11:00`) | **`A-006` (`#6`)** | `Ariadne-Lane-C` | `feat/a-006-match-scorer` | `src/matching/scorer.ts`, `src/matching/anti-clone.ts`, `tests/scorer.test.ts` | `STAGED` | Pending | Pending | Pending |
+| **`v0.2.0`** (`10:05–11:00`) | **`A-010` (`#10`)** | `Ariadne-Lane-D` | `feat/a-010-stage-network` | `public/stage/index.html`, `public/stage/network-graph.js`, `public/stage/stage.css`, `src/routes/stage-snapshot.ts`, `tests/stage-snapshot.test.ts` | `STAGED` | Pending | Pending | Pending |
+| **`v0.3.0`** (`11:00–12:00`) | **`A-008` (`#8`)** | `Ariadne-Lane-A` | `feat/a-008-mobile-matches-ui` | `public/app/me.html`, `public/app/me.js`, `public/app/app.css`, `src/routes/me.ts`, `tests/me-routes.test.ts` | `STAGED` | Pending | Pending | Pending |
+| **`v0.3.0`** (`11:00–12:00`) | **`A-004` (`#4`)** | `Ariadne-Lane-B` | `feat/a-004-capability-agent` | `src/intelligence/capability-agent.ts`, `src/intelligence/prompts.ts`, `tests/capability-agent.test.ts` | `STAGED` | Pending | Pending | Pending |
+| **`v0.3.0`** (`11:00–12:00`) | **`A-007` (`#7`)** | `Ariadne-Lane-C` | `feat/a-007-explanation-agent` | `src/matching/explanation-agent.ts`, `src/matching/evidence-formatter.ts`, `tests/explanation-agent.test.ts` | `STAGED` | Pending | Pending | Pending |
+| **`v0.3.0`** (`11:00–12:00`) | **`A-011` (`#11`)** | `Ariadne-Lane-D` | `feat/a-011-stage-spotlight` | `public/stage/spotlight.js`, `public/stage/activity-feed.js`, `public/stage/operator-controls.js`, `tests/stage-modes.test.ts` | `STAGED` | Pending | Pending | Pending |
+| **`v0.4.0`** (`12:00–13:00`) | **`A-012` (`#12`)** | `Ariadne-Lane-A` | `feat/a-012-mutual-intros` | `src/routes/introductions.ts`, `src/matching/intro-state-machine.ts`, `public/app/intro-room.js`, `tests/introductions.test.ts` | `STAGED` | Pending | Pending | Pending |
+| **`v0.4.0`** (`12:00–13:00`) | **`A-005` (`#5`)** | `Ariadne-Lane-B` | `feat/a-005-opportunity-agent` | `src/intelligence/opportunity-agent.ts`, `tests/opportunity-agent.test.ts` | `STAGED` | Pending | Pending | Pending |
+| **`v0.4.0`** (`12:00–13:00`) | **`A-016` (`#16`)** | `Ariadne-Lane-C` | `feat/a-016-async-worker` | `src/worker/job-runner.ts`, `src/worker/seed-personas.ts`, `data/golden-seed-24.json`, `tests/worker.test.ts` | `STAGED` | Pending | Pending | Pending |
+| **`v1.0.0`** (`13:00–17:45`) | **`A-014` (`#14` S2) + `A-015` (`#15` S2)** | `Ariadne-INT` + `Ariadne-Obsr` | `chore/v1-0-0-release-certification` | `public/reports/v1.0.0.html`, `public/reports/index.html`, `public/roadmap/index.html` | `STAGED` | Pending | Pending | Pending |

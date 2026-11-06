@@ -5,6 +5,10 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Published Interactive Parallel Roadmap Board (`ARIADNE_ROADMAP.md`) & Pairwise Disjoint Solo-Issue Sorting:**
+  - Consulted `TC-Lane-PM` (`#74`, `328ce4a2-76c0-417f-9e97-6772f4f8604b`) on the 3-Bucket File-Collision Sorting Methodology (`Envelope(A) ∩ Envelope(B) = ∅`).
+  - Sorted all 15 MVP issues (`A-001`–`A-012`, `A-014`–`A-016`) into 100% file-disjoint Solo-Issue Parallel Waves (`v0.1.0`, `v0.2.0`, `v0.3.0`, `v0.4.0`, `v1.0.0`) so every issue executes solo (`1 Issue = 1 Builder Lane = 1 PR`) with zero shared-file overlap and no artificial multi-issue bundling.
+  - Published `ARIADNE_ROADMAP.md` (with native TangleClaw `tc-release` interactive cards and clickable issue pills) to `.tangleclaw/plans/ARIADNE_ROADMAP.md` and updated `LANE_QUEUE.md` and `PROJECT_DOCUMENTS.md`.
 - **Fleet Provisioning Pack & Git-Tracked Role Priming Prompts (`.tangleclaw/priming/`):**
   - Added `FLEET_PROVISIONING_PACK.md` with the 1-Paste Operator Dashboard Console batch provisioner (`POST /api/projects` is `OPERATOR_ONLY`) and role overlay rule definitions for `Ariadne-Arc`, `Ariadne-PRR`, `Ariadne-INT`, `Ariadne-Obsr`, and `Ariadne-Lane-A..D`.
   - Added git-tracked priming prompts in `.tangleclaw/priming/` (`pm.md`, `architect.md`, `prr.md`, `integrator.md`, `observer.md`, `builder.md`) mirrored to `.tangleclaw/plans/PRIMING_*.md`.
