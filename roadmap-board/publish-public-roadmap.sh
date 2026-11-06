@@ -43,6 +43,9 @@ fi
 site="$tmp_dir/site"
 cp "$SOURCE" "$site/index.html"
 cp "$STATUS" "$site/roadmap-sync-status.json"
+if [ -f "$DIR/tangleclaw-logo.png" ]; then
+    cp "$DIR/tangleclaw-logo.png" "$site/tangleclaw-logo.png"
+fi
 mkdir -p "$site/reports"
 if [ -f "$REPORTS_DIR/index.html" ]; then
     cp "$REPORTS_DIR/index.html" "$site/reports/index.html"

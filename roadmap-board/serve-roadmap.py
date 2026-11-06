@@ -19,6 +19,8 @@ FILES = {
     "/roadmap-board/Ariadne-Public-Roadmap-preview.html": (HERE / "Ariadne-Public-Roadmap-preview.html", "text/html; charset=utf-8"),
     "/roadmap-sync-status.json": (HERE / "roadmap-sync-status.json", "application/json; charset=utf-8"),
     "/roadmap-board/roadmap-sync-status.json": (HERE / "roadmap-sync-status.json", "application/json; charset=utf-8"),
+    "/tangleclaw-logo.png": (HERE / "tangleclaw-logo.png", "image/png"),
+    "/roadmap-board/tangleclaw-logo.png": (HERE / "tangleclaw-logo.png", "image/png"),
     "/reports": (REPORTS_DIR / "index.html", "text/html; charset=utf-8"),
     "/reports/": (REPORTS_DIR / "index.html", "text/html; charset=utf-8"),
     "/reports/index.html": (REPORTS_DIR / "index.html", "text/html; charset=utf-8"),

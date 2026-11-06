@@ -4,6 +4,10 @@ All notable changes to Ariadne-PM are documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **TangleClaw Background Watermark Logo on Roadmap Board & Sprint Reports Hub (`roadmap-board/tangleclaw-logo.png`, `build-ariadne-roadmap.py`, `serve-roadmap.py`, `sprint-reports/index.html`):**
+  - Cached `tangleclaw-logo.png` (`1024x1024` RGBA from `Jason-Vaughan/project-assets`) locally for offline venue reliability (with automatic fallback to GitHub Raw) and added a fixed, centered, large (`860px`), semi-transparent (`opacity: 0.08–0.10`) background watermark plus a header brand badge (`Orchestrated by TangleClaw · Autonomous 9-Lane Agentic Fleet`) on both the Roadmap Board (`/` and `/public`) and Sprint Reports Hub (`/reports`).
+
 ### Fixed
 - **Roadmap Board HTTP Route Aliases (`roadmap-board/serve-roadmap.py`):** Added `/roadmap-board`, `/roadmap-board/`, `/roadmap-board/index.html`, `/roadmap-board/Ariadne-Public-Roadmap-preview.html`, `/roadmap-board/roadmap-sync-status.json`, and `/sprint-reports/` aliases to the allow-list in `serve-roadmap.py` so both root URLs (`http://cursatory.tail123678.ts.net:3422/`) and `/roadmap-board/index.html` return `200 OK`.
 

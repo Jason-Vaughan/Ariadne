@@ -25,6 +25,13 @@ PREVIEW_CSS = r"""
 .exec-hitl{color:#9a6700;background:#fff8c5}
 .exec-design{color:#8250df;background:#fbefff}
 @media(prefers-color-scheme:dark){.exec-autonomous{color:#56d364;background:#112d1c}.exec-hitl{color:#e3b341;background:#332b13}.exec-design{color:#bc8cff;background:#251843}}
+body{position:relative;min-height:100vh}
+.tc-bg-watermark{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tc-bg-watermark img{width:min(82vw,860px);height:min(82vw,860px);object-fit:contain;opacity:.08;filter:saturate(1.1) contrast(1.05);user-select:none;-webkit-user-drag:none}
+@media(prefers-color-scheme:dark){.tc-bg-watermark img{opacity:.10;filter:drop-shadow(0 0 48px rgba(86,211,100,.18))}}
+main{position:relative;z-index:1}
+.brand-kicker{display:inline-flex;align-items:center;gap:.55rem;padding:.28rem .7rem;border:1px solid var(--line);border-radius:999px;background:var(--panel);font-size:.82rem;font-weight:600;color:var(--muted);margin-bottom:.55rem}
+.brand-kicker img{width:22px;height:22px;border-radius:5px;object-fit:contain}
 """
 
 STATE_TEXT = {
@@ -640,7 +647,12 @@ def build_page(public: bool, generated: str) -> str:
     return (
         '<!doctype html>\n<html lang="en"><head><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width,initial-scale=1">'
-        f"<title>{html.escape(title)}</title><style>{PREVIEW_CSS}</style></head><body><main>"
+        f"<title>{html.escape(title)}</title><style>{PREVIEW_CSS}</style></head><body>"
+        '<div class="tc-bg-watermark" aria-hidden="true">'
+        '<img src="/tangleclaw-logo.png" onerror="this.onerror=null;this.src=\'https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png\'" alt="">'
+        "</div><main>"
+        '<div class="brand-kicker"><img src="/tangleclaw-logo.png" onerror="this.onerror=null;this.src=\'https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png\'" alt="">'
+        '<span>Orchestrated by TangleClaw · Autonomous 9-Lane Agentic Fleet</span></div>'
         f"<h1>{html.escape(title)}</h1><p class=\"lede\">{html.escape(intro)}</p>{notice}{nav}"
         f'<div class="summary-grid">{cards}</div>{body}'
         f"<footer>Snapshot: <time>{html.escape(generated)}</time> · Ariadne-PM (#149) · Tagline: Find Your Thread.</footer>"
