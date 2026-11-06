@@ -61,7 +61,8 @@ On congested hackathon venue Wi-Fi, requiring a full GitHub OAuth redirect + 2FA
 - [ ] Accepts any valid GitHub handle (`octocat`, `@octocat`) or profile URL (`https://github.com/octocat`) with zero OAuth login wall required, plus an optional 1-line collaboration goal (`<= 160 chars`).
 - [ ] Submission is blocked unless the explicit GitHub public-analysis consent checkbox is checked.
 - [ ] Submitting creates a persistent `Participant` record with a deterministic pseudonym (`Thread-XXXX`), sets a signed `HttpOnly` session cookie, emits `participant.registered`, and redirects to `/me` in `< 1.0s`.
-- [ ] Participant can withdraw and delete their profile at any time via a clear *"Withdraw & Delete My Data"* action (`DELETE /api/participants/me`).
+- [ ] **Hard Room Capacity Admission Gate (`maxRoomCapacity`, default `30`):** When active non-seed participants reach `maxRoomCapacity` (or when the Operator locks intake via `/stage` or `/admin`), `/join` and `POST /api/participants` display a friendly mobile notice: **`"🚧 System is currently at capacity (30/30) — please try back later!"`** with a **`[🔄 Try Again]`** button (while existing sessions and pre-warmed VIP/Judge handles continue through unimpeded).
+- [ ] Participant can withdraw and delete their profile at any time via a clear *"Withdraw & Delete My Data"* action (`DELETE /api/participants/me`), which immediately frees a capacity slot.
 
 ## 6. Test Requirements
 - Unit/API tests verifying username/URL normalization, rejection of empty/invalid handles or unconsented submissions (`400`), session cookie creation, and complete data purge upon `DELETE /api/participants/me`.
@@ -405,11 +406,11 @@ When everyone in the room scans the QR code, a static network graph isn't enough
 - [ ] **Bottom `🎯 Live Narrator X-Ray Bar`:** Clicking any builder card (or enabling `[🎯 Auto-Follow Latest Scanner]`) pins a magnified 28pt single-builder horizontal stepper across the bottom of `View 1` (`1. Crawl ──► 2. Gemini Extract ──► 3. 6-Axis DNA ──► 4. Top-3 Matched`).
 - [ ] **View 2 (`[2: Builder Fingerprints]`):** Renders a responsive grid of 6-Axis Builder Fingerprint Cards (radar/bar visualization + Superpower pill + Looking-For pill + cited repo badges). Clicking any card filters/highlights their Top-3 matches.
 - [ ] **View 4 (`[4: Match Spotlight]`):** Renders Builder A and Builder B side-by-side with their 6-Axis Fingerprints, Composite Score (`e.g., 91/100`), 4-dimension breakdown bars (`40/30/20/10`), cited GitHub repo links, and `"Why You Two Should Talk"` thesis.
-- [ ] **View 5 (`[5: ⚡ Capacity & Burst Scaler]` / hotkey `5` or `C`):** Renders the stage-visible Capacity Engineering showcase with:
-  1. Interactive **Room Size Preset Buttons (`[30]`, `[80]`, `[150]`, `[300+ Mega]`)** wired to `POST /api/admin/capacity`,
+- [ ] **View 5 (`[5: ⚡ Capacity & Burst Scaler]` / hotkey `5` or `C`):** Renders the stage-visible Capacity & Admission Gate showcase with:
+  1. Interactive **Hard Room Cap Buttons (`[15]`, `[● 30 (Default)]`, `[50]`, `[100]`, `[🔒 Lock Intake]`)** wired to `POST /api/admin/capacity` — showing live fill (`e.g., 18 / 30 Builders`) and a preview of the mobile *"🚧 System is at capacity — please try back later"* screen shown to overflow scanners,
   2. Live **Gemini Flash Worker Core Grid (`8` → `16` → `24` → `32` visual worker slots)** showing active vs. idle workers,
-  3. **Multi-PAT GitHub Quota (`15,000 req/hr`) & 24h SQLite Cache Hit Rate** gauge + VIP Pre-Warm input,
-  4. **$O(N^2)$ Pairwise & Top-3 Gate Cost-Reduction Calculator** showing `N(N-1)/2` Stage 1 deterministic evaluations (`< 12ms`) vs. `3 × N` Stage 2 Gemini calls (`92%–98%` LLM call reduction) + **`[🔥 Run Live Burst Stress Test]`** button.
+  3. **Multi-PAT GitHub Quota (`15,000 req/hr`) & 24h SQLite Cache Hit Rate** gauge + VIP Pre-Warm input (VIP handles bypass the hard cap),
+  4. **$O(N^2)$ Pairwise & Top-3 Gate Cost-Reduction Calculator** showing `N(N-1)/2` Stage 1 deterministic evaluations (`< 12ms`) vs. `3 × N` Stage 2 Gemini calls (`92%–98%` LLM call reduction).
 - [ ] Clicking any view tab (`1`, `2`, `3`, `4`, `5`) transitions views instantaneously (`< 50ms`) without losing live SSE state.
 
 ## 6. Test Requirements
@@ -563,10 +564,10 @@ During the live stage pitch, dozens of attendees will scan the QR code within th
 - [ ] **Stage 1 (`< 500ms` Instant Deterministic Match):** Immediately upon `github.fetch.completed`, computes the participant's baseline 6-Axis Builder Fingerprint and runs `A-006` (`40/30/20/10`) against all active pool members to emit their initial **Top-3 Matches + repo evidence pills** in `< 500ms`.
 - [ ] **Stage 2 (`2–5s` Parallel Gemini Flash Fan-Out):** Fans out `A-004` (capabilities), `A-005` (bottlenecks), and `A-007` (match explanations) across a parallel worker pool (`Promise.allSettled` bounded by `workerConcurrency`, defaulting to `GEMINI_MODEL=gemini-2.5-flash`) and streams `match.enriched` events via SSE to `/me` and `/stage`.
 - [ ] **Zero-Downtime Deterministic Fallback:** If `GEMINI_API_KEY` is absent, rate-limited, or times out (`> 6s`), Stage 1 deterministic capabilities, bottlenecks, and evidence-backed match explanations remain 100% functional with zero user-visible errors.
-- [ ] **Onsite Room Capacity Controller (`/admin` & `POST /api/admin/capacity`):** Operator can click or enter the live room size (`Small: 30`, `Medium: 80`, `Large: 150`, `Mega: 300+`), which dynamically updates:
-  - `workerConcurrency` (`8` → `16` → `24` → `32` parallel Gemini Flash workers),
-  - `githubFetchMode` (`full-graphql` vs `fast-rest-top5`),
-  - `rematchBatchIntervalMs` (`250ms` vs `1000ms` debounced batch rematching).
+- [ ] **Onsite Room Capacity & Hard Admission Cap Controller (`/admin`, `/stage` View 5 & `POST /api/admin/capacity`):**
+  - Defaults `maxRoomCapacity` to **`30`** (with 1-click presets **`[15]`**, **`[30]`**, **`[50]`**, **`[100]`**, plus **`[🔒 Lock Intake]`**).
+  - Enforces the hard admission cap on new QR joins (`429 ROOM_AT_CAPACITY` -> friendly *"System is at capacity — please try back later"* notice on `/join`), while always admitting pre-warmed VIP/Judge handles.
+  - Dynamically scales `workerConcurrency` (`8` → `16` → `24` → `32` parallel Gemini Flash workers) and `githubFetchMode` (`full-graphql` vs `fast-rest-top5`) to match the selected cap.
 - [ ] **Continuous Rematching:** Preserves any match where either participant has already tapped `Interested` or `Pass`.
 
 ## 6. Test Requirements

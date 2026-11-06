@@ -19,7 +19,7 @@ The Ariadne Live Stage Visualizer (`/stage`) is a **first-class interactive dash
 +---------------------------------------------------------------------------------------------------+
 | ARIADNE · Find Your Thread   [Joined | Crawled | Fingerprints | Matches | Mutual Intros | Workers]|
 | VIEW TABS: [1: Pipeline] [2: Fingerprints] [3: Web of Connections] [4: Spotlight] [5: ⚡ Capacity] |
-| CONTROLS:  [📱 QR Overlay: REQUIRES GITHUB (Q)]  [🌱 Seed AI Devs: OFF/ON (+25) (S)]  [⚡ Load: 80] |
+| CONTROLS:  [📱 QR Overlay: REQUIRES GITHUB (Q)] [🌱 Seed Devs: OFF/ON (S)] [🛡️ Cap: 18/30 (C)]   |
 +---------------------------------------------------------------------------------------------------+
 |                                                                     |                             |
 |                                                                     |   LIVE AGENT TELEMETRY      |
@@ -119,28 +119,33 @@ Most hackathon demos break when 40 people in the audience scan a QR code at once
 
 ```
 +---------------------------------------------------------------------------------------------------+
-| VIEW 5: ⚡ LIVE CAPACITY & QR BURST SCALER     [Room Preset: (30) | (● 80) | (150) | (300+ Mega)] |
+| VIEW 5: ⚡ LIVE CAPACITY & ADMISSION GATE      [🛡️ Hard Cap: (15) | (● 30) | (50) | (100) | 🔒 Lock]|
 +-------------------------------------------------+-------------------------------------------------+
-| 1. DYNAMIC GEMINI FLASH WORKER POOL (16 Cores)  | 2. GITHUB RATE-LIMIT SHIELD & 24H SQLITE CACHE  |
-| [🟢 W1] [🟢 W2] [🟢 W3] [🟢 W4] [🟢 W5] [🟢 W6] | • Multi-PAT Pool: 14,840 / 15,000 req/hr (3x)   |
-| [🟢 W7] [🟢 W8] [⚪ W9] [⚪ W10][⚪ W11][⚪ W12]| • 24h SQLite Cache Hit Rate: 86% (0ms / 0 API)  |
-| [⚪ W13][⚪ W14][⚪ W15][⚪ W16]                | • Fetch Mode: Adaptive GraphQL + REST Fallback  |
-| • Model: gemini-2.5-flash (Parallel Fan-Out)    | • VIP Pre-Warm Queue: [Pre-Warm Judge Handles]  |
+| 1. HARD ADMISSION CAP & INTAKE GATE (18 / 30)   | 2. DYNAMIC GEMINI FLASH WORKER POOL (8..32)     |
+| ██████████████████░░░░░░░░░░░░  60% Full        | [🟢 W1] [🟢 W2] [🟢 W3] [🟢 W4] [🟢 W5] [🟢 W6] |
+| • Active Cap: 30 Builders (Default Small Group) | [🟢 W7] [🟢 W8] [⚪ W9] [⚪ W10][⚪ W11][⚪ W12]|
+| • Overflow Policy: Friendly "System at Capacity | • Model: gemini-2.5-flash (Parallel Fan-Out)    |
+|   — Please Try Back Later" notice on /join      | • Auto-scales worker slots with selected Cap    |
+| • Blocked Overflow Scans: 0  [Preview Gate UI]  | • Multi-PAT Quota: 14,840 / 15,000 req/hr       |
 +-------------------------------------------------+-------------------------------------------------+
-| 3. O(N²) PAIRWISE & LLM COST REDUCTION ENGINE   | 4. TWO-STAGE PROGRESSIVE SLA & BURST SIMULATOR  |
-| • Room Size N = 80  ──► 3,160 Candidate Pairs   | • Stage 1 (Deterministic Match): 18ms (p95 <500)|
-| • Stage 1 Fast Filter: 3,160 pairs in 4.2ms     | • Stage 2 (Gemini Deep Enrich):  2.3s via SSE   |
-| • Stage 2 Top-3 Gate:  Only 240 LLM calls!      | • [🔥 Run Live Burst Stress Test]               |
-| • LLM Call Reduction:  92.4% Saved (No 429s!)   | • Guaranteed 0 Dropped Scans Under Venue Wi-Fi  |
+| 3. O(N²) PAIRWISE & LLM COST REDUCTION ENGINE   | 4. TWO-STAGE PROGRESSIVE SLA & CACHE SHIELD     |
+| • At Cap N = 30 ──► 435 Candidate Pairs         | • Stage 1 (Deterministic Match): 12ms (p95 <500)|
+| • Stage 1 Fast Filter: 435 pairs in < 1.5ms     | • Stage 2 (Gemini Deep Enrich):  1.9s via SSE   |
+| • Stage 2 Top-3 Gate:  Max 90 LLM calls total!  | • 24h SQLite Cache Hit Rate:     86% (0ms)      |
+| • Guaranteed Bounded Cost & Zero 429 Errors     | • VIP Pre-Warm: [Paste Judge GitHub Handles]    |
 +-------------------------------------------------+-------------------------------------------------+
 ```
 
-1. **Interactive Room-Size Preset Dial (`[30]` · `[80]` · `[150]` · `[300+]`):**
-   - Clicking a room size preset live in front of the judges visibly scales the **Gemini Flash Worker Core Grid** (`8` → `16` → `24` → `32` parallel worker slots), switches the GitHub Ingestion Strategy (`Full GraphQL` vs `Fast REST Top-5`), and recalculates the $O(N^2)$ pair budget on screen!
-2. **Visual Proof of the `92%–98%` LLM Cost & Rate-Limit Reduction (`Top-3 Gate`):**
-   - Clearly shows the math to the judges: in a room of `N = 150` people, an all-to-all LLM matchmaker would fire `11,175` slow LLM calls and immediately crash on HTTP `429`. Ariadne evaluates all `11,175` pairs deterministically in **`< 12ms` (Stage 1)** and gates **Stage 2 Gemini Flash calls strictly to Top-3 (`k = 3`) slates**, cutting LLM calls by **96%+** while delivering `< 500ms` mobile responsiveness!
+1. **Clickable Hard Admission Cap Button (`[🛡️ Hard Cap: 15 | ● 30 | 50 | 100 | 🔒 Lock Room]`):**
+   - Defaults to **`30` participants** (ideal for a `< 30` person room so API costs, graph density, and latency stay 100% predictable).
+   - The moment `active_participants >= maxRoomCapacity` (or when **`[🔒 Lock Room]`** is toggled on), any additional person scanning the QR code on `/join` is gracefully stopped at the door with a clean mobile notice:
+     > **`🚧 Ariadne is Currently at Capacity (30 / 30 Builders)`**  
+     > *Please try back in a few minutes, or watch the live matchmaking graph on the main stage screen!* `[🔄 Try Again]`
+   - If the room turns out to be larger (or a judge wants to join after the cap is reached), clicking **`[50]`** or **`[100]`** on `/stage` immediately opens the gate and lets waiting scanners tap `[🔄 Try Again]` to enter!
+2. **Visual Proof of Bounded $O(N^2)$ Cost & Rate-Limit Protection (`Top-3 Gate`):**
+   - Shows the judges that at `Cap = 30`, there are at most `435` candidate pairs (evaluated deterministically in `< 1.5ms` in Stage 1) and at most `90` Gemini Flash calls (`3 × 30`), making rate-limit or Wi-Fi overload mathematically impossible.
 3. **Live Multi-PAT GitHub Shield & 24h SQLite Cache Telemetry:**
-   - Displays the active `GITHUB_TOKENS` pool quota (`e.g., 15,000 req/hr`), live 24h SQLite cache hit ratio (`0ms` repeat scans), and a 1-click **VIP/Judge Pre-Warm input** right inside the panel.
+   - Displays the active `GITHUB_TOKENS` pool quota (`15,000 req/hr`), live 24h SQLite cache hit ratio (`0ms` repeat scans), and a 1-click **VIP/Judge Pre-Warm input** (which bypasses the cap so pre-warmed judges are always admitted!).
 
 ---
 
