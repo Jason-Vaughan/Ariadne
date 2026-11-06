@@ -1,6 +1,6 @@
 #!/bin/bash
 # Publish the Ariadne public roadmap and sprint reports directly to GitHub Pages (gh-pages branch -> https://jason-vaughan.github.io/Ariadne/).
-set -eu
+set -euo pipefail
 
 DIR="/Users/jasonvaughan/Documents/Projects/Ariadne-PM/roadmap-board"
 REPORTS_DIR="/Users/jasonvaughan/Documents/Projects/Ariadne-PM/sprint-reports"
@@ -9,7 +9,15 @@ STATUS="$DIR/roadmap-sync-status.json"
 REMOTE="${ARIADNE_GIT_REMOTE:-https://github.com/Jason-Vaughan/Ariadne.git}"
 BRANCH="gh-pages"
 
-python3 "$DIR/build-ariadne-roadmap.py"
+# Stale-fallback guard (TC-Lane-PM Advisory c6ea0050): never push a cached index.html if build fails
+if ! python3 "$DIR/build-ariadne-roadmap.py"; then
+    echo "ERROR: build-ariadne-roadmap.py failed; refusing to push stale cached roadmap snapshot." >&2
+    exit 1
+fi
+if ! jq -e '.state == "ok"' "$STATUS" >/dev/null 2>&1; then
+    echo "ERROR: $STATUS does not report state=ok; refusing to publish." >&2
+    exit 1
+fi
 
 if [ -f "$REPORTS_DIR/scripts/enrich-sprint-reports.py" ]; then
     python3 "$REPORTS_DIR/scripts/enrich-sprint-reports.py"
