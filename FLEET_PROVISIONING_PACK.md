@@ -175,7 +175,7 @@ tcFetch('/plans/149/FLEET_PROVISIONING_PACK.md').then(r=>r.text()).then(h=>eval(
   }
 
   // Step 4: Grant Ariadne-PM (149) Project-Manager Role + Lifecycle/Hold/Stop Delegation on all 8 lanes
-  const roleRes = await call('/api/tc/rotation/role/grant', 'POST', {
+  const roleRes = await call('/api/coordinator-roles', 'POST', {
     projectId: 149,
     role: 'project-manager',
     note: 'Ariadne Hackathon PM Coordinator'
