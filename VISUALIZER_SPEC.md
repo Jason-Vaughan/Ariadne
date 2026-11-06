@@ -40,16 +40,49 @@ The Ariadne Live Stage Visualizer (`/stage`) is a **first-class interactive dash
 
 ## 3. The 4 Clickable Stage Views (`/stage`)
 
-### View 1: `[1] Under-the-Hood Pipeline` (The 4-Stage Real-Time Assembly Line)
-When the audience scans the QR code, this view shows the live factory floor across **4 columns** so judges see the work happening under the hood:
-1. **Column 1 — `GitHub Crawl & Repo Harvest` (`A-003`):**
-   - Shows active `@username` cards as Ariadne fetches public repos, language byte counts, `README` excerpts, and recent PRs/commits (`e.g., "@octocat · 18 repos · Rust / TypeScript · 142ms"`).
-2. **Column 2 — `Capability & Bottleneck Extraction` (`A-004` + `A-005`):**
-   - Shows the **Parallel Gemini Flash Worker Pool** (`Worker #1..#N`) extracting verified engineering capabilities (`Offers`) and inferring current project bottlenecks (`Needs`) with cited repository receipts.
-3. **Column 3 — `Builder Fingerprint Synthesis` (`Builder DNA`):**
-   - Renders each participant's freshly minted **6-Axis Builder Fingerprint** (`Systems/Infra`, `Agent Orchestration`, `LLM/Eval`, `Frontend/UX`, `Product/GTM`, `Data/Pipelines`) + top Superpower pill.
-4. **Column 4 — `Complementary Matchmaking` (`A-006` + `A-007`):**
-   - Shows deterministic `40/30/20/10` pair evaluations completing in `< 500ms` followed by Gemini Flash collaboration theses, emitting the participant's **Top-3 Matches**.
+### View 1: `[1] Under-the-Hood Pipeline` (The 4-Stage Narratable Assembly Line + Live X-Ray Bar)
+Designed specifically so the presenter can **stand on stage, point to the screen, and narrate what Ariadne is doing in the background** as attendees scan the QR code:
+
+```
++---------------------------------------------------------------------------------------------------+
+| VIEW 1: UNDER-THE-HOOD PIPELINE   [🎬 Pacing: Stage Narrator (3s/step) | Fast] [⏸ Pause] [🔄 Replay]|
++------------------------+------------------------+------------------------+------------------------+
+| 1. GITHUB CRAWL        | 2. GEMINI AGENT FANOUT | 3. BUILDER FINGERPRINT | 4. ANTI-CLONE MATCHING |
+| (Public Repo Harvest)  | (Capabilities & Needs) | (6-Axis Builder DNA)   | (40/30/20/10 Scorer)   |
++------------------------+------------------------+------------------------+------------------------+
+| [@octocat]    142ms    | [@karpathy]  Worker #2 | [@simonw]              | [@swyx] -> Top 3 Ready |
+| 📦 18 public repos     | 🤖 Agent A (Offers):   | Systems  ████████░ 88  | 🔍 Scanned 29 peers    |
+| 🔤 TS 62% · Rust 24%   |  "MCP Server Author"   | Agents   █████████ 94  | ❌ @dev2 (Clone >0.72) |
+| 📄 READMEs:            | 🔍 Agent B (Needs):    | LLM/Eval ████████░ 82  | ✅ @ui_pro (Score: 91) |
+|  • mcp-router          |  "Needs: Canvas Graph" | UI/UX    ███░░░░░░ 32  | ✅ @infra_x (Score: 87)|
+|  • sqlite-vec          | ✅ 4 Repo Citations    | 🏷️ "Agent Infra Arch"  | ⚡ Emitted to Web Graph|
++------------------------+------------------------+------------------------+------------------------+
+| 🎯 LIVE NARRATOR X-RAY SPOTLIGHT (Click any builder or [Follow Next Scanner] to magnify in 28pt): |
+| [@octocat]  [✓ 1. Crawled 18 Repos] ──► [✓ 2. Extracted 4 Claims] ──► [● 3. Minting 6-Axis DNA...] |
++---------------------------------------------------------------------------------------------------+
+```
+
+1. **Stage Narrator Pacing Control (`[🎬 Pacing: Stage Narrator (3s/step) | Live Fast]` + `[⏸ Pause]` + `[🔄 Replay Last Scan]`):**
+   - **Dual-Speed Architecture (Fast on Phone, Narratable on Stage):** Even when the backend finishes Stage 1 (`< 500ms`) and Stage 2 (`2–4s`) almost immediately for the attendee's mobile phone (`/me`), **View 1 on `/stage`** defaults to **`Stage Narrator Pacing (`~2.5s–3.5s` dwell per column)`** so cards don't flash past in a blur before you can point to them!
+   - You also have **`[⏸ Pause Pipeline]`** (freezes the assembly line mid-flight so you can walk up to the screen and point at a specific card) and **`[🔄 Replay Walkthrough]`** (re-runs the most recent scanner—or a featured builder—step-by-step across all 4 columns on demand).
+2. **Column 1 — `1. GitHub Public Crawl & Repo Harvest` (`A-003`):**
+   - Visibly ticks through what is being fetched so you can point and say *"Right here it's pulling their public repos, languages, and READMEs"*:
+     - Repo count & top 3 repository names (`e.g., mcp-router, agent-eval, sqlite-vec`)
+     - Language distribution bar (`TypeScript 62% · Rust 24% · Python 14%`)
+     - Cache badge (`⚡ 24h SQLite Cache Hit (4ms)` or `🌐 Live GitHub GraphQL (180ms)`).
+3. **Column 2 — `2. Parallel Gemini Flash Agent Fan-Out` (`A-004` + `A-005`):**
+   - Shows the **two parallel Gemini Flash sub-agents** (`🤖 Capability Agent` + `🔍 Bottleneck Agent`) running concurrently with worker slot badges (`Gemini Worker #1..#16`):
+     - **`Offers (Verified Superpower):`** Shows the extracted skill + exact repo citation pill.
+     - **`Needs (Complementary Gap):`** Shows the inferred bottleneck from their open issues/architecture.
+4. **Column 3 — `3. 6-Axis Builder Fingerprint Synthesis` (`Builder DNA`):**
+   - Animates the builder's **6 horizontal DNA bars / radar polygon** (`Systems/Infra`, `Agent Orchestration`, `LLM/Eval`, `Frontend/UX`, `Product/GTM`, `Data/Pipelines`) and stamps a bold **Builder Archetype Title** (`e.g., "Agent Infrastructure Architect"`).
+5. **Column 4 — `4. Anti-Clone Matchmaking & Evidence Gate` (`A-006` + `A-007`):**
+   - Makes the math visible on stage! For each builder, it shows:
+     - `🔍 Evaluated against N peers in pool`
+     - **One explicit Anti-Clone rejection callout:** `❌ Skipped @peer_x (Stack Clone > 0.72 — both pure Backend)` so you can point to it and tell the judges *"Notice it refuses to match two identical clones!"*
+     - **The Top-3 Complementary Matches selected:** `✅ #1 @peer_y (91/100 · Complementary UI + Systems)` with a visual pulse sending them into **View 3 (`Web of Connections`)**.
+6. **Bottom `🎯 Live Narrator X-Ray Bar` (`[Follow Next Scanner]`):**
+   - Clicking any builder card—or toggling **`[🎯 Auto-Follow Latest Scanner]`**—pins a magnified single-builder horizontal stepper across the bottom of `View 1` in large stage typography so you can narrate one specific attendee's entire 4-stage journey from left to right.
 
 ### View 2: `[2] Builder Fingerprints Gallery` ("The Room Roster")
 A high-contrast, clickable grid of **Builder Fingerprint Cards** for everyone in the active pool:
