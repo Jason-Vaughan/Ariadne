@@ -27,6 +27,9 @@ const URL_PATTERN = /https?:\/\/[^\s)<>"'\]]+/gi;
 const GITHUB_PATH_PATTERN = /(?:https?:\/\/)?(?:www\.)?github\.com\/([A-Za-z0-9-]{1,39}(?:\/[A-Za-z0-9._-]{1,100})?)/gi;
 const REPO_TOKEN_PATTERN = /(^|[^A-Za-z0-9._\/-])([A-Za-z0-9][A-Za-z0-9-]{0,38}\/[A-Za-z0-9._-]{1,100})(?=$|[^A-Za-z0-9._\/-])/g;
 const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
+const HOST_PATTERN = /(^|[^A-Za-z0-9@._/-])((?:[A-Za-z0-9-]+\.)+([A-Za-z]{2,})(\/[^\s)<>"']*)?)/g;
+// Domains a model would plausibly use for a link without a path; `Node.js`-style names are not links.
+const WEB_TLDS: ReadonlySet<string> = new Set(['com', 'org', 'net', 'io', 'dev', 'app', 'co', 'ai', 'xyz', 'me', 'so', 'gg', 'sh', 'page', 'site', 'tech', 'cloud', 'info', 'biz', 'us', 'uk', 'de', 'ly', 'to']);
 
 /**
  * Turns the cited receipts of a pair into evidence pills: only receipts in `citedIds` that
@@ -111,4 +114,20 @@ export function extractGithubPaths(text: string): string[] {
  */
 export function extractRepoTokens(text: string): string[] {
   return [...text.matchAll(REPO_TOKEN_PATTERN)].map((m) => m[2]!.replace(/[.,;:!?]+$/, '').toLowerCase());
+}
+
+/**
+ * Lists link-shaped tokens written without a scheme (`gitlab.com/a/b`, `example.com/path`, `example.com`).
+ * A dotted token counts when it has a path or ends in a common web TLD, so `Node.js` does not.
+ * @param text - Free text with full URLs already removed.
+ * @returns Lowercased tokens without trailing punctuation.
+ */
+export function extractSchemelessLinks(text: string): string[] {
+  const links: string[] = [];
+  for (const m of text.matchAll(HOST_PATTERN)) {
+    const token = m[2]!.replace(/[.,;:!?]+$/, '').toLowerCase();
+    const tld = m[3]!.toLowerCase();
+    if (m[4] || WEB_TLDS.has(tld)) links.push(token);
+  }
+  return links;
 }

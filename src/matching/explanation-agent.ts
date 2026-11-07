@@ -2,7 +2,15 @@ import type { DatabaseSync } from 'node:sqlite';
 import { MatchProposalSchema } from '../contracts/index.ts';
 import type { MatchProposal, ScoreBreakdown } from '../contracts/index.ts';
 import { publishEvent } from '../events/bus.ts';
-import { containsEmail, extractGithubPaths, extractRepoTokens, extractUrls, formatEvidencePills, hasCrossEvidence } from './evidence-formatter.ts';
+import {
+  containsEmail,
+  extractGithubPaths,
+  extractRepoTokens,
+  extractSchemelessLinks,
+  extractUrls,
+  formatEvidencePills,
+  hasCrossEvidence,
+} from './evidence-formatter.ts';
 import type { EvidencePill } from './evidence-formatter.ts';
 import { normalizeCapability } from './scorer.ts';
 import type { PairScore, ParticipantProfile } from './scorer.ts';
@@ -23,6 +31,8 @@ export interface StagedExplanation {
   pills: EvidencePill[];
   /** The deterministic "who brings what" sentences; kept in every summary, enriched or not. */
   pairing: string;
+  /** The deterministic shared-domain and repo sentence; also kept when enriched. */
+  context: string;
 }
 
 export interface Stage1Options {
@@ -205,7 +215,7 @@ export function buildStage1Explanation(pair: PairScore, a: ParticipantProfile, b
     evidence_receipt_ids: pills.map((p) => p.receipt_id),
     intro_state: 'candidate',
   });
-  return { proposal, pills, pairing: pairingText };
+  return { proposal, pills, pairing: pairingText, context: why };
 }
 
 /**
@@ -254,7 +264,7 @@ export function upsertProposal(db: DatabaseSync, proposal: MatchProposal, now: D
 
 /**
  * Stage 1 for a whole selection: builds each distinct pair's card once and, with a database,
- * upserts it and publishes `match.evaluated` (idempotent per pair and score) in one transaction.
+ * upserts it and publishes `match.evaluated` (idempotent per pair and score) in one savepoint per pair.
  * A pair that cannot be explained is skipped and logged; the rest of the batch still runs.
  * @param selection - `selectTopMatches()` output.
  * @param profiles - The pool's profiles.
@@ -370,6 +380,14 @@ export function verifyThesis(thesis: LlmThesis, staged: StagedExplanation, a: Pa
   );
   const isCapabilityPair = (token: string): boolean => token.split('/').every((part) => capabilities.has(normalizeCapability(part)));
   if (!extractRepoTokens(withoutUrls).every((t) => allowedRepos.has(t) || NON_REPO_TOKENS.has(t) || isCapabilityPair(t))) return 'foreign_repo';
+  // Links written without a scheme (gitlab.com/x, example.com) can arrive via participant-controlled text in the prompt.
+  const allowedHosts = new Set(staged.pills.map((p) => new URL(p.url).host.toLowerCase()));
+  const capabilityNames = new Set([...capabilities]);
+  for (const link of extractSchemelessLinks(withoutUrls)) {
+    const host = link.split('/')[0]!;
+    const isOwnEvidence = staged.pills.some((p) => p.url.toLowerCase().replace(/^https?:\/\//, '') === link);
+    if (!isOwnEvidence && !(allowedHosts.has(host) && link === host) && !capabilityNames.has(normalizeCapability(link))) return 'foreign_url';
+  }
   // Repo names and their URLs legitimately contain owners' logins, so a login is only "leaked" outside them.
   let outsideEvidence = text.toLowerCase();
   // Display aliases are public by design, so an alias that happens to spell a login is not a leak.
@@ -389,6 +407,7 @@ export function verifyThesis(thesis: LlmThesis, staged: StagedExplanation, a: Pa
     return 'private_detail';
   }
   const angle = thesis.collaboration_angle;
+  if (!thesis.why_you_match.trim()) return 'missing_element';
   if (!angle.includes(a.participant.display_alias) || !angle.includes(b.participant.display_alias)) return 'missing_element';
   const summary = enrichedSummary(staged, thesis.why_you_match);
   if (summary.length > MAX_TEXT || thesis.collaboration_angle.trim().length > MAX_TEXT || !thesis.why_you_match.trim() || !thesis.collaboration_angle.trim()) {
@@ -398,14 +417,16 @@ export function verifyThesis(thesis: LlmThesis, staged: StagedExplanation, a: Pa
 }
 
 /**
- * The enriched summary: the score line and the deterministic "who brings what" sentences stay,
- * followed by the model's thesis.
+ * The enriched summary: the score line, the deterministic "who brings what" sentences and the
+ * shared-domain/repo sentence stay, followed by the model's thesis.
  * @param staged - The Stage 1 card.
  * @param why - The model's `why_you_match`.
  * @returns The summary text.
  */
 function enrichedSummary(staged: StagedExplanation, why: string): string {
-  return [scoreLine(staged.proposal.composite_score, staged.proposal.score_breakdown), staged.pairing, why.trim()].filter(Boolean).join(' ');
+  return [scoreLine(staged.proposal.composite_score, staged.proposal.score_breakdown), staged.pairing, staged.context, why.trim()]
+    .filter(Boolean)
+    .join(' ');
 }
 
 /**

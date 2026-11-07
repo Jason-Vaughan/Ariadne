@@ -445,6 +445,10 @@ describe('Stage 2', () => {
       ['foreign_repo', thesis(card, { why_you_match: 'You could both learn from someone-else/media-kit first.' })],
       ['foreign_repo', thesis(card, { why_you_match: 'Start from github.com/someone-else/media-kit together.' })],
       ['foreign_repo', thesis(card, { why_you_match: 'Borrow the approach from Facebook/react first.' })],
+      ['foreign_url', thesis(card, { why_you_match: 'The kit at gitlab.com/someone/kit is a good start.' })],
+      ['foreign_url', thesis(card, { why_you_match: 'Read example.com/path before you meet.' })],
+      ['foreign_url', thesis(card, { why_you_match: 'Book a room on example.com first.' })],
+      ['missing_element', thesis(card, { why_you_match: '   ' })],
       ['missing_element', thesis(card, { collaboration_angle: 'Spend 15 minutes wiring the worklet to the SFU.' })],
       ['private_detail', thesis(card, { why_you_match: `Ask ${b.participant.github_username} about the deck.` })],
       ['private_detail', thesis(card, { collaboration_angle: `${a.participant.display_alias} and ${b.participant.display_alias}: message them at ${a.participant.contact_card}.` })],
@@ -513,7 +517,7 @@ describe('Stage 2', () => {
   test('capability pairs such as Rust/WebRTC and the phrase and/or are not mistaken for repos', async () => {
     const { a, b, card } = staged();
     const result = await enrichExplanation(card, a, b, {
-      llm: fakeLlm(thesis(card, { why_you_match: 'One of you lives in Rust/WebRTC and the other in TypeScript/WebAudio, and/or both.' })),
+      llm: fakeLlm(thesis(card, { why_you_match: 'One of you lives in Rust/WebRTC and the other in TypeScript/WebAudio, and/or both, e.g. Node.js-style tooling.' })),
       now: NOW,
     });
     assert.equal(result.source, 'llm', result.rejection);
@@ -526,6 +530,7 @@ describe('Stage 2', () => {
     const result = await enrichExplanation(card, a, b, { llm: fakeLlm(thesis(card)), db, now: NOW });
     assert.equal(result.source, 'llm');
     assert.ok(result.proposal.complementary_summary.includes(card.pairing));
+    assert.ok(card.context.length > 0 && result.proposal.complementary_summary.includes(card.context), 'repo sentence kept');
     const events = readEventsAfter(db, 0);
     assert.deepEqual(events.map((e) => e.type), ['match.evaluated', 'match.evaluated']);
     await enrichExplanation(card, a, b, { llm: fakeLlm(thesis(card)), db, now: NOW });
