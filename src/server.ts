@@ -1,3 +1,4 @@
+import { execFileSync } from 'node:child_process';
 import { createServer as createHttpServer } from 'node:http';
 import type { IncomingMessage, Server, ServerResponse } from 'node:http';
 import type { DatabaseSync } from 'node:sqlite';
@@ -20,16 +21,36 @@ export const DEFAULT_PUBLIC_DIR = join(REPO_ROOT, 'public');
 /**
  * Static content served from outside `public/`, consulted only after `public/` misses.
  * A `file` alias maps one exact URL to one file. A `dir` alias maps `<prefix><segment>/...` into
- * `<dir>/<segment>/...` only when `<segment>` matches, and never lets a path climb out of that segment.
+ * `<dir>/<segment>/...` only when `<segment>` matches and `allow(segment)` (if given) is true, and never
+ * lets a path climb out of that segment.
  */
 export type StaticAlias =
   | { path: string; file: string }
-  | { prefix: string; dir: string; segment: RegExp };
+  | { prefix: string; dir: string; segment: RegExp; allow?: (segment: string) => boolean };
 
-// Generated sprint reports live in sprint-reports/<version>/; that directory also holds generator
-// scripts and caches, so only version-named subdirectories are exposed.
+/**
+ * Whether a git tag exists in the repository. Checked per request so a report goes live the moment
+ * its release tag is cut; any git failure counts as "no tag" so the gate fails closed.
+ * @param tag - Tag name; callers pass only values already matched against a strict version pattern.
+ * @returns True when `refs/tags/<tag>` resolves.
+ */
+export function gitTagExists(tag: string): boolean {
+  try {
+    execFileSync('git', ['-C', REPO_ROOT, 'rev-parse', '--quiet', '--verify', `refs/tags/${tag}`], {
+      stdio: 'ignore',
+      timeout: 2000,
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// sprint-reports/ holds generator scripts and pre-staged drafts as well as reports, so only a
+// version directory whose release tag exists is public — a draft written ahead of its release
+// must not be served as if it were certified.
 export const DEFAULT_STATIC_ALIASES: readonly StaticAlias[] = [
-  { prefix: '/reports/', dir: join(REPO_ROOT, 'sprint-reports'), segment: /^v\d+\.\d+\.\d+$/ },
+  { prefix: '/reports/', dir: join(REPO_ROOT, 'sprint-reports'), segment: /^v\d+\.\d+\.\d+$/, allow: gitTagExists },
   { path: '/tangleclaw-logo.png', file: join(REPO_ROOT, 'roadmap-board', 'tangleclaw-logo.png') },
 ];
 
@@ -286,6 +307,7 @@ export function resolveAliasedFile(aliases: readonly StaticAlias[], pathname: st
     const slash = rest.indexOf('/');
     const segment = slash === -1 ? rest : rest.slice(0, slash);
     if (!alias.segment.test(segment)) continue;
+    if (alias.allow && !alias.allow(segment)) continue;
     const file = resolveStaticFile(join(alias.dir, segment), slash === -1 ? '/' : rest.slice(slash));
     if (file) return file;
   }

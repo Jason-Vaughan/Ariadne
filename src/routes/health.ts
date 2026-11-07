@@ -3,14 +3,67 @@ import { sendJson } from '../server.ts';
 import { checkDatabaseHealth, checkSchemaReadiness, countQueuedJobs } from '../db/client.ts';
 import type { SchemaReadiness } from '../db/client.ts';
 
+export interface GithubRateLimit {
+  remaining: number;
+  limit: number;
+  /** ISO8601 time the window resets (from `x-ratelimit-reset`). */
+  resetAt: string;
+  /** ISO8601 time the figures were observed. */
+  observedAt: string;
+}
+
+export interface GithubStatus {
+  tokenConfigured: boolean;
+  rateLimitRemaining: number | null;
+  rateLimit: GithubRateLimit | null;
+}
+
+let latestRateLimit: GithubRateLimit | null = null;
+
 /**
- * Reports whether a GitHub token is configured. The token value itself is never read into the response,
- * and live rate-limit figures stay `null` until a GitHub connector records them.
- * @param env - Environment to inspect.
- * @returns Token presence and the (not yet available) rate-limit snapshot.
+ * Records the latest GitHub rate-limit headers so `/api/health` can report them.
+ * The GitHub connector calls this after each API response; health never calls GitHub itself.
+ * @param headers - `x-ratelimit-remaining`, `x-ratelimit-limit` and `x-ratelimit-reset` (epoch seconds).
+ * @param now - Observation time; defaults to the current time.
+ * @returns The stored snapshot, or `null` (and nothing stored) when the headers are absent or malformed.
  */
-export function githubStatus(env: NodeJS.ProcessEnv = process.env): { tokenConfigured: boolean; rateLimit: null } {
-  return { tokenConfigured: Boolean(env.ARIADNE_GITHUB_TOKEN?.trim()), rateLimit: null };
+export function recordGithubRateLimit(
+  headers: { remaining: string | number | null; limit: string | number | null; reset: string | number | null },
+  now: Date = new Date(),
+): GithubRateLimit | null {
+  const raw = [headers.remaining, headers.limit, headers.reset];
+  // Number('') is 0, so an empty header must count as absent rather than as an exhausted limit.
+  if (raw.some((value) => value === null || (typeof value === 'string' && value.trim() === ''))) return null;
+  const [remaining, limit, reset] = raw.map(Number) as [number, number, number];
+  if (![remaining, limit, reset].every((n) => Number.isFinite(n) && n >= 0)) return null;
+  latestRateLimit = {
+    remaining,
+    limit,
+    resetAt: new Date(reset * 1000).toISOString(),
+    observedAt: now.toISOString(),
+  };
+  return latestRateLimit;
+}
+
+/**
+ * Clears the recorded rate limit.
+ */
+export function clearGithubRateLimit(): void {
+  latestRateLimit = null;
+}
+
+/**
+ * Reports whether a GitHub token is configured and the latest recorded rate-limit figures.
+ * The token value itself never enters the response.
+ * @param env - Environment to inspect.
+ * @returns Token presence plus the last recorded rate limit, or nulls before any GitHub call.
+ */
+export function githubStatus(env: NodeJS.ProcessEnv = process.env): GithubStatus {
+  return {
+    tokenConfigured: Boolean(env.ARIADNE_GITHUB_TOKEN?.trim()),
+    rateLimitRemaining: latestRateLimit?.remaining ?? null,
+    rateLimit: latestRateLimit,
+  };
 }
 
 export const routes: RouteDefinition[] = [
@@ -38,6 +91,7 @@ export const routes: RouteDefinition[] = [
       const status = !database.ok ? 'degraded' : schema?.ready ? 'ok' : 'not_ready';
       sendJson(res, status === 'ok' ? 200 : 503, {
         status,
+        schemaReady: schema?.ready ?? false,
         service: 'ariadne',
         uptimeSeconds: Math.round((Date.now() - ctx.startedAt) / 1000),
         database,

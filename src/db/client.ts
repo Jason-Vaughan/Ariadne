@@ -1,6 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
-import { existsSync, mkdirSync, readFileSync } from 'node:fs';
-import { dirname, resolve } from 'node:path';
+import { createHash } from 'node:crypto';
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { basename, dirname, resolve } from 'node:path';
 
 // Rule #316 names data/ariadne.db; ARCHITECTURE.md's data/ariadne.sqlite is reachable via ARIADNE_DB_PATH.
 export const DEFAULT_DB_PATH = 'data/ariadne.db';
@@ -119,6 +120,32 @@ export function checkSchemaReadiness(db: DatabaseSync, required: readonly string
   const present = new Set(rows.map((row) => row.name));
   const missingTables = required.filter((name) => !present.has(name));
   return { ready: missingTables.length === 0, missingTables };
+}
+
+export interface BackupResult {
+  path: string;
+  bytes: number;
+  sha256: string;
+  checksumPath: string;
+}
+
+/**
+ * Writes a consistent point-in-time copy of the database with `VACUUM INTO` (safe while the server
+ * is writing in WAL mode), then a `<dest>.sha256` file in `shasum -a 256 -c` format beside it.
+ * @param db - An open database handle.
+ * @param destPath - Backup file to create; must not exist yet.
+ * @returns The backup's absolute path, size, SHA-256 digest and checksum file path.
+ * @throws If the destination already exists or SQLite cannot write it.
+ */
+export function backupDatabase(db: DatabaseSync, destPath: string): BackupResult {
+  const path = resolve(destPath);
+  if (existsSync(path)) throw new Error(`Backup destination already exists: ${path}`);
+  mkdirSync(dirname(path), { recursive: true });
+  db.prepare('VACUUM INTO ?').run(path);
+  const sha256 = createHash('sha256').update(readFileSync(path)).digest('hex');
+  const checksumPath = `${path}.sha256`;
+  writeFileSync(checksumPath, `${sha256}  ${basename(path)}\n`);
+  return { path, bytes: statSync(path).size, sha256, checksumPath };
 }
 
 /**

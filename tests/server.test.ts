@@ -1,13 +1,17 @@
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { existsSync, mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import type { ChildProcess } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import type { DatabaseSync } from 'node:sqlite';
+import { clearGithubRateLimit, recordGithubRateLimit } from '../src/routes/health.ts';
 import {
+  backupDatabase,
   checkDatabaseHealth,
   checkSchemaReadiness,
   countQueuedJobs,
@@ -21,6 +25,7 @@ import {
   assertSafeBind,
   createServer,
   DEFAULT_STATIC_ALIASES,
+  gitTagExists,
   loadRoutes,
   matchRoute,
   resolveAliasedFile,
@@ -62,6 +67,26 @@ async function withRepoRoutes(db: DatabaseSync, run: (base: string) => Promise<v
     await new Promise<void>((done) => server.close(() => done()));
   }
 }
+
+describe('github rate-limit recorder', () => {
+  test('ignores absent or malformed headers and keeps the last good snapshot', () => {
+    try {
+      assert.equal(recordGithubRateLimit({ remaining: null, limit: '5000', reset: '1' }), null);
+      assert.equal(recordGithubRateLimit({ remaining: 'abc', limit: '5000', reset: '1' }), null);
+      assert.equal(recordGithubRateLimit({ remaining: '-1', limit: '5000', reset: '1' }), null);
+      assert.equal(recordGithubRateLimit({ remaining: ' ', limit: '5000', reset: '1' }), null);
+      assert.deepEqual(recordGithubRateLimit({ remaining: 7, limit: 60, reset: 0 }, new Date(0)), {
+        remaining: 7,
+        limit: 60,
+        resetAt: '1970-01-01T00:00:00.000Z',
+        observedAt: '1970-01-01T00:00:00.000Z',
+      });
+      assert.equal(recordGithubRateLimit({ remaining: 'x', limit: 'y', reset: 'z' }), null);
+    } finally {
+      clearGithubRateLimit();
+    }
+  });
+});
 
 describe('db client', () => {
   test('opens in WAL mode with a 5s busy timeout and creates the parent directory', () => {
@@ -134,6 +159,30 @@ describe('db client', () => {
       assert.deepEqual(checkSchemaReadiness(db).missingTables, REQUIRED_TABLES.filter((t) => t !== 'async_jobs'));
       db.exec(FULL_SCHEMA);
       assert.deepEqual(checkSchemaReadiness(db), { ready: true, missingTables: [] });
+    } finally {
+      db.close();
+    }
+  });
+
+  test('backupDatabase writes a readable copy and a checksum that shasum verifies', () => {
+    const dir = scratchDir('backup');
+    const { db } = openDatabase({ path: 'live.db', cwd: dir, schemaPath: null });
+    try {
+      db.exec("CREATE TABLE notes (body TEXT); INSERT INTO notes VALUES ('snapshot me');");
+      const result = backupDatabase(db, join(dir, 'backups', 'b1.db'));
+      assert.equal(result.path, join(dir, 'backups', 'b1.db'));
+      assert.equal(result.sha256, createHash('sha256').update(readFileSync(result.path)).digest('hex'));
+      assert.equal(readFileSync(result.checksumPath, 'utf8'), `${result.sha256}  b1.db\n`);
+      const check = spawnSync('shasum', ['-a', '256', '-c', 'b1.db.sha256'], { cwd: join(dir, 'backups'), encoding: 'utf8' });
+      assert.equal(check.status, 0, check.stdout + check.stderr);
+
+      const copy = openDatabase({ path: result.path, schemaPath: null });
+      try {
+        assert.deepEqual({ ...copy.db.prepare('SELECT body FROM notes').get() }, { body: 'snapshot me' });
+      } finally {
+        copy.db.close();
+      }
+      assert.throws(() => backupDatabase(db, result.path), /already exists/);
     } finally {
       db.close();
     }
@@ -284,6 +333,25 @@ describe('static aliases', () => {
     assert.equal(resolveAliasedFile(DEFAULT_STATIC_ALIASES, '/reports/scripts/sync-live-sprint.py'), null);
   });
 
+  test('a report directory is withheld until its gate allows that version', () => {
+    const { aliases, root } = fixture();
+    const reports = aliases[0] as Extract<StaticAlias, { prefix: string }>;
+    const released = new Set<string>();
+    const gated: StaticAlias[] = [{ ...reports, allow: (version) => released.has(version) }];
+    assert.equal(resolveAliasedFile(gated, '/reports/v0.1.0/'), null);
+    released.add('v0.1.0');
+    assert.equal(resolveAliasedFile(gated, '/reports/v0.1.0/'), join(root, 'sprint-reports', 'v0.1.0', 'index.html'));
+  });
+
+  test('the repository draft report is public only once its git tag exists', () => {
+    const draft = join(REPO_ROOT, 'sprint-reports', 'v0.1.0', 'index.html');
+    assert.ok(existsSync(draft), 'fixture precondition: the pre-staged v0.1.0 draft is committed');
+    const tagged = gitTagExists('v0.1.0');
+    assert.equal(resolveAliasedFile(DEFAULT_STATIC_ALIASES, '/reports/v0.1.0/'), tagged ? draft : null);
+    assert.equal(gitTagExists('v999.999.999'), false);
+    assert.equal(resolveAliasedFile(DEFAULT_STATIC_ALIASES, '/reports/v999.999.999/'), null);
+  });
+
   test('over HTTP: public/ wins, aliases fill in, and directory indexes redirect to a trailing slash', async () => {
     const { aliases, root } = fixture();
     const pub = join(root, 'public');
@@ -373,7 +441,22 @@ describe('running server', () => {
     assert.deepEqual(body.database, { ok: true, journalMode: 'wal', busyTimeoutMs: 5000 });
     assert.deepEqual(body.schema, { ready: true, missingTables: [] });
     assert.equal(body.queue.depth, 0);
-    assert.deepEqual(body.github, { tokenConfigured: true, rateLimit: null });
+    assert.equal(body.schemaReady, true);
+    assert.deepEqual(body.github, { tokenConfigured: true, rateLimitRemaining: null, rateLimit: null });
+  });
+
+  test('health reports the GitHub rate limit the connector last recorded', async () => {
+    try {
+      recordGithubRateLimit({ remaining: '4321', limit: '5000', reset: '1800000000' }, new Date('2026-11-07T19:00:00Z'));
+      const body = await (await fetch(`${running.url}/api/health`)).json();
+      assert.deepEqual(body.github, {
+        tokenConfigured: true,
+        rateLimitRemaining: 4321,
+        rateLimit: { remaining: 4321, limit: 5000, resetAt: '2027-01-15T08:00:00.000Z', observedAt: '2026-11-07T19:00:00.000Z' },
+      });
+    } finally {
+      clearGithubRateLimit();
+    }
   });
 
   test('health is 503 not_ready on a WAL database whose schema is incomplete', async () => {
@@ -386,6 +469,7 @@ describe('running server', () => {
         assert.equal(response.status, 503);
         const body = await response.json();
         assert.equal(body.status, 'not_ready');
+        assert.equal(body.schemaReady, false);
         assert.equal(body.database.ok, true);
         assert.deepEqual(body.schema.missingTables, REQUIRED_TABLES.filter((t) => t !== 'async_jobs'));
         assert.equal(body.queue.depth, 0);
@@ -580,5 +664,33 @@ describe('tunnel script', () => {
   test('refuses unknown providers and arguments', () => {
     assert.equal(runTunnel(['--check'], { ARIADNE_TUNNEL: 'tailscale' }).status, 64);
     assert.equal(runTunnel(['--expose-all']).status, 64);
+  });
+
+  test('--backup DEST snapshots ARIADNE_DB_PATH and prints the digest as JSON', () => {
+    const dir = scratchDir('tunnel-backup');
+    const { db } = openDatabase({ path: 'live.db', cwd: dir, schemaPath: null });
+    db.exec("CREATE TABLE notes (body TEXT); INSERT INTO notes VALUES ('kept');");
+    db.close();
+    const dest = join(dir, 'out', 'snap.db');
+    const result = runTunnel(['--backup', dest], {
+      PATH: `${dirname(process.execPath)}:/usr/bin:/bin`,
+      ARIADNE_DB_PATH: join(dir, 'live.db'),
+    });
+    assert.equal(result.status, 0, result.stderr);
+    const printed = JSON.parse(result.stdout);
+    assert.equal(printed.path, dest);
+    assert.equal(printed.sha256, createHash('sha256').update(readFileSync(dest)).digest('hex'));
+    assert.ok(existsSync(`${dest}.sha256`));
+  });
+
+  test('--backup refuses to invent a database that does not exist', () => {
+    const dir = scratchDir('tunnel-nobackup');
+    const result = runTunnel(['--backup', join(dir, 'snap.db')], {
+      PATH: `${dirname(process.execPath)}:/usr/bin:/bin`,
+      ARIADNE_DB_PATH: join(dir, 'missing.db'),
+    });
+    assert.equal(result.status, 66);
+    assert.equal(existsSync(join(dir, 'missing.db')), false);
+    assert.equal(existsSync(join(dir, 'snap.db')), false);
   });
 });
