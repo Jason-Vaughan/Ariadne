@@ -18,7 +18,7 @@ import {
 import type { CapabilityClaim, EvidenceReceipt, OpportunityNeed, Participant } from '../src/contracts/index.ts';
 import { readEventsAfter } from '../src/events/bus.ts';
 import { novelty, surfacingRejections } from '../src/matching/anti-clone.ts';
-import { matchIdFor, prepareProfile, scorePair, scorePrepared, selectTopMatches } from '../src/matching/scorer.ts';
+import { matchIdFor, needKeys, prepareProfile, scorePair, scorePrepared, selectTopMatches } from '../src/matching/scorer.ts';
 import type { ParticipantProfile } from '../src/matching/scorer.ts';
 
 const REPO_ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -445,6 +445,19 @@ describe('scorePair', () => {
     const prepared = prepareProfile(b, { now: NOW });
     const revoked = { ...prepared, profile: withdrawn };
     assert.throws(() => scorePrepared(prepareProfile(a, { now: NOW }), revoked, { now: NOW }), /not eligible/);
+  });
+
+  test('a generic need label counts the concrete capabilities that satisfy it', () => {
+    const needer = profile('Front-6A01', 'web-co/app', [{ name: 'React', category: 'framework' }], [{ wants: ['Backend services', 'Cloud infrastructure'] }]);
+    const goDev = profile('Ops-6A02', 'ops-co/svc', [
+      { name: 'Go', category: 'language' },
+      { name: 'Kubernetes', category: 'systems_architecture' },
+    ]);
+    const unrelated = profile('Swift-6A03', 'ios-co/app', [{ name: 'Swift', category: 'language' }]);
+    assert.ok(scorePair(needer, goDev, { now: NOW }).score_breakdown.need_offer_fit > 0.3);
+    assert.equal(scorePair(needer, unrelated, { now: NOW }).score_breakdown.need_offer_fit, 0);
+    assert.deepEqual(needKeys('Backend services').slice(0, 2), ['backend-services', 'go']);
+    assert.deepEqual(needKeys('Rust'), ['rust']);
   });
 
   test('refuses to score a participant against themselves', () => {
