@@ -400,6 +400,45 @@ describe('introduction state machine', () => {
     assert.equal(canTransitionIntroState('proposed_by_a', 'declined', { side: 'b', verified: false }), true);
   });
 
+  describe('bilateral approval sequences', () => {
+    /**
+     * Whether a match at `state` (with the approvals that state implies) is valid and may reveal contacts.
+     * @param state - Intro state reached.
+     * @param approvalA - Participant A approved.
+     * @param approvalB - Participant B approved.
+     * @returns Validity and contact-release verdict.
+     */
+    const at = (state: IntroductionState, approvalA: boolean, approvalB: boolean) => ({
+      valid: MatchProposalSchema.safeParse(match({ intro_state: state, approval_a: approvalA, approval_b: approvalB }))
+        .success,
+      reveal: canRevealContact({ intro_state: state, approval_a: approvalA, approval_b: approvalB }),
+    });
+
+    it('A only: proposal recorded, contacts stay hidden', () => {
+      assert.equal(classifyIntroTransition('candidate', 'proposed_by_a', A_OK), 'allowed');
+      assert.deepEqual(at('proposed_by_a', true, false), { valid: true, reveal: false });
+    });
+
+    it('B only: proposal recorded, contacts stay hidden', () => {
+      assert.equal(classifyIntroTransition('candidate', 'proposed_by_b', B_OK), 'allowed');
+      assert.deepEqual(at('proposed_by_b', false, true), { valid: true, reveal: false });
+    });
+
+    it('A approving twice neither re-proposes nor accepts', () => {
+      assert.equal(classifyIntroTransition('proposed_by_a', 'proposed_by_a', A_OK), 'noop');
+      assert.equal(classifyIntroTransition('proposed_by_a', 'mutual_accepted', A_OK), 'wrong_actor');
+      assert.deepEqual(at('mutual_accepted', true, false), { valid: false, reveal: false });
+    });
+
+    it('A then B: mutual acceptance, completion, and only then contact release', () => {
+      assert.equal(classifyIntroTransition('candidate', 'proposed_by_a', A_OK), 'allowed');
+      assert.equal(classifyIntroTransition('proposed_by_a', 'mutual_accepted', B_OK), 'allowed');
+      assert.deepEqual(at('mutual_accepted', true, true), { valid: true, reveal: false });
+      assert.equal(classifyIntroTransition('mutual_accepted', 'completed', SYSTEM), 'allowed');
+      assert.deepEqual(at('completed', true, true), { valid: true, reveal: true });
+    });
+  });
+
   it('never leaves a terminal state', () => {
     for (const to of INTRODUCTION_STATES) {
       for (const actor of [A_OK, B_OK, SYSTEM]) {
