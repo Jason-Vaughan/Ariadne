@@ -248,37 +248,57 @@ function layers(claims: readonly CapabilityClaim[]): Set<string> {
 }
 
 /**
+ * Domain tags a participant holds (claims of category `domain`).
+ * @param claims - Non-dismissed claims.
+ * @returns Normalized domain names.
+ */
+function domains(claims: readonly CapabilityClaim[]): Set<string> {
+  return new Set(claims.filter((c) => c.category === 'domain').map((c) => normalizeCapability(c.name)));
+}
+
+/**
  * Complementarity: 1.0 for complementary layers plus a shared domain, 0.5 for complementary layers alone, else 0.
  * Layers are complementary when one side holds x without y and the other holds y without x.
- * @param a - Participant A's claims.
- * @param b - Participant B's claims.
+ * @param la - Participant A's layers.
+ * @param lb - Participant B's layers.
+ * @param da - Participant A's domains.
+ * @param db - Participant B's domains.
  * @returns Complementarity in {0, 0.5, 1}.
  */
-function complementarity(a: readonly CapabilityClaim[], b: readonly CapabilityClaim[]): number {
-  const la = layers(a);
-  const lb = layers(b);
+function complementarity(la: ReadonlySet<string>, lb: ReadonlySet<string>, da: ReadonlySet<string>, db: ReadonlySet<string>): number {
   const complementary = COMPLEMENTARY_LAYER_PAIRS.some(
     ([x, y]) => (la.has(x) && !lb.has(x) && lb.has(y) && !la.has(y)) || (la.has(y) && !lb.has(y) && lb.has(x) && !la.has(x)),
   );
   if (!complementary) return 0;
-  const domainsA = new Set(a.filter((c) => c.category === 'domain').map((c) => normalizeCapability(c.name)));
-  const sharedDomain = b.some((c) => c.category === 'domain' && domainsA.has(normalizeCapability(c.name)));
-  return sharedDomain ? 1 : 0.5;
+  for (const domain of db) if (da.has(domain)) return 1;
+  return 0.5;
+}
+
+/**
+ * Latest activity time per cited project (repo, or URL for non-repo evidence).
+ * @param receipts - Cited receipts.
+ * @returns Epoch milliseconds keyed by project.
+ */
+function latestByProject(receipts: readonly EvidenceReceipt[]): Map<string, number> {
+  const latest = new Map<string, number>();
+  for (const r of receipts) {
+    const project = r.repo_full_name ?? r.source_url;
+    latest.set(project, Math.max(latest.get(project) ?? 0, Date.parse(r.source_updated_at)));
+  }
+  return latest;
 }
 
 /**
  * Freshness from the median age of the cited projects' latest activity: <=30 d → 1.0, <=90 → 0.7, <=180 → 0.4, else 0.1.
- * @param receipts - Cited receipts from both sides.
+ * @param a - Participant A's latest activity per project.
+ * @param b - Participant B's latest activity per project.
  * @param now - Reference time.
  * @returns Freshness in {0.1, 0.4, 0.7, 1.0}.
  */
-function freshness(receipts: readonly EvidenceReceipt[], now: Date): number {
-  const latestByProject = new Map<string, number>();
-  for (const r of receipts) {
-    const project = r.repo_full_name ?? r.source_url;
-    latestByProject.set(project, Math.max(latestByProject.get(project) ?? 0, Date.parse(r.source_updated_at)));
-  }
-  const ages = [...latestByProject.values()].map((t) => (now.getTime() - t) / DAY_MS).sort((x, y) => x - y);
+function freshness(a: ReadonlyMap<string, number>, b: ReadonlyMap<string, number>, now: Date): number {
+  const merged = new Map(a);
+  for (const [project, at] of b) merged.set(project, Math.max(merged.get(project) ?? 0, at));
+  const ages = [...merged.values()].map((t) => (now.getTime() - t) / DAY_MS).sort((x, y) => x - y);
   if (ages.length === 0) return 0.1;
   const mid = Math.floor(ages.length / 2);
   const median = ages.length % 2 === 1 ? ages[mid]! : (ages[mid - 1]! + ages[mid]!) / 2;
@@ -335,6 +355,9 @@ export interface PreparedProfile {
   needsFull: Map<string, number>;
   staleNeeds: OpportunityNeed[];
   names: Set<string>;
+  layers: Set<string>;
+  domains: Set<string>;
+  latestByProject: Map<string, number>;
   cited: EvidenceReceipt[];
 }
 
@@ -349,6 +372,7 @@ export function prepareProfile(profile: ParticipantProfile, options: ScoreOption
   assertEligible(profile);
   const side = toSide(profile);
   const needs = needVectors(side, options.now);
+  const cited = citedEvidence(side);
   return {
     profile,
     claims: side.claims,
@@ -359,7 +383,10 @@ export function prepareProfile(profile: ParticipantProfile, options: ScoreOption
     needsFull: needs.full,
     staleNeeds: needs.stale,
     names: new Set(side.claims.map((c) => normalizeCapability(c.name))),
-    cited: citedEvidence(side),
+    layers: layers(side.claims),
+    domains: domains(side.claims),
+    latestByProject: latestByProject(cited),
+    cited,
   };
 }
 
@@ -397,9 +424,9 @@ export function scorePrepared(first: PreparedProfile, second: PreparedProfile, o
     need_offer_fit: round4(
       Math.max(needFit(a.needsDiscounted, a.needsFull, b.offers), needFit(b.needsDiscounted, b.needsFull, a.offers)),
     ),
-    complementarity: complementarity(a.claims, b.claims),
+    complementarity: complementarity(a.layers, b.layers, a.domains, b.domains),
     novelty: round4(novelty(a.names, b.names)),
-    freshness: freshness([...a.cited, ...b.cited], options.now),
+    freshness: freshness(a.latestByProject, b.latestByProject, options.now),
   };
   const score = compositeScore(breakdown);
 

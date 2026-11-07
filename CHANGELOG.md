@@ -11,6 +11,17 @@ All notable changes to Ariadne-PM are documented in this file.
     - `v0.1.0`: aligned `T_eng = t7 - t2` (`39m 45s` / `0.66h`; `t1→t7` wall-clock `50m 12s` / `0.84h`), `$1.62` allocated subscription pool (`$0.41/issue`, `6.06` closed issues/hr, `ADE_v1 = 3.74`).
   - Strengthened `sprint-reports/validate-sprint-report.py` and `sprint-reports/test_validate_sprint_report.py` (`11/11` unit tests) to enforce `T_eng = t7 - t2` (`<= 0.02h` tolerance) and cross-release `prev_t7` cadence/overlap arithmetic.
   - Generated and validated `sprint-reports/v0.2.0/index.html` (`1,923` lines, `113,746` B) and `sprint-reports/v0.1.0/index.html` (`1,924` lines, `111,548` B), published `public/reports/v0.2.0/index.html` and `public/reports/v0.1.0/index.html`, and rebuilt `public/reports/index.html` (`2 published`) and `public/roadmap/index.html` via `node scripts/build-sprint-report.js`.
+- **Opportunity and bottleneck discovery agent (A-005, #5):**
+  - `src/intelligence/opportunity-agent.ts`, **Stage 1** (`discoverStage1`): deterministic, a few ms. Turns an A-003 snapshot, the A-004 analysis and the optional `/join` goal into contract-valid `OpportunityNeed`s. Every need names one of the participant's repositories (as `project_repo` requires) and cites receipts from the A-004 analysis. Sources, in order:
+    - the participant's own goal: the only `Participant Confirmed Need`, typed from its keywords and anchored to their flagship repository
+    - repositories that invite contributors (`help-wanted`-style topics, "PRs welcome" text): `open_issue_help`
+    - scaling or roadmap language in the README: `architecture_scaling`
+    - complementary gaps where a strong fingerprint axis's natural partner axes are weak (e.g. strong Systems/Infra with no Frontend/UX): `complementary_skill_gap`
+    - shared research domains from A-004 domain claims: `shared_research_domain`
+
+    Everything not stated by the participant is labelled `Potential Opportunity (AI Inference)`. Projects idle for over 120 days get an explicit `Stale: … N days ago` caveat and lower confidence.
+  - **Stage 2** (`enrichOpportunities`, `discoverOpportunities`): optional enrichment through the A-004 LLM client (4 s timeout). It keeps only needs that name a repository in the snapshot and cite at least one receipt for that same repository (receipts about other repositories are stripped), always labels them `Potential Opportunity (AI Inference)`, caps confidence below 0.8, applies the stale caveat, and falls back to Stage 1 on any failure. The goal, README and website reach the model only inside the untrusted evidence block (prompt in `src/intelligence/prompts.ts`).
+  - `persistOpportunities()`: refuses to write or publish anything for a participant who has withdrawn consent (`skipped: 'consent_withdrawn'`). Otherwise, in one transaction, replaces non-dismissed needs while keeping dismissed ones and never re-adding them, and stores any cited receipts not already present. It then publishes one `opportunity.identified` event per stored need, by display alias, adding the public identity only with stage display consent.
 - **A-008 Mobile Participant Dashboard (`/me`, `src/routes/me.ts`, `public/app/me.*`, `public/app/app.css`, Issue #8):**
   - `GET /me` serves the dashboard to a signed-in participant and redirects anyone else to `/join`; `GET /api/me` returns their profile, a three-step research stepper (GitHub + Website Crawl → 6-Axis Builder Fingerprint → Top-3 Matches), the six fingerprint axes (0–100), non-dismissed offers and needs with evidence, their top 3 surfaced matches (`composite_score ≥ 45`, not declined) and the event cursor.
   - Match cards show the score, the five score components, summary, first conversation, confidence limitations, https-only evidence links, incoming-interest alerts and Interested / Pass (posting to the A-012 decision endpoint, with a "introductions open shortly" fallback until it exists). A counterpart's GitHub handle appears only with their stage-display consent or after a completed bilateral introduction; contact cards are never returned.
@@ -109,6 +120,9 @@ All notable changes to Ariadne-PM are documented in this file.
 - **Bootstrapped Public GitHub Repository (`Jason-Vaughan/Ariadne`), 4 Milestones, All 17 Planned Issues (`#1`–`#17`), and Published Public Roadmap (`gh-pages`):**
   - Created `https://github.com/Jason-Vaughan/Ariadne`, labels, 4 Release Train milestones (`v0.1.0`..`v1.0.0`), all 15 active MVP issues (`#1`–`#15`), and the 2 deferred V2 holding issues (`#16` `A-013`, `#17` `A-017`, closed as `not_planned`).
   - Linked every card on the prepared Public Roadmap (`Ariadne-Public-Roadmap-preview.html` and `index.html`) directly to its live GitHub issue (`https://github.com/Jason-Vaughan/Ariadne/issues/1`..`17`) and published to GitHub Pages (`https://jason-vaughan.github.io/Ariadne/`) and PortHub `:3422`.
+
+### Fixed
+- **A-006 scorer timing test no longer flakes under a loaded test run:** each profile's architectural layers, domains and latest activity per cited project are now computed once per profile instead of once per pair, which removes per-pair set building and date parsing. The "pool of 30 in under 5 ms" test also takes the best of 20 runs rather than 5, so scheduler noise from parallel suites cannot fail it. Scores are unchanged.
 
 ### Changed
 - **Configured All 4 Ariadne Builder Lanes (`#151..#154`) to Run `claude-opus-5-5` (`--effort high`) & Added 1-Line Fleet Batch Launcher (`FLEET_PROVISIONING_PACK.md`):**
