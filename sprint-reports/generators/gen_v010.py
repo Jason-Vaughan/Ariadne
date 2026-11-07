@@ -50,7 +50,7 @@ html_part1 = f'''<!DOCTYPE html>
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Ariadne Autonomous Sprint Reports (Powered by TangleClaw)" />
   <meta property="og:title" content="Ariadne Sprint v0.1.0 — Executive Engineering &amp; Telemetry Report" />
-  <meta property="og:description" content="Ariadne Sprint v0.1.0 (Milestone #1 · Wave 1): 4 parallel Builder cars (#1, #13, #9, #14) merged via PRs #18..#21 in 0.84h (50m 12s)." />
+  <meta property="og:description" content="Ariadne Sprint v0.1.0 (Milestone #1 · Wave 1): 4 parallel Builder cars (#1, #13, #9, #14) merged via PRs #18..#21 in 0.66h (39m 45s T_eng)." />
   <meta property="og:url" content="https://jason-vaughan.github.io/Ariadne/reports/v0.1.0/" />
   <meta property="og:image" content="https://jason-vaughan.github.io/Ariadne/reports/assets/og-card.png" />
   <meta property="og:image:type" content="image/png" />
@@ -59,7 +59,7 @@ html_part1 = f'''<!DOCTYPE html>
   <meta property="og:image:alt" content="Ariadne Sprint v0.1.0 — Executive Engineering &amp; Telemetry Report" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Ariadne Sprint v0.1.0 — Executive Engineering &amp; Telemetry Report" />
-  <meta name="twitter:description" content="Ariadne Sprint v0.1.0 (Milestone #1 · Wave 1): 4 parallel Builder cars (#1, #13, #9, #14) merged via PRs #18..#21 in 0.84h (50m 12s)." />
+  <meta name="twitter:description" content="Ariadne Sprint v0.1.0 (Milestone #1 · Wave 1): 4 parallel Builder cars (#1, #13, #9, #14) merged via PRs #18..#21 in 0.66h (39m 45s T_eng)." />
   <meta name="twitter:image" content="https://jason-vaughan.github.io/Ariadne/reports/assets/og-card.png" />
   <link rel="icon" type="image/png" href="../assets/logo-icon.png" />
   <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png" />
@@ -110,7 +110,7 @@ html_part1 = f'''<!DOCTYPE html>
         <div class="hero-meta">
           <div><strong>Project / Repo:</strong> <code>Ariadne-PM (#149)</code> · <code>Jason-Vaughan/Ariadne</code></div>
           <div><strong>Base → Release:</strong> <code>{BASE_SHA_SHORT}</code> → <code>{REL_MERGE_SHORT}</code> (<code>v0.1.0</code>)</div>
-          <div><strong>Engineering Window (<code>T_eng</code>):</strong> <code>50m 12s (0.84h · 11:01 → 11:52 PST)</code></div>
+          <div><strong>Engineering Window (<code>T_eng</code>):</strong> <code>39m 45s (0.66h · t2 11:12:15 → t7 11:52:00 PST; t1→t7 50m 12s)</code></div>
           <div><strong>PRs Merged:</strong> <code>4 / 4</code> (<code>#{CARD_PR}, #{CARB_PR}, #{CARA_PR}, #{CARC_PR}</code>)</div>
           <div><strong>Milestone #1 Issues Closed:</strong> <code>4 / 4</code> (<code>#1, #13, #9, #14</code> · <code>0</code> open)</div>
           <div><strong>Governance Standard:</strong> <code>Rule #312/#313 + SPRINT_REPORT_CONTRACT v2.0.0</code></div>
@@ -130,8 +130,8 @@ html_part1 = f'''<!DOCTYPE html>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Total Run Time (Start → Finish)</div>
-          <div class="kpi-value" style="color:var(--purple)">50m 12s (0.84h)</div>
-          <div class="kpi-sub">Full <code>T_eng = 0.84h</code> · <code>0</code> source-file collisions</div>
+          <div class="kpi-value" style="color:var(--purple)">39m 45s (0.66h)</div>
+          <div class="kpi-sub">Full <code>T_eng = 0.66h</code> (<code>t2→t7</code>; <code>t1→t7 = 50m 12s</code>)</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Net Code &amp; Test Footprint</div>
@@ -155,8 +155,8 @@ html_part1 = f'''<!DOCTYPE html>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Allocated Sprint Cost (Tier 2)</div>
-          <div class="kpi-value" style="color:var(--green)">$2.07 Pool</div>
-          <div class="kpi-sub"><code>$0.00</code> marginal API fee · <code>$0.52/issue</code> · <code>~$25</code> API shadow</div>
+          <div class="kpi-value" style="color:var(--green)">$1.62 Pool</div>
+          <div class="kpi-sub"><code>$0.00</code> marginal API fee · <code>$0.41/issue</code> · <code>~$25</code> API shadow</div>
         </div>
 {ade_kpi_html}
       </div>
@@ -366,7 +366,7 @@ html_part2 = f'''
           <h2 class="section-title"><span class="num">02</span> Wave 1 Execution Timeline &amp; Merge Velocity</h2>
           <p class="section-desc">End-to-end progression from Wave 1 Charter dispatch (`11:01:48 PST`) through 4 parallel Builder PRs (`#18..#21`) and Release Tag `v0.1.0` (`@ 101d16c`).</p>
         </div>
-        <span class="badge badge-green">4 PRs Merged (#18..#21) · 4/4 Milestone #1 Issues Closed · 0.84h Full Engineering Window</span>
+        <span class="badge badge-green">4 PRs Merged (#18..#21) · 4/4 Milestone #1 Issues Closed · 0.66h Full Engineering Window</span>
       </div>
 
       <div class="grid-2">
@@ -558,7 +558,7 @@ html_part3 = f'''
             <tbody>
               <tr>
                 <td><strong>Total Sprint Wall Time (Start → Finish)</strong></td>
-                <td><strong><code>50m 12s</code> (0.84h · Shipped)</strong></td>
+                <td><strong><code>39m 45s</code> (0.66h <code>T_eng</code> · Shipped)</strong></td>
                 <td><code>1h 15m</code> (Target · 4 Cars)</td>
                 <td><code>1h 15m</code> (Target · 4 Cars)</td>
                 <td><code>1h 00m</code> (Target · 3 Cars)</td>
@@ -585,7 +585,7 @@ html_part3 = f'''
               </tr>
               <tr>
                 <td><strong>Commits / PR &amp; Token Efficiency</strong></td>
-                <td><strong><code>~3.2M</code> Tokens · <code>$2.07</code> Pool</strong></td>
+                <td><strong><code>~3.2M</code> Tokens · <code>$1.62</code> Pool</strong></td>
                 <td><code>~3.8M</code> Est. Tokens</td>
                 <td><code>~3.8M</code> Est. Tokens</td>
                 <td><code>~3.0M</code> Est. Tokens</td>
@@ -742,7 +742,7 @@ html_part3 = f'''
             <div class="pm-item">
               <h4>3. Pairwise Source-Envelope Disjointness (`Envelope(A) ∩ Envelope(B) = ∅`) Across All 4 Cars</h4>
               <p>
-                Sorting `v0.1.0` into 4 parallel workstreams (`#1`, `#13`, `#9`, `#14`) with zero overlapping source files allowed `Ariadne-INT` to merge `PR #18..#21` in `0.84h` (`50m 12s`) with zero source-code conflicts.
+                Sorting `v0.1.0` into 4 parallel workstreams (`#1`, `#13`, `#9`, `#14`) with zero overlapping source files allowed `Ariadne-INT` to merge `PR #18..#21` in `0.66h` (`39m 45s` `T_eng`; `50m 12s` `t1→t7` wall-clock) with zero source-code conflicts.
               </p>
             </div>
             <div class="pm-item">
@@ -850,7 +850,7 @@ html_part3 = f'''
             </thead>
             <tbody>
               <tr><td>1</td><td><strong>Operator Interventions &amp; Causes</strong></td><td><code>0</code> unplanned Operator code interventions across Wave 1 (`#1, #13, #9, #14`)</td><td>0 interventions</td><td><span class="badge badge-green">PASS</span></td><td>Carry standing multi-wave authorization into `v0.2.0–v1.0.0`</td></tr>
-              <tr><td>2</td><td><strong>Dispatch-to-Merge Timing</strong></td><td>Full engineering window `T_eng = 0.84h` (`50m 12s`) across 4 parallel Builder cars (`#18..#21`)</td><td>&lt; 1.5h wave</td><td><span class="badge badge-green">PASS</span></td><td>Keep each wave bounded to &lt;= 4 parallel file-disjoint cars</td></tr>
+              <tr><td>2</td><td><strong>Dispatch-to-Merge Timing</strong></td><td>Full engineering window `T_eng = 0.66h` (`39m 45s` `t2→t7`; `50m 12s` `t1→t7`) across 4 parallel Builder cars (`#18..#21`)</td><td>&lt; 1.5h wave</td><td><span class="badge badge-green">PASS</span></td><td>Keep each wave bounded to &lt;= 4 parallel file-disjoint cars</td></tr>
               <tr><td>3</td><td><strong>Active vs Allowed Builders &amp; Parallelism</strong></td><td>100% Builder utilization across `Ariadne-Lane-A`, `B`, `C`, and `D` (`4/4` lanes active)</td><td>100% utilization</td><td><span class="badge badge-green">PASS</span></td><td>Maintain 4-lane track assignment in `v0.2.0` (`#2, #3, #6, #10`)</td></tr>
               <tr><td>4</td><td><strong>Forced Re-Syncs / Rebases When <code>main</code> Moves</strong></td><td><code>0</code> source-file conflicts across `PR #18..#21` thanks to disjoint source envelopes</td><td>0 source conflicts</td><td><span class="badge badge-green">PASS</span></td><td>Enforce `Envelope(A) ∩ Envelope(B) = ∅` on source files in every wave charter</td></tr>
               <tr><td>5</td><td><strong>Open PR Age Since Current <code>main</code></strong></td><td>All 4 feature PRs (`#18..#21`) merged within 38 minutes of first PR opening; `0` stale PRs</td><td>0 stale PRs</td><td><span class="badge badge-green">PASS</span></td><td>Serialize merges via `Ariadne-INT` as soon as Dual-Gate clears</td></tr>
@@ -863,7 +863,7 @@ html_part3 = f'''
               <tr><td>12</td><td><strong>Unlabelled PRs, Dirty Clones &amp; Worktrees</strong></td><td>All merged `v0.1.0` branches retired after `tc branch check`; worktrees clean</td><td>0 orphan clones</td><td><span class="badge badge-green">PASS</span></td><td>Run `tc branch check` before retiring any merged feature branch</td></tr>
               <tr><td>13</td><td><strong>Release-Status Lag &amp; Finish-Line Honesty</strong></td><td>Tag `v0.1.0` published at `{REL_MERGE_SHORT}` (`PR #21`) after all 4 Milestone #1 issues closed</td><td>100% honesty</td><td><span class="badge badge-green">PASS</span></td><td>Publish updated roadmap + sprint report after every release tag</td></tr>
               <tr><td>14</td><td><strong>Conflict Resolution Time</strong></td><td><code>0m</code> source-file conflict resolution time across all 4 feature cars (`CHANGELOG.md` only)</td><td>&lt; 5m sync time</td><td><span class="badge badge-green">PASS</span></td><td>Use auto-mounted `src/routes/*.ts` loader for all Wave 2–4 routes</td></tr>
-              <tr><td>15</td><td><strong>Wakes, Tokens &amp; Turns by Role &amp; Model</strong></td><td><code>~3.2M</code> tokens across 9 lanes (`$2.07` allocated subscription cost; `$0.00` marginal API fee)</td><td>0 API lockouts</td><td><span class="badge badge-green">PASS</span></td><td>Cache GitHub API responses in SQLite (`github_snapshots`) in `#3`</td></tr>
+              <tr><td>15</td><td><strong>Wakes, Tokens &amp; Turns by Role &amp; Model</strong></td><td><code>~3.2M</code> tokens across 9 lanes (`$1.62` allocated subscription cost; `$0.00` marginal API fee)</td><td>0 API lockouts</td><td><span class="badge badge-green">PASS</span></td><td>Cache GitHub API responses in SQLite (`github_snapshots`) in `#3`</td></tr>
               <tr><td>16</td><td><strong>4 End-of-Sprint Maintenance Gates</strong></td><td>All 4 Maintenance Gates (`R-Gate`, `A-Gate`, `I-Gate` + Tag `v0.1.0`, `O-Gate` Canonical HTML Report + Validator) green</td><td>4 / 4 Gates green</td><td><span class="badge badge-green">PASS</span></td><td>Run `validate-sprint-report.py --all` at every wave closeout</td></tr>
             </tbody>
           </table>

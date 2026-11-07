@@ -147,25 +147,51 @@ def validate_canonical_metrics_payload(version: str, content: str, enforce_regis
                     f"[{version}] Timestamp chronology violation: {earlier} ({ts[earlier]}) > {later} ({ts[later]})."
                 )
 
-        # Verify full_engineering_window_hrs matches t7 - min(t1, t2) within 0.08h
+        # Verify full_engineering_window_hrs matches T_eng = t7 - t2 per SPRINT_REPORT_CONTRACT.md section 3.1
         dur = rec["durations"]
-        t_start = min(parsed_ts["t1_first_activity"], parsed_ts["t2_first_branch_commit"])
-        computed_eng_hrs = (parsed_ts["t7_live_deploy_completed"] - t_start).total_seconds() / 3600.0
+        t_start = parsed_ts["t2_first_branch_commit"]
+        eng_seconds = (parsed_ts["t7_live_deploy_completed"] - t_start).total_seconds()
+        computed_eng_hrs = eng_seconds / 3600.0
         declared_eng_hrs = float(dur.get("full_engineering_window_hrs", 0.0))
-        if abs(computed_eng_hrs - declared_eng_hrs) > 0.08:
+        if abs(computed_eng_hrs - declared_eng_hrs) > 0.02:
             errors.append(
                 f"[{version}] full_engineering_window_hrs ({declared_eng_hrs:.2f}h) does not match "
-                f"(t7 - start) = {computed_eng_hrs:.2f}h. Substituting a pipelined merge/deploy tail "
-                f"for the full engineering window is prohibited."
+                f"contract T_eng = (t7 - t2) = {computed_eng_hrs:.2f}h ({int(eng_seconds // 60)}m {int(eng_seconds % 60):02d}s). "
+                f"Substituting a pipelined merge/deploy tail for the full engineering window is prohibited."
             )
 
         cadence_hrs = float(dur.get("inter_release_deploy_cadence_hrs", 0.0))
         overlap_hrs = float(dur.get("pipeline_overlap_hrs", 0.0))
+        overlap_pct = float(dur.get("pipeline_overlap_pct", 0.0))
         if overlap_hrs > 0.05 and declared_eng_hrs <= cadence_hrs + 0.05:
             errors.append(
                 f"[{version}] Pipelined sprint (pipeline_overlap_hrs={overlap_hrs:.2f}h) declared "
                 f"full_engineering_window_hrs ({declared_eng_hrs:.2f}h) <= inter_release_deploy_cadence_hrs ({cadence_hrs:.2f}h)."
             )
+
+        prev_tag = rec.get("prev_tag")
+        if prev_tag and prev_tag in DETAILED_SPRINT_RECORDS:
+            prev_t7 = parse_iso_utc(DETAILED_SPRINT_RECORDS[prev_tag]["timestamps"]["t7_live_deploy_completed"])
+            expected_cadence_secs = (parsed_ts["t7_live_deploy_completed"] - prev_t7).total_seconds()
+            expected_cadence_hrs = expected_cadence_secs / 3600.0
+            expected_overlap_secs = max(0.0, (prev_t7 - parsed_ts["t2_first_branch_commit"]).total_seconds())
+            expected_overlap_hrs = expected_overlap_secs / 3600.0
+            expected_overlap_pct = (expected_overlap_secs / eng_seconds * 100.0) if eng_seconds > 0 else 0.0
+            if abs(cadence_hrs - expected_cadence_hrs) > 0.02:
+                errors.append(
+                    f"[{version}] inter_release_deploy_cadence_hrs ({cadence_hrs:.2f}h) does not match "
+                    f"(t7_curr - t7_prev) = {expected_cadence_hrs:.2f}h."
+                )
+            if abs(overlap_hrs - expected_overlap_hrs) > 0.02:
+                errors.append(
+                    f"[{version}] pipeline_overlap_hrs ({overlap_hrs:.2f}h) does not match "
+                    f"max(0, t7_prev - t2_curr) = {expected_overlap_hrs:.2f}h ({int(expected_overlap_secs)}s)."
+                )
+            if abs(overlap_pct - expected_overlap_pct) > 0.5:
+                errors.append(
+                    f"[{version}] pipeline_overlap_pct ({overlap_pct:.1f}%) does not match "
+                    f"(overlap / T_eng) = {expected_overlap_pct:.1f}%."
+                )
 
     # 2. 4-State Work-Completion Accounting & Milestone Reconciliation
     comp = rec["completion"]

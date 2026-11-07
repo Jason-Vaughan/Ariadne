@@ -12,21 +12,21 @@
   "canonical_summary_registry": {
     "v0.1.0": {
       "slug": "v0.1.0",
-      "hrs": 0.84,
+      "hrs": 0.66,
       "issues_closed": 4,
       "issues_addressed": 4,
       "loc": 5132,
-      "cost": 2.07,
-      "throughput_closed": 4.76,
-      "throughput_addressed": 4.76,
-      "cost_per_issue": 0.52,
-      "cost_per_addressed": 0.52,
-      "cost_per_kloc": 0.4,
-      "ade_score": 2.3,
-      "ade_addressed": 2.3,
+      "cost": 1.62,
+      "throughput_closed": 6.06,
+      "throughput_addressed": 6.06,
+      "cost_per_issue": 0.41,
+      "cost_per_addressed": 0.41,
+      "cost_per_kloc": 0.32,
+      "ade_score": 3.74,
+      "ade_addressed": 3.74,
       "est_tokens_m": 3.2,
       "api_shadow_cost": 25.0,
-      "savings_mult": 12.1,
+      "savings_mult": 15.4,
       "detailed": {
         "schema_version": "2.0.0",
         "slug": "v0.1.0",
@@ -56,10 +56,10 @@
           "t8_pst": "11:55:00 PST (Ariadne-Obsr O-Gate certification)"
         },
         "durations": {
-          "full_engineering_window_hrs": 0.84,
-          "full_engineering_window_human": "50m 12s (0.84h \u00b7 11:01 \u2192 11:52 PST)",
-          "inter_release_deploy_cadence_hrs": 0.84,
-          "inter_release_deploy_cadence_human": "50m 12s (Wave 1 initial baseline -> v0.1.0 live)",
+          "full_engineering_window_hrs": 0.66,
+          "full_engineering_window_human": "39m 45s (0.66h \u00b7 t2 11:12:15 \u2192 t7 11:52:00 PST; t1\u2192t7 wall-clock 50m 12s / 0.84h)",
+          "inter_release_deploy_cadence_hrs": 0.66,
+          "inter_release_deploy_cadence_human": "39m 45s (0.66h \u00b7 Wave 1 first commit t2 11:12:15 \u2192 v0.1.0 live t7 11:52:00 PST)",
           "pipeline_overlap_hrs": 0.0,
           "pipeline_overlap_pct": 0.0,
           "pipeline_overlap_human": "0m (Wave 1 opens the hackathon sprint train)"
@@ -157,9 +157,9 @@
           "tier1_measured_marginal_api_usd": 0.0,
           "tier1_measured_marginal_electricity_usd": 0.02,
           "tier1_evidence_class": "measured",
-          "tier2_allocated_subscription_usd": 2.07,
+          "tier2_allocated_subscription_usd": 1.62,
           "tier2_hourly_rate_usd": 2.46,
-          "tier2_calendar_hour_subscription_usd": 0.51,
+          "tier2_calendar_hour_subscription_usd": 0.4,
           "tier2_calendar_hourly_rate_usd": 0.611,
           "tier2_evidence_class": "allocated_estimate",
           "tier3_hypothetical_api_shadow_usd": 25.0,
@@ -167,33 +167,33 @@
           "tier3_evidence_class": "hypothetical_estimate"
         },
         "efficiency": {
-          "throughput_closed_per_eng_hr": 4.76,
-          "throughput_addressed_per_eng_hr": 4.76,
-          "unit_allocated_cost_per_closed_issue_usd": 0.52,
-          "unit_allocated_cost_per_addressed_issue_usd": 0.52,
-          "unit_allocated_cost_per_kloc_usd": 0.4,
-          "legacy_ade_v1_closed": 2.3,
-          "legacy_ade_v1_addressed": 2.3
+          "throughput_closed_per_eng_hr": 6.06,
+          "throughput_addressed_per_eng_hr": 6.06,
+          "unit_allocated_cost_per_closed_issue_usd": 0.41,
+          "unit_allocated_cost_per_addressed_issue_usd": 0.41,
+          "unit_allocated_cost_per_kloc_usd": 0.32,
+          "legacy_ade_v1_closed": 3.74,
+          "legacy_ade_v1_addressed": 3.74
         }
       }
     },
     "v0.2.0": {
       "slug": "v0.2.0",
-      "hrs": 0.56,
+      "hrs": 0.4,
       "issues_closed": 4,
       "issues_addressed": 4,
       "loc": 6682,
-      "cost": 1.38,
-      "throughput_closed": 7.14,
-      "throughput_addressed": 7.14,
-      "cost_per_issue": 0.34,
-      "cost_per_addressed": 0.34,
-      "cost_per_kloc": 0.21,
-      "ade_score": 5.18,
-      "ade_addressed": 5.18,
+      "cost": 0.98,
+      "throughput_closed": 10.0,
+      "throughput_addressed": 10.0,
+      "cost_per_issue": 0.25,
+      "cost_per_addressed": 0.25,
+      "cost_per_kloc": 0.15,
+      "ade_score": 10.2,
+      "ade_addressed": 10.2,
       "est_tokens_m": 3.8,
       "api_shadow_cost": 29.6,
-      "savings_mult": 21.4,
+      "savings_mult": 30.2,
       "detailed": {
         "schema_version": "2.0.0",
         "slug": "v0.2.0",
@@ -223,13 +223,13 @@
           "t8_pst": "12:20:00 PST (Ariadne-Obsr O-Gate certification)"
         },
         "durations": {
-          "full_engineering_window_hrs": 0.56,
-          "full_engineering_window_human": "33m 30s (0.56h \u00b7 11:41 \u2192 12:15 PST)",
+          "full_engineering_window_hrs": 0.4,
+          "full_engineering_window_human": "23m 47s (0.40h \u00b7 t2 11:51:13 \u2192 t7 12:15:00 PST; t1\u2192t7 wall-clock 33m 30s / 0.56h)",
           "inter_release_deploy_cadence_hrs": 0.38,
-          "inter_release_deploy_cadence_human": "23m 00s (0.38h \u00b7 v0.1.0 live 11:52 \u2192 v0.2.0 live 12:15 PST)",
-          "pipeline_overlap_hrs": 0.18,
-          "pipeline_overlap_pct": 32.1,
-          "pipeline_overlap_human": "10m 30s (32.1% \u00b7 Wave 2 builders started while Wave 1 Car 01-C completed)"
+          "inter_release_deploy_cadence_human": "23m 00s (0.38h \u00b7 v0.1.0 live t7 11:52:00 \u2192 v0.2.0 live t7 12:15:00 PST)",
+          "pipeline_overlap_hrs": 0.01,
+          "pipeline_overlap_pct": 3.3,
+          "pipeline_overlap_human": "47s (0.01h / 3.3% \u00b7 t2 11:51:13 \u2192 prior t7 11:52:00 PST; t1 dispatch overlap 10m 30s)"
         },
         "completion": {
           "chartered_total_issues": 4,
@@ -324,9 +324,9 @@
           "tier1_measured_marginal_api_usd": 0.0,
           "tier1_measured_marginal_electricity_usd": 0.01,
           "tier1_evidence_class": "measured",
-          "tier2_allocated_subscription_usd": 1.38,
+          "tier2_allocated_subscription_usd": 0.98,
           "tier2_hourly_rate_usd": 2.46,
-          "tier2_calendar_hour_subscription_usd": 0.34,
+          "tier2_calendar_hour_subscription_usd": 0.24,
           "tier2_calendar_hourly_rate_usd": 0.611,
           "tier2_evidence_class": "allocated_estimate",
           "tier3_hypothetical_api_shadow_usd": 29.6,
@@ -334,13 +334,13 @@
           "tier3_evidence_class": "hypothetical_estimate"
         },
         "efficiency": {
-          "throughput_closed_per_eng_hr": 7.14,
-          "throughput_addressed_per_eng_hr": 7.14,
-          "unit_allocated_cost_per_closed_issue_usd": 0.34,
-          "unit_allocated_cost_per_addressed_issue_usd": 0.34,
-          "unit_allocated_cost_per_kloc_usd": 0.21,
-          "legacy_ade_v1_closed": 5.18,
-          "legacy_ade_v1_addressed": 5.18
+          "throughput_closed_per_eng_hr": 10.0,
+          "throughput_addressed_per_eng_hr": 10.0,
+          "unit_allocated_cost_per_closed_issue_usd": 0.25,
+          "unit_allocated_cost_per_addressed_issue_usd": 0.25,
+          "unit_allocated_cost_per_kloc_usd": 0.15,
+          "legacy_ade_v1_closed": 10.2,
+          "legacy_ade_v1_addressed": 10.2
         }
       }
     }
@@ -375,10 +375,10 @@
         "t8_pst": "11:55:00 PST (Ariadne-Obsr O-Gate certification)"
       },
       "durations": {
-        "full_engineering_window_hrs": 0.84,
-        "full_engineering_window_human": "50m 12s (0.84h \u00b7 11:01 \u2192 11:52 PST)",
-        "inter_release_deploy_cadence_hrs": 0.84,
-        "inter_release_deploy_cadence_human": "50m 12s (Wave 1 initial baseline -> v0.1.0 live)",
+        "full_engineering_window_hrs": 0.66,
+        "full_engineering_window_human": "39m 45s (0.66h \u00b7 t2 11:12:15 \u2192 t7 11:52:00 PST; t1\u2192t7 wall-clock 50m 12s / 0.84h)",
+        "inter_release_deploy_cadence_hrs": 0.66,
+        "inter_release_deploy_cadence_human": "39m 45s (0.66h \u00b7 Wave 1 first commit t2 11:12:15 \u2192 v0.1.0 live t7 11:52:00 PST)",
         "pipeline_overlap_hrs": 0.0,
         "pipeline_overlap_pct": 0.0,
         "pipeline_overlap_human": "0m (Wave 1 opens the hackathon sprint train)"
@@ -476,9 +476,9 @@
         "tier1_measured_marginal_api_usd": 0.0,
         "tier1_measured_marginal_electricity_usd": 0.02,
         "tier1_evidence_class": "measured",
-        "tier2_allocated_subscription_usd": 2.07,
+        "tier2_allocated_subscription_usd": 1.62,
         "tier2_hourly_rate_usd": 2.46,
-        "tier2_calendar_hour_subscription_usd": 0.51,
+        "tier2_calendar_hour_subscription_usd": 0.4,
         "tier2_calendar_hourly_rate_usd": 0.611,
         "tier2_evidence_class": "allocated_estimate",
         "tier3_hypothetical_api_shadow_usd": 25.0,
@@ -486,13 +486,13 @@
         "tier3_evidence_class": "hypothetical_estimate"
       },
       "efficiency": {
-        "throughput_closed_per_eng_hr": 4.76,
-        "throughput_addressed_per_eng_hr": 4.76,
-        "unit_allocated_cost_per_closed_issue_usd": 0.52,
-        "unit_allocated_cost_per_addressed_issue_usd": 0.52,
-        "unit_allocated_cost_per_kloc_usd": 0.4,
-        "legacy_ade_v1_closed": 2.3,
-        "legacy_ade_v1_addressed": 2.3
+        "throughput_closed_per_eng_hr": 6.06,
+        "throughput_addressed_per_eng_hr": 6.06,
+        "unit_allocated_cost_per_closed_issue_usd": 0.41,
+        "unit_allocated_cost_per_addressed_issue_usd": 0.41,
+        "unit_allocated_cost_per_kloc_usd": 0.32,
+        "legacy_ade_v1_closed": 3.74,
+        "legacy_ade_v1_addressed": 3.74
       }
     },
     "v0.2.0": {
@@ -524,13 +524,13 @@
         "t8_pst": "12:20:00 PST (Ariadne-Obsr O-Gate certification)"
       },
       "durations": {
-        "full_engineering_window_hrs": 0.56,
-        "full_engineering_window_human": "33m 30s (0.56h \u00b7 11:41 \u2192 12:15 PST)",
+        "full_engineering_window_hrs": 0.4,
+        "full_engineering_window_human": "23m 47s (0.40h \u00b7 t2 11:51:13 \u2192 t7 12:15:00 PST; t1\u2192t7 wall-clock 33m 30s / 0.56h)",
         "inter_release_deploy_cadence_hrs": 0.38,
-        "inter_release_deploy_cadence_human": "23m 00s (0.38h \u00b7 v0.1.0 live 11:52 \u2192 v0.2.0 live 12:15 PST)",
-        "pipeline_overlap_hrs": 0.18,
-        "pipeline_overlap_pct": 32.1,
-        "pipeline_overlap_human": "10m 30s (32.1% \u00b7 Wave 2 builders started while Wave 1 Car 01-C completed)"
+        "inter_release_deploy_cadence_human": "23m 00s (0.38h \u00b7 v0.1.0 live t7 11:52:00 \u2192 v0.2.0 live t7 12:15:00 PST)",
+        "pipeline_overlap_hrs": 0.01,
+        "pipeline_overlap_pct": 3.3,
+        "pipeline_overlap_human": "47s (0.01h / 3.3% \u00b7 t2 11:51:13 \u2192 prior t7 11:52:00 PST; t1 dispatch overlap 10m 30s)"
       },
       "completion": {
         "chartered_total_issues": 4,
@@ -625,9 +625,9 @@
         "tier1_measured_marginal_api_usd": 0.0,
         "tier1_measured_marginal_electricity_usd": 0.01,
         "tier1_evidence_class": "measured",
-        "tier2_allocated_subscription_usd": 1.38,
+        "tier2_allocated_subscription_usd": 0.98,
         "tier2_hourly_rate_usd": 2.46,
-        "tier2_calendar_hour_subscription_usd": 0.34,
+        "tier2_calendar_hour_subscription_usd": 0.24,
         "tier2_calendar_hourly_rate_usd": 0.611,
         "tier2_evidence_class": "allocated_estimate",
         "tier3_hypothetical_api_shadow_usd": 29.6,
@@ -635,13 +635,13 @@
         "tier3_evidence_class": "hypothetical_estimate"
       },
       "efficiency": {
-        "throughput_closed_per_eng_hr": 7.14,
-        "throughput_addressed_per_eng_hr": 7.14,
-        "unit_allocated_cost_per_closed_issue_usd": 0.34,
-        "unit_allocated_cost_per_addressed_issue_usd": 0.34,
-        "unit_allocated_cost_per_kloc_usd": 0.21,
-        "legacy_ade_v1_closed": 5.18,
-        "legacy_ade_v1_addressed": 5.18
+        "throughput_closed_per_eng_hr": 10.0,
+        "throughput_addressed_per_eng_hr": 10.0,
+        "unit_allocated_cost_per_closed_issue_usd": 0.25,
+        "unit_allocated_cost_per_addressed_issue_usd": 0.25,
+        "unit_allocated_cost_per_kloc_usd": 0.15,
+        "legacy_ade_v1_closed": 10.2,
+        "legacy_ade_v1_addressed": 10.2
       }
     }
   }

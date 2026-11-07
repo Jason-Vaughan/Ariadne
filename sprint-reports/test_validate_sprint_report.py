@@ -141,6 +141,28 @@ class TestValidateSprintReport(unittest.TestCase):
         self.assertTrue(any("Timestamp chronology violation" in e for e in errs), f"Expected chronology error, got {errs}")
         self.assertTrue(any("Rendered #ade-efficiency-card banner text does not match canonical JSON" in e for e in errs), f"Expected banner/JSON mismatch error, got {errs}")
 
+    def test_11_rejects_t1_to_t7_substituted_for_t2_to_t7_and_overlap_mismatch(self):
+        v020_path = os.path.join(REPORTS_DIR, "v0.2.0", "index.html")
+        v020_html = pathlib.Path(v020_path).read_text(encoding="utf-8")
+        v020_json = validator.extract_embedded_json(v020_path)
+        self.assertEqual(validator.validate_report(v020_path, "v0.2.0"), [])
+
+        bad = copy.deepcopy(v020_json)
+        # Substitute t1->t7 (0.56h) and t1->prev_t7 overlap (0.18h) instead of contract t2->t7 (0.40h) and 47s (0.01h)
+        bad["durations"]["full_engineering_window_hrs"] = 0.56
+        bad["durations"]["pipeline_overlap_hrs"] = 0.18
+        bad["durations"]["pipeline_overlap_pct"] = 32.1
+        mut_html = replace_embedded_json(v020_html, bad)
+        errs = validator.validate_report_content(mut_html, "v0.2.0", enforce_registry_match=False)
+        self.assertTrue(
+            any("contract T_eng = (t7 - t2)" in e for e in errs),
+            f"Expected contract T_eng = (t7 - t2) error, got {errs}",
+        )
+        self.assertTrue(
+            any("pipeline_overlap_hrs" in e for e in errs),
+            f"Expected pipeline_overlap_hrs error, got {errs}",
+        )
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
