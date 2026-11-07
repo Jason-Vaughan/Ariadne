@@ -11,8 +11,9 @@ import {
   readSession,
   sessionCookie,
 } from '../auth/session.ts';
-import { EVENT_PAYLOAD_SCHEMAS, GithubUsernameSchema, ParticipantSchema } from '../contracts/index.ts';
+import { GithubUsernameSchema, ParticipantSchema } from '../contracts/index.ts';
 import type { Participant } from '../contracts/index.ts';
+import { publishEvent } from '../events/bus.ts';
 import type { RouteDefinition } from '../server.ts';
 import { sendJson } from '../server.ts';
 
@@ -22,6 +23,9 @@ export const MAX_BODY_BYTES = 16 * 1024;
 export const RATE_LIMIT_MAX = 20;
 export const RATE_LIMIT_WINDOW_MS = 60_000;
 export const ANALYZE_JOB_KIND = 'participant.analyze';
+/** Seed personas (A-010) use reserved ids and handles; they never occupy attendee capacity. */
+export const SEED_ID_PREFIX = '5eed0000-';
+export const SEED_HANDLE_PREFIX = 'ariadne-seed-';
 
 const JOIN_PAGE = fileURLToPath(new URL('../../public/app/join.html', import.meta.url));
 
@@ -236,12 +240,17 @@ function findParticipant(db: DatabaseSync, id: string): ParticipantRow | undefin
 }
 
 /**
- * Active (consenting) participants occupying room capacity.
+ * Active (consenting) non-seed participants occupying room capacity.
  * @param db - Database handle.
  * @returns The count.
  */
 export function countActiveParticipants(db: DatabaseSync): number {
-  const row = db.prepare("SELECT COUNT(*) AS n FROM participants WHERE consent_status = 'granted'").get() as { n: number };
+  const row = db
+    .prepare(
+      `SELECT COUNT(*) AS n FROM participants
+       WHERE consent_status = 'granted' AND substr(id, 1, ?) <> ? AND substr(github_username, 1, ?) <> ?`,
+    )
+    .get(SEED_ID_PREFIX.length, SEED_ID_PREFIX, SEED_HANDLE_PREFIX.length, SEED_HANDLE_PREFIX) as { n: number };
   return Number(row.n);
 }
 
@@ -350,6 +359,9 @@ async function register(req: IncomingMessage, res: ServerResponse, db: DatabaseS
 
   const login = normalizeGithubHandle(body.github);
   if (!login) return badRequest(res, 'github', 'invalid_github', 'Enter your GitHub username (e.g. octocat) or profile URL.');
+  if (login.startsWith(SEED_HANDLE_PREFIX)) {
+    return badRequest(res, 'github', 'reserved_github', 'That handle is reserved for demo profiles; use your own GitHub username.');
+  }
   const website = normalizeWebsiteUrl(body.website_url);
   if (!website.ok) return badRequest(res, 'website_url', website.reason, WEBSITE_MESSAGES[website.reason]!);
   const goal = body.goal === undefined || body.goal === null ? '' : body.goal;
@@ -401,14 +413,6 @@ async function register(req: IncomingMessage, res: ServerResponse, db: DatabaseS
        VALUES (?, ?, ?, NULL, NULL, ?, 0, 'granted', ?, ?, NULL, 'registered', ?, ?)`,
     ).run(participant.id, participant.display_alias, login, website.url, now, stageConsent ? 1 : 0, now, now);
 
-    const payload = EVENT_PAYLOAD_SCHEMAS['participant.registered'].parse({
-      display_alias: participant.display_alias,
-      ...(stageConsent ? { display: { stage_display_consent: true, github_username: login, avatar_url: null } } : {}),
-    });
-    db.prepare(
-      'INSERT INTO domain_events (event_id, type, payload_json, idempotency_key, occurred_at) VALUES (?, ?, ?, ?, ?)',
-    ).run(randomUUID(), 'participant.registered', JSON.stringify(payload), `participant.registered:${participant.id}`, now);
-
     db.prepare(
       `INSERT INTO async_jobs (id, kind, participant_id, status, payload_json, attempts, run_after, created_at, updated_at)
        VALUES (?, ?, ?, 'queued', ?, 0, ?, ?, ?)`,
@@ -420,6 +424,16 @@ async function register(req: IncomingMessage, res: ServerResponse, db: DatabaseS
       now,
       now,
       now,
+    );
+    // Published last so live SSE subscribers are woken only once the rest of the registration is written.
+    publishEvent(
+      db,
+      'participant.registered',
+      {
+        display_alias: participant.display_alias,
+        ...(stageConsent ? { display: { stage_display_consent: true as const, github_username: login, avatar_url: null } } : {}),
+      },
+      { idempotencyKey: `participant.registered:${participant.id}`, occurredAt: new Date(now) },
     );
     return { kind: 'created' as const, participant };
   });

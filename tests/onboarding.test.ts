@@ -15,6 +15,7 @@ import {
 } from '../src/auth/session.ts';
 import { DisplayAliasSchema, PublicEventEnvelopeSchema } from '../src/contracts/index.ts';
 import { openDatabase } from '../src/db/client.ts';
+import { subscribe } from '../src/events/bus.ts';
 import {
   ANALYZE_JOB_KIND,
   displayAliasFor,
@@ -297,6 +298,36 @@ describe('onboarding API', () => {
     assert.equal(body.message, '🚧 System is currently at capacity (2/2) — please try back later!');
     const admission = (await (await fetch(`${base}/api/participants/admission`)).json()) as Record<string, unknown>;
     assert.deepEqual(admission, { open: false, active: 2, max: 2, locked: false, message: body.message });
+  });
+
+  it('never counts seed personas against room capacity', async () => {
+    setAdmissionPolicy({ maxRoomCapacity: 1 });
+    const insertSeed = db.prepare(
+      `INSERT INTO participants (id, display_alias, github_username, consent_status, consent_granted_at, created_at, updated_at)
+       VALUES (?, ?, ?, 'granted', ?, ?, ?)`,
+    );
+    const at = '2026-11-07T18:00:00Z';
+    insertSeed.run('5eed0000-0000-4000-8000-000000000001', 'Loom-0001', 'seed-by-id', at, at, at);
+    insertSeed.run('66666666-6666-4666-8666-666666666666', 'Loom-0002', 'ariadne-seed-two', at, at, at);
+    assert.equal((await register({ github: 'real-attendee' })).status, 201);
+    assert.equal((await register({ github: 'second-attendee' })).status, 429);
+  });
+
+  it('reserves the seed handle prefix', async () => {
+    const res = await register({ github: 'ariadne-seed-me' });
+    assert.equal(res.status, 400);
+    assert.equal(((await res.json()) as { error: string }).error, 'reserved_github');
+  });
+
+  it('wakes live event subscribers on registration', async () => {
+    const seen: number[] = [];
+    const unsubscribe = subscribe(db, (seqId) => seen.push(seqId));
+    try {
+      await register({ github: 'octocat' });
+    } finally {
+      unsubscribe();
+    }
+    assert.equal(seen.length, 1);
   });
 
   it('admits a pre-warmed handle past a full or locked room', async () => {
