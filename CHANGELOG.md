@@ -5,6 +5,20 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Evidence-backed capability analysis and Builder Fingerprint agent (A-004, #4):**
+  - `src/intelligence/capability-agent.ts`, **Stage 1** (`analyzeStage1`): deterministic, no model, a few ms. Turns an A-003 snapshot into contract-valid `EvidenceReceipt`s and `CapabilityClaim`s:
+    - `OBSERVED_FACT` claims for primary languages, plus frameworks, tools, domains and architectures named in repository topics, descriptions or the README, each citing the receipts that show them. Proficiency comes from how many repositories show it.
+    - `SELF_REPORTED` claims (confidence 0.6, with an uncertainty note) for technologies stated only on the participant's own website.
+    - Each class has its own budget, so a busy GitHub profile can't erase website or model claims.
+    - Also returns the deterministic 6-axis fingerprint and up to 3 superpower phrases.
+  - **Stage 2** (`enrichStage2`, `analyzeProfile`): LLM enrichment through an injectable `LlmClient`. The default is Gemini `gemini-2.5-flash` via REST, using `ARIADNE_LLM_API_KEY` or `GEMINI_API_KEY` (optionally `ARIADNE_LLM_MODEL`), with the key sent in a header and never in the URL. It has a 4 s timeout and strict response validation, and it never takes the model's word for anything:
+    - **Citations:** receipt ids not in the snapshot are stripped, and a claim left with none is dropped.
+    - **Labels:** an `OBSERVED_FACT` whose name its cited evidence does not state is relabelled `AI_INFERENCE`. `AI_INFERENCE` confidence is capped below 0.85 and always carries an uncertainty note.
+    - **Fingerprint:** the model can refine an axis by at most ±25 from the deterministic baseline.
+    - **Superpowers:** phrases containing handles or URLs are dropped.
+    - **Fallback:** no key, a timeout, an error, an invalid answer, or only uncitable claims all return Stage 1 with a `fallback_reason`.
+  - `src/intelligence/prompts.ts`: a versioned system prompt. All participant text is wrapped in `<untrusted_github_evidence>` delimiters it cannot close early.
+  - `persistAnalysis()`: in one transaction, replaces the participant's evidence receipts and non-dismissed claims. Claims the participant dismissed are kept and never re-added. Then it publishes the contract's `profile.analysis.completed` (`display_alias`, `capability_count`), adding the public username and avatar only with stage display consent.
 - **O-Gate Certification — Sprint `v0.1.0` Canonical v2.0.0 Report & Public Hub Publication (`Ariadne-Obsr`):**
   - Updated `sprint-reports/metrics_schema.py`, `sprint-reports/generators/gen_v010.py`, `sprint-reports/index.html`, and `sprint-reports/test_validate_sprint_report.py` with empirical Wave 1 (`v0.1.0`) telemetry: 8 canonical timestamps (`t1..t8`), full engineering window `T_eng = 0.84h` (`50m 12s`), 4/4 Milestone #1 issues closed (`#1, #13, #9, #14`), 4 merged PRs (`#18 @ 4a75d2d`, `#19 @ 719b35b`, `#20 @ 5bacf1e`, `#21 @ 101d16c`, net `+5,132 / -49` LOC across 24 files), and 3-tier cost ledger (`$0.00` marginal API fee, `$2.07` allocated subscription pool, `$0.52/issue`, `ADE_v1 = 2.30`).
   - Generated and validated `sprint-reports/v0.1.0/index.html`, published `public/reports/v0.1.0/index.html`, and rebuilt `public/reports/index.html` and `public/roadmap/index.html` via `node scripts/build-sprint-report.js` (`python3 sprint-reports/validate-sprint-report.py --all` 100% PASS, 10/10 Python validator tests, 18/18 `tests/reports.test.ts` tests).
