@@ -7,7 +7,7 @@ All notable changes to Ariadne-PM are documented in this file.
 ### Added
 - **Background job worker, golden seed personas and `/admin` capacity controller (A-016, #15):**
   - `src/worker/job-runner.ts` runs `async_jobs`. Start it with `node src/worker/job-runner.ts`, a separate process sharing the WAL database; live views pick up its events within 1 s.
-    - It leases due jobs atomically and returns jobs abandoned by a crashed worker to the queue, giving up (and logging it) after 3 attempts.
+    - It leases due jobs atomically and returns jobs abandoned by a crashed worker to the queue, giving up (and logging it) after 3 attempts; a participant whose analysis was abandoned mid-way is marked `failed` and `analysis.failed` is published, so `/me` stops waiting.
     - It gates on consent first: a job for a missing or withdrawn participant is skipped, recorded as `succeeded` with a `skipped: consent_withdrawn` note.
     - `participant.analyze`, Stage 1: fetch the GitHub/website snapshot (A-003), store A-004 capabilities and A-005 needs (including the participant's goal as their confirmed need), mark the participant `ready`, re-match the pool, then explain and announce the matches (A-006/A-007).
     - `participant.analyze`, Stage 2: model enrichment of capabilities, needs and match cards follows; concurrent model calls never exceed `workerConcurrency` (one limiter shared across ticks), and a missing key, error or timeout falls back to Stage 1. A refined fingerprint is written back to the snapshot so `/me` and `/stage` show it.

@@ -230,7 +230,8 @@ export function recoverStaleJobs(db: DatabaseSync, now: Date, log?: Logger): { r
     finishJob(db, stuck.id, 'failed', `abandoned after ${MAX_ATTEMPTS} attempts`, now);
     // Without this the participant would sit in fetching_github/analyzing_profile and /me would never stop loading.
     const row = stuck.participant_id ? participantRow(db, stuck.participant_id) : undefined;
-    if (stuck.kind === ANALYZE_JOB_KIND && consents(row)) failAnalysis(db, row, 'analysis_error', now);
+    const midAnalysis = row && ['registered', 'fetching_github', 'analyzing_profile'].includes(row.analysis_state);
+    if (stuck.kind === ANALYZE_JOB_KIND && consents(row) && midAnalysis) failAnalysis(db, row, 'analysis_error', now);
   }
   const abandoned = giveUp.length;
   const requeued = Number(db.prepare("UPDATE async_jobs SET status = 'queued', updated_at = ? WHERE status = 'running' AND updated_at < ?").run(at, cutoff).changes);

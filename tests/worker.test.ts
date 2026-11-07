@@ -216,6 +216,13 @@ describe('job leasing', () => {
     recoverStaleJobs(db, NOW);
     assert.equal(state(db, p.id), 'failed');
     assert.deepEqual(readEventsAfter(db, 0).filter((e) => e.type === 'analysis.failed').map((e) => e.payload), [{ display_alias: p.alias, reason_code: 'analysis_error' }]);
+    // A participant whose analysis already completed is left ready.
+    const done = addParticipant(db);
+    const doneJob = enqueue(db, ANALYZE_JOB_KIND, done.id, { github_username: done.login }, crashedAt);
+    db.prepare("UPDATE async_jobs SET status = 'running', attempts = ?, updated_at = ? WHERE id = ?").run(MAX_ATTEMPTS, crashedAt.toISOString(), doneJob);
+    db.prepare("UPDATE participants SET analysis_state = 'ready' WHERE id = ?").run(done.id);
+    recoverStaleJobs(db, NOW);
+    assert.equal(state(db, done.id), 'ready');
     db.close();
   });
 
