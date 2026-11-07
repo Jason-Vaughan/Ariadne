@@ -482,7 +482,11 @@ describe('network graph helpers', () => {
   });
 });
 
+// Key-to-action mapping is tested in tests/stage-modes.test.ts; this checks the page wires it up.
 test('the stage page keeps every hotkey wired', () => {
   const html = readFileSync(join(REPO_ROOT, 'public', 'stage', 'index.html'), 'utf8');
-  for (const key of ["'1', '2', '3', '4'", "key === 'q'", "key === 's'", "key === 'p'", "key === ' '"]) assert.ok(html.includes(key), key);
+  assert.ok(html.includes('bindControls(document, () => state.view, dispatch)'));
+  for (const action of ["action === 'qr'", "action === 'seed'", "action === 'privacy'", "action === 'cycle'", "action.startsWith('view:')"]) {
+    assert.ok(html.includes(action), action);
+  }
 });

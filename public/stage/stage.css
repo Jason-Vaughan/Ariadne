@@ -92,8 +92,6 @@ button kbd { font: inherit; font-size: 12px; color: var(--muted); margin-left: 5
 main { position: relative; overflow: hidden; }
 .view { position: absolute; inset: 0 32px 24px; display: none; }
 .view.active { display: block; }
-.placeholder { height: 100%; display: grid; place-items: center; text-align: center; color: var(--muted); font-size: 30px; border: 2px dashed var(--line); border-radius: 18px; }
-.placeholder strong { display: block; color: var(--fg); font-size: 40px; margin-bottom: 10px; }
 
 #graph { width: 100%; height: 100%; display: block; }
 .graph-empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--muted); font-size: 30px; pointer-events: none; }
@@ -138,7 +136,74 @@ main { position: relative; overflow: hidden; }
 }
 #golden-banner[hidden] { display: none; }
 
-#status { position: absolute; right: 0; bottom: 0; font-size: 16px; color: var(--muted); background: rgba(6, 10, 20, 0.7); padding: 8px 14px; border-radius: 10px; }
+/* Operator HUD */
+.hud { position: absolute; right: 32px; bottom: 24px; z-index: 4; display: flex; gap: 8px; font-size: 16px; }
+.hud-item { background: rgba(6, 10, 20, 0.8); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; color: var(--muted); }
+.hud-ok { color: var(--green); }
+.hud-warn { color: var(--amber); border-color: var(--amber); }
+
+/* View 1: pipeline */
+.pipeline { height: calc(100% - 56px); display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 34px; }
+.pipe-col { position: relative; background: rgba(15, 23, 42, 0.85); border: 1px solid var(--line); border-radius: 16px; padding: 20px; display: flex; flex-direction: column; min-height: 0; }
+.pipe-title { margin: 0; font-size: 25px; }
+.pipe-sub { margin: 4px 0 14px; color: var(--muted); font-size: 16px; }
+.pipe-counters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px; }
+.pipe-tile { background: var(--panel-hi); border-radius: 10px; padding: 8px 10px; }
+.pipe-tile strong { display: block; font-size: 32px; font-variant-numeric: tabular-nums; }
+.pipe-tile span { color: var(--muted); font-size: 14px; }
+.pipe-events { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
+.pipe-events li { font-size: 18px; padding: 9px 12px; border-left: 4px solid var(--cyan); background: rgba(22, 33, 59, 0.7); border-radius: 6px; }
+.pipe-events li.fresh { animation: slide-in 0.6s ease-out; }
+.pipe-events li.golden { border-left-color: var(--gold); color: #fff3b0; }
+.pipe-events li.idle { border-left-color: var(--line); color: var(--muted); }
+.pipe-arrow { position: absolute; right: -28px; top: 50%; font-size: 28px; color: var(--cyan); }
+@keyframes slide-in { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+
+/* View 2: fingerprint gallery */
+.gallery { height: calc(100% - 56px); display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-auto-rows: 360px; gap: 16px; overflow: hidden; align-content: start; }
+.gallery-empty, .spot-empty { grid-column: 1 / -1; height: 100%; display: grid; place-items: center; color: var(--muted); font-size: 30px; }
+.fp-card { background: rgba(15, 23, 42, 0.88); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; min-width: 0; }
+.fp-seed { border-color: #3f5a1f; }
+.fp-head { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.fp-label { font-size: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fp-badge { font-size: 12px; color: var(--muted); white-space: nowrap; }
+.radar { width: 100%; height: 200px; }
+.radar-ring { fill: none; stroke: var(--line); stroke-width: 1; }
+.radar-shape { fill: rgba(103, 232, 249, 0.28); stroke: var(--cyan); stroke-width: 2; }
+.fp-seed .radar-shape { fill: rgba(163, 230, 53, 0.25); stroke: var(--seed); }
+.radar-label { fill: var(--muted); font-size: 11px; }
+.fp-lead { margin: 2px 0 8px; font-size: 15px; color: var(--fg); }
+.fp-pills, .spot-evidence { display: flex; flex-wrap: wrap; gap: 6px; }
+.pill { font-size: 13px; background: var(--panel-hi); border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; color: var(--muted); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pill-cite { color: var(--slate-cyan); }
+
+/* View 4: match spotlight */
+.spotlight { height: calc(100% - 72px); display: flex; flex-direction: column; gap: 18px; }
+.spot-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr); gap: 24px; flex: 1; min-height: 0; }
+.spot-side, .spot-score, .spot-thesis { background: rgba(15, 23, 42, 0.88); border: 1px solid var(--line); border-radius: 16px; padding: 22px 26px; }
+.spot-seed { border-color: #3f5a1f; }
+.spot-name { margin: 0; font-size: 40px; }
+.spot-kind { margin: 4px 0 18px; color: var(--muted); font-size: 18px; }
+.spot-evidence { list-style: none; padding: 0; margin: 0; flex-direction: column; }
+.spot-evidence li { font-size: 19px; padding: 10px 12px; background: var(--panel-hi); border-radius: 8px; }
+.ev-type { display: block; font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--slate-cyan); }
+.ev-hidden, .thesis-private { color: var(--muted); }
+.spot-score { text-align: center; }
+.spot-state { font-size: 22px; color: var(--slate-cyan); }
+.state-golden .spot-state { color: var(--gold); }
+.state-one_sided .spot-state { color: var(--amber); }
+.spot-total { font-size: 110px; font-weight: 900; line-height: 1; margin: 6px 0 14px; }
+.state-golden .spot-total { color: var(--gold); text-shadow: 0 0 30px rgba(250, 204, 21, 0.6); }
+.spot-bars { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; text-align: left; }
+.spot-bars li { display: grid; grid-template-columns: 250px 1fr 64px; align-items: center; gap: 12px; font-size: 17px; }
+.bar-track { height: 14px; background: var(--panel-hi); border-radius: 7px; overflow: hidden; }
+.bar-fill { display: block; height: 100%; background: linear-gradient(90deg, var(--cyan), var(--gold)); }
+.bar-points { text-align: right; font-variant-numeric: tabular-nums; color: var(--fg); }
+.spot-thesis h3 { margin: 0 0 6px; font-size: 22px; color: var(--gold); }
+.spot-thesis p { margin: 4px 0; font-size: 20px; }
+.spot-nav { position: absolute; left: 0; bottom: 0; }
+.spot-count { font-size: 18px; color: var(--muted); }
+.spot-controls { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); display: flex; gap: 10px; }
 
 #qr-modal {
   position: absolute;
