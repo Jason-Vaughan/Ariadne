@@ -13,12 +13,14 @@ import type { ExplanationLlm } from '../src/matching/explanation-agent.ts';
 import { ANALYZE_JOB_KIND, getAdmissionPolicy, setAdmissionPolicy } from '../src/routes/onboarding.ts';
 import { MATCH_REFRESH_JOB_KIND } from '../src/routes/me.ts';
 import { setSeedMode, SEED_COUNT } from '../src/routes/stage-snapshot.ts';
-import { applyCapacityUpdate, capacityState, ROOM_CAPACITY_PRESETS, validateCapacityUpdate } from '../src/routes/admin.ts';
+import { applyCapacityUpdate, capacityProfile, capacityState, prewarmVips, ROOM_CAPACITY_PRESETS, validateCapacityUpdate, validatePrewarm } from '../src/routes/admin.ts';
 import { startServer } from '../src/server.ts';
 import {
   DEFAULT_WORKER_SETTINGS,
   fetchOptionsFor,
   getWorkerSettings,
+  hydratePendingSeeds,
+  Limiter,
   leaseJobs,
   loadPool,
   mapWithConcurrency,
@@ -28,6 +30,7 @@ import {
   rematch,
   runWorkerTick,
   setWorkerSettings,
+  startWorker,
   SKIPPED_CONSENT,
   STALE_RUNNING_MS,
 } from '../src/worker/job-runner.ts';
@@ -35,6 +38,7 @@ import type { WorkerDeps, WorkerSettings } from '../src/worker/job-runner.ts';
 import { hydrateSeedPersonas, loadSeedPersonas, seedSnapshot } from '../src/worker/seed-personas.ts';
 
 const NOW = new Date('2026-11-07T12:00:00Z');
+const JSON_HEADERS = { 'content-type': 'application/json' };
 const SETTINGS_DIR = mkdtempSync(join(tmpdir(), 'ariadne-worker-settings-'));
 process.env.ARIADNE_WORKER_SETTINGS_PATH = join(SETTINGS_DIR, 'worker-settings.json');
 process.once('exit', () => rmSync(SETTINGS_DIR, { recursive: true, force: true }));
@@ -183,9 +187,34 @@ describe('job leasing', () => {
     const crashedAt = new Date(NOW.getTime() - STALE_RUNNING_MS - 1000);
     const id = enqueue(db, MATCH_REFRESH_JOB_KIND, p.id, {}, crashedAt);
     assert.equal(leaseJobs(db, 1, crashedAt).length, 1);
-    assert.equal(recoverStaleJobs(db, NOW), 1);
+    assert.deepEqual(recoverStaleJobs(db, NOW), { requeued: 1, abandoned: 0 });
     assert.equal(job(db, id).status, 'queued');
     db.close();
+  });
+
+  test('a job that keeps crashing the worker is given up after MAX_ATTEMPTS', () => {
+    const db = freshDb();
+    const p = addParticipant(db);
+    const crashedAt = new Date(NOW.getTime() - STALE_RUNNING_MS - 1000);
+    const id = enqueue(db, MATCH_REFRESH_JOB_KIND, p.id, {}, crashedAt);
+    db.prepare("UPDATE async_jobs SET status = 'running', attempts = ?, updated_at = ? WHERE id = ?").run(MAX_ATTEMPTS, crashedAt.toISOString(), id);
+    const lines: string[] = [];
+    assert.deepEqual(recoverStaleJobs(db, NOW, { info: (m) => void lines.push(m) }), { requeued: 0, abandoned: 1 });
+    assert.equal(job(db, id).status, 'failed');
+    assert.match(job(db, id).last_error ?? '', /abandoned/);
+    assert.deepEqual(lines, ['worker recovered stale jobs']);
+    db.close();
+  });
+
+  test('the shared limiter caps concurrent work across independent callers', async () => {
+    const limiter = new Limiter(() => 2);
+    let peak = 0;
+    const task = async (): Promise<void> => {
+      peak = Math.max(peak, limiter.inFlight);
+      await new Promise((r) => setTimeout(r, 5));
+    };
+    await Promise.all([1, 2, 3].map(() => Promise.all([limiter.run(task), limiter.run(task)])));
+    assert.equal(peak, 2);
   });
 
   test('mapWithConcurrency never exceeds the limit and keeps order', async () => {
@@ -329,6 +358,112 @@ describe('participant.analyze', () => {
     assert.ok(prompts.length >= 1, 'match explanations were enriched');
     const evaluated = readEventsAfter(db, 0).slice(before).filter((e) => e.type === 'match.evaluated');
     assert.ok(evaluated.length >= 2, 'stage 1 and stage 2 refreshes were announced');
+    db.close();
+  });
+});
+
+describe('two-stage timing and fallback', () => {
+  test('Stage 1 matches are stored and announced in under 500 ms, before Stage 2 finishes', async () => {
+    const db = seededDb();
+    const p = addParticipant(db);
+    enqueue(db, ANALYZE_JOB_KIND, p.id, { github_username: p.login });
+    const { fetcher } = ragFetcher();
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    const slow: ExplanationLlm = { complete: async () => (await gate, 'not json') };
+    const before = readEventsAfter(db, 0).length;
+    const started = performance.now();
+    const tick = await runWorkerTick(db, { ...offline, fetcher, explanationLlm: slow });
+    const stage1Ms = performance.now() - started;
+    let stage2Done = false;
+    void tick.stage2.then(() => (stage2Done = true));
+    assert.ok(stage1Ms < 500, `stage 1 took ${stage1Ms.toFixed(1)} ms`);
+    assert.ok(readEventsAfter(db, 0).slice(before).some((e) => e.type === 'match.evaluated'));
+    assert.equal(stage2Done, false, 'Stage 2 is still waiting on the model');
+    release();
+    await tick.stage2;
+    db.close();
+  });
+
+  test('when every model times out, Stage 1 stands and nothing errors', async () => {
+    const db = seededDb();
+    const p = addParticipant(db);
+    const id = enqueue(db, ANALYZE_JOB_KIND, p.id, { github_username: p.login });
+    const { fetcher } = ragFetcher();
+    const hang = <T,>(): Promise<T> => new Promise<T>(() => {});
+    const llm: LlmClient = { model: 'hang', complete: () => hang<string>() };
+    const explanationLlm: ExplanationLlm = { complete: () => hang<string>() };
+    const lines: Array<[string, Record<string, unknown> | undefined]> = [];
+    // A-004/A-005 time out via AbortSignal.timeout, whose timer is unref'd; keep the loop alive as the worker's poll timer does.
+    const keepAlive = setInterval(() => {}, 5);
+    const tick = await runWorkerTick(db, { ...offline, fetcher, llm, explanationLlm, stage2TimeoutMs: 20, log: { info: (m, f) => void lines.push([m, f]) } });
+    const fingerprint = (db.prepare('SELECT payload_json FROM github_snapshots WHERE github_username = ?').get(p.login) as { payload_json: string }).payload_json;
+    await tick.stage2;
+    clearInterval(keepAlive);
+    assert.equal(job(db, id).status, 'succeeded');
+    assert.equal(state(db, p.id), 'ready');
+    assert.equal((db.prepare('SELECT payload_json FROM github_snapshots WHERE github_username = ?').get(p.login) as { payload_json: string }).payload_json, fingerprint);
+    assert.ok(!lines.some(([m]) => m === 'worker stage 2 failed'));
+    assert.ok(lines.some(([, f]) => f?.reason === 'timeout'), 'match enrichment timed out and fell back');
+    db.close();
+  });
+
+  test('a participant who withdraws mid-analysis gets nothing stored', async () => {
+    const db = seededDb();
+    const p = addParticipant(db);
+    const id = enqueue(db, ANALYZE_JOB_KIND, p.id, { github_username: p.login });
+    const { fetcher: inner } = ragFetcher();
+    const fetcher: WorkerDeps['fetcher'] = async (u, o) => {
+      db.prepare("UPDATE participants SET consent_status = 'withdrawn', analysis_state = 'withdrawn' WHERE id = ?").run(p.id);
+      return inner(u, o);
+    };
+    const tick = await runWorkerTick(db, { ...offline, fetcher });
+    await tick.stage2;
+    assert.equal(job(db, id).last_error, SKIPPED_CONSENT);
+    assert.equal((db.prepare('SELECT COUNT(*) AS n FROM capability_claims WHERE participant_id = ?').get(p.id) as { n: number }).n, 0);
+    assert.equal((db.prepare('SELECT COUNT(*) AS n FROM matches WHERE participant_a_id = ? OR participant_b_id = ?').get(p.id, p.id) as { n: number }).n, 0);
+    db.close();
+  });
+
+  test('a job that throws is failed and announced, and the tick carries on', async () => {
+    const db = freshDb();
+    const p = addParticipant(db);
+    const id = enqueue(db, ANALYZE_JOB_KIND, p.id, { github_username: p.login });
+    const other = addParticipant(db);
+    const ok = enqueue(db, MATCH_REFRESH_JOB_KIND, other.id);
+    // The fetch succeeds, but A-004 cannot analyse a repo with no topics list: an unexpected crash, not an outage.
+    const { fetcher: inner } = ragFetcher();
+    const fetcher: WorkerDeps['fetcher'] = async (u, o) => {
+      const snapshot = await inner(u, o);
+      return { ...snapshot, repos: snapshot.repos.map((r) => ({ ...r, topics: null })) } as unknown as GithubSnapshot;
+    };
+    const tick = await runWorkerTick(db, { ...offline, fetcher });
+    assert.equal(tick.failed, 1);
+    assert.equal(job(db, id).status, 'failed');
+    assert.equal(job(db, ok).status, 'succeeded');
+    assert.equal(state(db, p.id), 'failed');
+    assert.deepEqual(readEventsAfter(db, 0).filter((e) => e.type === 'analysis.failed').map((e) => e.payload), [{ display_alias: p.alias, reason_code: 'analysis_error' }]);
+    db.close();
+  });
+
+  test('the worker loop processes due jobs and stops cleanly', async () => {
+    const db = freshDb();
+    const p = addParticipant(db);
+    const id = enqueue(db, MATCH_REFRESH_JOB_KIND, p.id);
+    const worker = startWorker(db, { ...offline, now: () => new Date(), pollMs: 10 });
+    const deadline = Date.now() + 3000;
+    while (job(db, id).status !== 'succeeded' && Date.now() < deadline) await new Promise((r) => setTimeout(r, 10));
+    await worker.stop();
+    assert.equal(job(db, id).status, 'succeeded');
+    db.close();
+  });
+
+  test('seeds added without profiles (stage HUD toggle) are hydrated on the next tick', async () => {
+    const db = freshDb();
+    setSeedMode(db, true, NOW);
+    assert.equal(hydratePendingSeeds(db, NOW), SEED_COUNT);
+    assert.equal(hydratePendingSeeds(db, NOW), 0, 'already hydrated');
+    assert.ok((db.prepare('SELECT COUNT(*) AS n FROM matches').get() as { n: number }).n > 0);
     db.close();
   });
 });
@@ -480,10 +615,10 @@ describe('/admin capacity controller', () => {
         assert.equal(panel.status, 200);
         assert.match(panel.headers.get('content-type') ?? '', /text\/html/);
         const before = await (await fetch(`${running.url}/api/admin/capacity`)).json();
-        const bad = await fetch(`${running.url}/api/admin/capacity`, { method: 'POST', body: JSON.stringify({ maxRoomCapacity: 50, workerConcurrency: 9 }) });
+        const bad = await fetch(`${running.url}/api/admin/capacity`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ maxRoomCapacity: 50, workerConcurrency: 9 }) });
         assert.equal(bad.status, 400);
         assert.deepEqual(await (await fetch(`${running.url}/api/admin/capacity`)).json(), before);
-        const ok = await fetch(`${running.url}/api/admin/capacity`, { method: 'POST', body: JSON.stringify({ maxRoomCapacity: 50 }) });
+        const ok = await fetch(`${running.url}/api/admin/capacity`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ maxRoomCapacity: 50 }) });
         assert.equal(ok.status, 200);
         assert.equal(((await ok.json()) as { maxRoomCapacity: number }).maxRoomCapacity, 50);
       } finally {
@@ -491,19 +626,78 @@ describe('/admin capacity controller', () => {
       }
     });
 
+    test('choosing a room cap applies its worker profile unless the request overrides it', async () => {
+      const original = getAdmissionPolicy();
+      try {
+        const scaled = (await (await fetch(`${running.url}/api/admin/capacity`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ maxRoomCapacity: 150 }) })).json()) as Record<string, unknown>;
+        assert.deepEqual([scaled.workerConcurrency, scaled.githubFetchMode], [24, 'fast-rest-top5']);
+        const override = (await (await fetch(`${running.url}/api/admin/capacity`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ maxRoomCapacity: 300, workerConcurrency: 16 }) })).json()) as Record<string, unknown>;
+        assert.deepEqual([override.workerConcurrency, override.githubFetchMode], [16, 'fast-rest-top5']);
+        assert.deepEqual(capacityProfile(30), { workerConcurrency: 8, githubFetchMode: 'full-graphql' });
+        assert.deepEqual(capacityProfile(80), { workerConcurrency: 16, githubFetchMode: 'full-graphql' });
+      } finally {
+        setAdmissionPolicy(original);
+        setWorkerSettings({ ...DEFAULT_WORKER_SETTINGS });
+      }
+    });
+
+    test('rejects forged updates: wrong content type, foreign Origin, cross-site fetch', async () => {
+      const body = JSON.stringify({ intakeLocked: true });
+      const cases: Array<[Record<string, string>, number]> = [
+        [{ 'content-type': 'text/plain' }, 415],
+        [{}, 415],
+        [{ ...JSON_HEADERS, origin: 'https://evil.example' }, 403],
+        [{ ...JSON_HEADERS, 'sec-fetch-site': 'cross-site' }, 403],
+      ];
+      for (const [headers, status] of cases) {
+        for (const path of ['/api/admin/capacity', '/api/admin/prewarm']) {
+          const res = await fetch(`${running.url}${path}`, { method: 'POST', headers, body });
+          assert.equal(res.status, status, `${path} ${JSON.stringify(headers)}`);
+        }
+      }
+      assert.equal(getAdmissionPolicy().intakeLocked, false, 'no forged request changed anything');
+      const same = await fetch(`${running.url}/api/admin/capacity`, { method: 'POST', headers: { ...JSON_HEADERS, origin: running.url }, body: JSON.stringify({}) });
+      assert.equal(same.status, 200);
+    });
+
+    test('the panel script splits VIP handles on whitespace', async () => {
+      const html = await (await fetch(`${running.url}/admin`)).text();
+      assert.ok(html.includes('split(/\\s+/)'));
+    });
+
+    test('rejects a malformed pre-warm request', async () => {
+      const res = await fetch(`${running.url}/api/admin/prewarm`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ handles: [] }) });
+      assert.equal(res.status, 400);
+    });
+
     test('refuses requests that arrived through a proxy', async () => {
-      for (const [method, path] of [['GET', '/admin'], ['GET', '/api/admin/capacity'], ['POST', '/api/admin/capacity']] as const) {
-        const res = await fetch(`${running.url}${path}`, { method, headers: { 'x-forwarded-for': '203.0.113.9' }, ...(method === 'POST' ? { body: '{}' } : {}) });
+      for (const [method, path] of [['GET', '/admin'], ['GET', '/api/admin/capacity'], ['POST', '/api/admin/capacity'], ['POST', '/api/admin/prewarm']] as const) {
+        const res = await fetch(`${running.url}${path}`, { method, headers: { ...JSON_HEADERS, 'x-forwarded-for': '203.0.113.9' }, ...(method === 'POST' ? { body: '{}' } : {}) });
         assert.equal(res.status, 403, `${method} ${path}`);
       }
     });
 
     test('rejects an oversized or non-object body', async () => {
-      const big = await fetch(`${running.url}/api/admin/capacity`, { method: 'POST', body: JSON.stringify({ maxRoomCapacity: 'x'.repeat(5000) }) });
+      const big = await fetch(`${running.url}/api/admin/capacity`, { method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({ maxRoomCapacity: 'x'.repeat(5000) }) });
       assert.equal(big.status, 400);
-      const arr = await fetch(`${running.url}/api/admin/capacity`, { method: 'POST', body: '[1]' });
+      const arr = await fetch(`${running.url}/api/admin/capacity`, { method: 'POST', headers: JSON_HEADERS, body: '[1]' });
       assert.equal(arr.status, 400);
     });
+  });
+});
+
+describe('VIP pre-warm', () => {
+  test('validates handles and warms snapshots that admit VIPs past a full room', async () => {
+    assert.throws(() => validatePrewarm({ handles: 'judge' }), /handles/);
+    assert.throws(() => validatePrewarm({ handles: Array.from({ length: 51 }, (_, i) => `h${i}`) }), /at most 50/);
+    assert.throws(() => validatePrewarm({ handles: ['a'], websites: ['x'] }), /websites/);
+    const db = freshDb();
+    const { fetcher, calls } = ragFetcher();
+    const result = await prewarmVips(db, validatePrewarm({ handles: ['judge-one', 'Judge-One', 'judge-two'] }), { fetcher });
+    assert.deepEqual(result.warmed.sort(), ['judge-one', 'judge-two']);
+    assert.deepEqual(calls.sort(), ['judge-one', 'judge-two']);
+    assert.ok(db.prepare('SELECT 1 FROM github_snapshots WHERE github_username = ? AND participant_id IS NULL').get('judge-one'));
+    db.close();
   });
 });
 

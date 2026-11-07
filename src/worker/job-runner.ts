@@ -17,6 +17,8 @@ import type { OpportunityAnalysis } from '../intelligence/opportunity-agent.ts';
 import { enrichExplanation, explainMatches, geminiClientFromEnv } from '../matching/explanation-agent.ts';
 import type { ExplanationLlm, StagedExplanation } from '../matching/explanation-agent.ts';
 import { selectTopMatches } from '../matching/scorer.ts';
+import { SEED_ID_PREFIX } from '../routes/stage-snapshot.ts';
+import { hydrateSeedPersonas } from './seed-personas.ts';
 import type { ParticipantProfile } from '../matching/scorer.ts';
 import { ANALYZE_JOB_KIND } from '../routes/onboarding.ts';
 import { MATCH_REFRESH_JOB_KIND } from '../routes/me.ts';
@@ -61,6 +63,48 @@ export interface WorkerDeps {
   log?: Logger;
   /** Settings source; defaults to reading the settings file. */
   settings?: () => WorkerSettings;
+  /** Per-call model timeout for Stage 2 (default: each agent's own 4 s). */
+  stage2TimeoutMs?: number;
+  /** Shared Stage 2 limiter; `startWorker` keeps one across ticks so model calls never exceed `workerConcurrency`. */
+  stage2Limiter?: Limiter;
+}
+
+/**
+ * Caps how many async tasks run at once. The capacity is read on every acquire, so a concurrency change
+ * from `/admin` takes effect without restarting the worker.
+ */
+export class Limiter {
+  private active = 0;
+  private readonly waiting: Array<() => void> = [];
+  private readonly capacity: () => number;
+
+  /**
+   * @param capacity - Current maximum concurrent tasks.
+   */
+  constructor(capacity: () => number) {
+    this.capacity = capacity;
+  }
+
+  /**
+   * Runs `task` once a slot is free.
+   * @param task - Async work.
+   * @returns The task's result.
+   */
+  async run<T>(task: () => Promise<T>): Promise<T> {
+    while (this.active >= Math.max(1, this.capacity())) await new Promise<void>((wake) => this.waiting.push(wake));
+    this.active++;
+    try {
+      return await task();
+    } finally {
+      this.active--;
+      this.waiting.shift()?.();
+    }
+  }
+
+  /** Tasks currently running. */
+  get inFlight(): number {
+    return this.active;
+  }
 }
 
 export interface TickResult {
@@ -169,17 +213,24 @@ export async function mapWithConcurrency<T, R>(items: readonly T[], limit: numbe
 }
 
 /**
- * Returns abandoned `running` jobs (worker crashed mid-job) to the queue.
+ * Handles `running` jobs abandoned by a crashed worker: back to the queue, or failed once they have used
+ * all their attempts (so a job that crashes the worker every time cannot loop forever).
  * @param db - Open database.
  * @param now - Reference time.
- * @returns How many jobs were recovered.
+ * @param log - Optional logger.
+ * @returns How many jobs were requeued and how many were given up on.
  */
-export function recoverStaleJobs(db: DatabaseSync, now: Date): number {
+export function recoverStaleJobs(db: DatabaseSync, now: Date, log?: Logger): { requeued: number; abandoned: number } {
+  const at = now.toISOString();
   const cutoff = new Date(now.getTime() - STALE_RUNNING_MS).toISOString();
-  const result = db
-    .prepare("UPDATE async_jobs SET status = 'queued', updated_at = ? WHERE status = 'running' AND updated_at < ?")
-    .run(now.toISOString(), cutoff);
-  return Number(result.changes);
+  const abandoned = Number(
+    db
+      .prepare("UPDATE async_jobs SET status = 'failed', last_error = ?, updated_at = ? WHERE status = 'running' AND updated_at < ? AND attempts >= ?")
+      .run(`abandoned after ${MAX_ATTEMPTS} attempts`, at, cutoff, MAX_ATTEMPTS).changes,
+  );
+  const requeued = Number(db.prepare("UPDATE async_jobs SET status = 'queued', updated_at = ? WHERE status = 'running' AND updated_at < ?").run(at, cutoff).changes);
+  if (requeued || abandoned) log?.info('worker recovered stale jobs', { requeued, abandoned });
+  return { requeued, abandoned };
 }
 
 /**
@@ -198,7 +249,8 @@ export function leaseJobs(db: DatabaseSync, limit: number, now: Date): AsyncJob[
        RETURNING id, kind, participant_id, payload_json, attempts, run_after, created_at`,
     )
     .all(at, at, limit) as Array<{ id: string; kind: string; participant_id: string | null; payload_json: string; attempts: number; run_after: string; created_at: string }>;
-  rows.sort((x, y) => (x.run_after < y.run_after ? -1 : x.run_after > y.run_after ? 1 : x.created_at < y.created_at ? -1 : x.id < y.id ? -1 : 1));
+  const cmp = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
+  rows.sort((x, y) => cmp(x.run_after, y.run_after) || cmp(x.created_at, y.created_at) || cmp(x.id, y.id));
   return rows.map((r) => {
     let payload: Record<string, unknown> = {};
     try {
@@ -393,40 +445,48 @@ function failAnalysis(db: DatabaseSync, row: ParticipantRow, reason: 'github_use
 
 /**
  * Stage 2 for one analysed participant: model enrichment of capabilities, needs and match explanations.
- * Each step falls back to its Stage 1 result on a missing key, timeout or error (the agents handle that).
- * A changed fingerprint is written back to the snapshot, where `/me` and `/stage` read it.
+ * Every model call goes through the shared limiter, so concurrent calls never exceed `workerConcurrency`
+ * across all participants. Each step falls back to its Stage 1 result on a missing key, timeout or error
+ * (the agents handle that). A changed fingerprint is written back to the snapshot, where `/me` and `/stage` read it.
  * @param db - Open database.
  * @param ctx - The Stage 1 results to enrich.
- * @param deps - Clients, clock, logger, concurrency.
+ * @param deps - Clients, clock, logger, limiter, timeout.
  */
 async function runStage2(
   db: DatabaseSync,
   ctx: { id: string; snapshot: GithubSnapshot; capabilities: CapabilityAnalysis; opportunities: OpportunityAnalysis; goal: string | null },
-  deps: { llm: LlmClient | null; explanationLlm: ExplanationLlm | null; now: () => Date; log?: Logger; concurrency: number },
+  deps: { llm: LlmClient | null; explanationLlm: ExplanationLlm | null; now: () => Date; log?: Logger; limiter: Limiter; timeoutMs?: number },
 ): Promise<void> {
+  const timeout = deps.timeoutMs === undefined ? {} : { timeoutMs: deps.timeoutMs };
+  const logged = deps.log ? { log: deps.log } : {};
   if (!consents(participantRow(db, ctx.id))) return;
-  let changed = false;
-  const capabilities = await enrichStage2(ctx.capabilities, ctx.snapshot, { client: deps.llm });
+  const capabilities = deps.llm
+    ? await deps.limiter.run(() => enrichStage2(ctx.capabilities, ctx.snapshot, { client: deps.llm, ...timeout }))
+    : ctx.capabilities;
   if (capabilities.llm.used && consents(participantRow(db, ctx.id))) {
-    persistAnalysis(db, capabilities, { now: deps.now() });
-    writeSnapshot(db, { ...ctx.snapshot, fingerprint: capabilities.fingerprint }, { participantId: ctx.id, now: deps.now() });
-    changed = true;
+    const stored = persistAnalysis(db, capabilities, { now: deps.now() });
+    if (!stored.skipped) writeSnapshot(db, { ...ctx.snapshot, fingerprint: capabilities.fingerprint }, { participantId: ctx.id, now: deps.now() });
   }
-  const opportunities = await enrichOpportunities(ctx.opportunities, { snapshot: ctx.snapshot, capabilities, goal: ctx.goal }, { client: deps.llm, now: deps.now() });
+  const opportunities = deps.llm
+    ? await deps.limiter.run(() => enrichOpportunities(ctx.opportunities, { snapshot: ctx.snapshot, capabilities, goal: ctx.goal }, { client: deps.llm, now: deps.now(), ...timeout }))
+    : ctx.opportunities;
   if (opportunities.llm.used && consents(participantRow(db, ctx.id))) {
     persistOpportunities(db, opportunities, capabilities.receipts, { now: deps.now() });
-    changed = true;
   }
   if (!consents(participantRow(db, ctx.id))) return;
-  const cards = changed ? rematch(db, { now: deps.now(), focusId: ctx.id, ...(deps.log ? { log: deps.log } : {}) }) : rematch(db, { now: deps.now(), focusId: ctx.id });
+  const cards = rematch(db, { now: deps.now(), focusId: ctx.id, ...logged });
   if (!deps.explanationLlm) return;
   const llm = deps.explanationLlm;
-  await mapWithConcurrency(cards, deps.concurrency, async (card) => {
-    const a = loadProfile(db, card.proposal.participant_a_id);
-    const b = loadProfile(db, card.proposal.participant_b_id);
-    if (!a || !b) return;
-    await enrichExplanation(card, a, b, { llm, db, now: deps.now(), ...(deps.log ? { log: deps.log } : {}) });
-  });
+  await Promise.all(
+    cards.map((card) =>
+      deps.limiter.run(async () => {
+        const a = loadProfile(db, card.proposal.participant_a_id);
+        const b = loadProfile(db, card.proposal.participant_b_id);
+        if (!a || !b || !consents(participantRow(db, a.participant.id)) || !consents(participantRow(db, b.participant.id))) return;
+        await enrichExplanation(card, a, b, { llm, db, now: deps.now(), ...timeout, ...logged });
+      }),
+    ),
+  );
 }
 
 /**
@@ -498,6 +558,7 @@ export async function processJob(db: DatabaseSync, job: AsyncJob, deps: WorkerDe
 
   const llm = deps.llm === undefined ? llmClientFromEnv() : deps.llm;
   const explanationLlm = deps.explanationLlm === undefined ? (geminiClientFromEnv() ?? null) : deps.explanationLlm;
+  const limiter = deps.stage2Limiter ?? new Limiter(() => settings.workerConcurrency);
   return {
     status: 'succeeded',
     stage2: () =>
@@ -505,10 +566,30 @@ export async function processJob(db: DatabaseSync, job: AsyncJob, deps: WorkerDe
         llm,
         explanationLlm,
         now: clock,
-        concurrency: settings.workerConcurrency,
+        limiter,
+        ...(deps.stage2TimeoutMs === undefined ? {} : { timeoutMs: deps.stage2TimeoutMs }),
         ...(deps.log ? { log: deps.log } : {}),
       }),
   };
+}
+
+/**
+ * Gives seed rows that arrived without a profile (e.g. from the stage HUD's seed toggle, which only inserts
+ * bare rows) their full seed persona, then re-matches, so the pool never holds unscorable seeds for long.
+ * @param db - Open database.
+ * @param now - Reference time.
+ * @param log - Optional logger.
+ * @returns How many seeds were hydrated.
+ */
+export function hydratePendingSeeds(db: DatabaseSync, now: Date, log?: Logger): number {
+  const pending = db
+    .prepare('SELECT COUNT(*) AS n FROM participants p WHERE p.id LIKE ? AND NOT EXISTS (SELECT 1 FROM github_snapshots s WHERE s.participant_id = p.id)')
+    .get(`${SEED_ID_PREFIX}%`) as { n: number };
+  if (!Number(pending.n)) return 0;
+  const result = hydrateSeedPersonas(db, { now });
+  rematch(db, { now, ...(log ? { log } : {}) });
+  log?.info('worker hydrated seed personas', { hydrated: result.hydrated });
+  return result.hydrated;
 }
 
 /**
@@ -521,11 +602,13 @@ export async function processJob(db: DatabaseSync, job: AsyncJob, deps: WorkerDe
 export async function runWorkerTick(db: DatabaseSync, deps: WorkerDeps = {}): Promise<TickResult> {
   const clock = deps.now ?? (() => new Date());
   const settings = (deps.settings ?? (() => getWorkerSettings()))();
-  recoverStaleJobs(db, clock());
+  const limiter = deps.stage2Limiter ?? new Limiter(() => settings.workerConcurrency);
+  recoverStaleJobs(db, clock(), deps.log);
+  hydratePendingSeeds(db, clock(), deps.log);
   const jobs = leaseJobs(db, settings.workerConcurrency, clock());
   const outcomes = await mapWithConcurrency(jobs, settings.workerConcurrency, async (job) => {
     try {
-      return await processJob(db, job, { ...deps, settings: () => settings });
+      return await processJob(db, job, { ...deps, settings: () => settings, stage2Limiter: limiter });
     } catch (error) { // prawduct:allow prawduct/broad-except -- job boundary: one failing job must not stop the tick
       const message = error instanceof Error ? error.message : String(error);
       const row = job.participant_id ? participantRow(db, job.participant_id) : undefined;
@@ -535,14 +618,16 @@ export async function runWorkerTick(db: DatabaseSync, deps: WorkerDeps = {}): Pr
       return { status: 'failed' } as JobOutcome;
     }
   });
-  const stage2Tasks = outcomes.flatMap((o) => (o.stage2 ? [o.stage2] : []));
-  const stage2 = mapWithConcurrency(stage2Tasks, settings.workerConcurrency, async (task) => {
-    try {
-      await task();
-    } catch (error) { // prawduct:allow prawduct/broad-except -- Stage 2 is best-effort; Stage 1 results already stand
-      deps.log?.info('worker stage 2 failed', { error: error instanceof Error ? error.message : String(error) });
-    }
-  }).then(() => undefined);
+  // Stage 2 tasks start together; their model calls queue on the shared limiter, so the cap holds across ticks.
+  const stage2 = Promise.all(
+    outcomes.flatMap((o) => (o.stage2 ? [o.stage2] : [])).map(async (task) => {
+      try {
+        await task();
+      } catch (error) { // prawduct:allow prawduct/broad-except -- Stage 2 is best-effort; Stage 1 results already stand
+        deps.log?.info('worker stage 2 failed', { error: error instanceof Error ? error.message : String(error) });
+      }
+    }),
+  ).then(() => undefined);
   const count = (status: JobOutcome['status']): number => outcomes.filter((o) => o.status === status).length;
   return { leased: jobs.length, succeeded: count('succeeded'), skipped: count('skipped'), retried: count('retried'), failed: count('failed'), stage2 };
 }
@@ -554,6 +639,9 @@ export async function runWorkerTick(db: DatabaseSync, deps: WorkerDeps = {}): Pr
  * @returns A handle whose `stop()` resolves once the current tick and its Stage 2 work have finished.
  */
 export function startWorker(db: DatabaseSync, deps: WorkerDeps & { pollMs?: number } = {}): { stop(): Promise<void> } {
+  const settingsOf = deps.settings ?? (() => getWorkerSettings());
+  // One limiter for the worker's lifetime: Stage 2 from earlier ticks still counts against the cap.
+  deps = { ...deps, stage2Limiter: deps.stage2Limiter ?? new Limiter(() => settingsOf().workerConcurrency) };
   let stopped = false;
   const pending = new Set<Promise<void>>();
   let wake: (() => void) | null = null;

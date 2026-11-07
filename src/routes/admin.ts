@@ -5,9 +5,34 @@ import { countActiveParticipants, getAdmissionPolicy, setAdmissionPolicy } from 
 import { isPresenterRequest, SEED_ID_PREFIX, setSeedMode } from './stage-snapshot.ts';
 import { getWorkerSettings, GITHUB_FETCH_MODES, rematch, setWorkerSettings, WORKER_CONCURRENCY_LEVELS } from '../worker/job-runner.ts';
 import { hydrateSeedPersonas } from '../worker/seed-personas.ts';
+import { prewarmSnapshots } from '../github/cache.ts';
+import type { PrewarmResult, GetSnapshotOptions } from '../github/cache.ts';
+import type { GithubFetchMode, WorkerConcurrency } from '../worker/job-runner.ts';
 
 export const ROOM_CAPACITY_PRESETS = [15, 30, 50, 80, 100, 150, 300] as const;
 const MAX_BODY_BYTES = 4096;
+export const MAX_PREWARM_HANDLES = 50;
+
+/**
+ * Worker settings that suit each room size (A-016): a bigger crowd gets more parallel model workers and
+ * the cheaper GitHub fetch. Applied whenever the room cap changes, unless the same request overrides them.
+ */
+export const CAPACITY_PROFILES: ReadonlyArray<{ upTo: number; workerConcurrency: WorkerConcurrency; githubFetchMode: GithubFetchMode }> = [
+  { upTo: 30, workerConcurrency: 8, githubFetchMode: 'full-graphql' },
+  { upTo: 80, workerConcurrency: 16, githubFetchMode: 'full-graphql' },
+  { upTo: 150, workerConcurrency: 24, githubFetchMode: 'fast-rest-top5' },
+  { upTo: Infinity, workerConcurrency: 32, githubFetchMode: 'fast-rest-top5' },
+];
+
+/**
+ * The worker profile for a room cap.
+ * @param maxRoomCapacity - Selected cap.
+ * @returns Concurrency and fetch mode for that size.
+ */
+export function capacityProfile(maxRoomCapacity: number): { workerConcurrency: WorkerConcurrency; githubFetchMode: GithubFetchMode } {
+  const profile = CAPACITY_PROFILES.find((p) => maxRoomCapacity <= p.upTo)!;
+  return { workerConcurrency: profile.workerConcurrency, githubFetchMode: profile.githubFetchMode };
+}
 
 /** Everything the operator panel shows. */
 export interface CapacityState {
@@ -116,7 +141,8 @@ export function validateCapacityUpdate(body: Record<string, unknown>): {
 
 /**
  * Applies a validated update: admission policy, worker settings, and the seed pool (enabling hydrates the
- * 25 seed personas and re-matches the pool; disabling removes them with their matches).
+ * 25 seed personas and re-matches the pool; disabling removes them with their matches). Choosing a room
+ * cap also applies its worker profile (`CAPACITY_PROFILES`) unless the request sets those fields itself.
  * @param db - Open database.
  * @param update - Validated changes.
  * @param now - Reference time.
@@ -126,7 +152,7 @@ export function applyCapacityUpdate(db: DatabaseSync, update: ReturnType<typeof 
   if (update.maxRoomCapacity !== undefined) policy.maxRoomCapacity = update.maxRoomCapacity;
   if (update.intakeLocked !== undefined) policy.intakeLocked = update.intakeLocked;
   if (Object.keys(policy).length) setAdmissionPolicy(policy);
-  const worker: Record<string, unknown> = {};
+  const worker: Record<string, unknown> = update.maxRoomCapacity === undefined ? {} : { ...capacityProfile(update.maxRoomCapacity) };
   if (update.workerConcurrency !== undefined) worker.workerConcurrency = update.workerConcurrency;
   if (update.githubFetchMode !== undefined) worker.githubFetchMode = update.githubFetchMode;
   if (Object.keys(worker).length) setWorkerSettings(worker);
@@ -169,6 +195,12 @@ const PANEL_HTML = `<!doctype html>
   <p class="stat">Queue: <span id="queued">–</span> queued · <span id="running">–</span> running · <span id="failed">–</span> failed</p>
   <div class="row" id="concurrency-presets"></div>
   <div class="row" id="fetch-modes"></div>
+</section>
+<section><h2>VIP / judge pre-warm</h2>
+  <p>One GitHub username per line. Pre-warmed handles load instantly and are admitted even when the room is full.</p>
+  <textarea id="vips" rows="4" style="width:100%" aria-label="VIP GitHub usernames"></textarea>
+  <div class="row"><button id="prewarm" type="button">Pre-warm</button></div>
+  <p id="prewarm-result" role="status"></p>
 </section>
 <section><h2>Seed pool</h2>
   <p class="stat">Seeds in pool: <span id="seeds">–</span></p>
@@ -219,12 +251,77 @@ function render() {
   $('seed').setAttribute('aria-pressed', String(state.seedMode));
   $('seed').onclick = () => update({ seedMode: !state.seedMode });
 }
+$('prewarm').onclick = async () => {
+  const handles = $('vips').value.split(/\\s+/).filter(Boolean);
+  if (!handles.length) return;
+  $('prewarm-result').textContent = 'Pre-warming…';
+  const res = await fetch('/api/admin/prewarm', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ handles }) });
+  const body = await res.json();
+  $('prewarm-result').textContent = res.ok
+    ? 'Warmed ' + body.warmed.length + ', already cached ' + body.alreadyCached.length + ', failed ' + body.failed.length + '.'
+    : (body.detail || 'Pre-warm failed.');
+};
 load();
 setInterval(load, 5000);
 </script>
 </body>
 </html>
 `;
+
+/**
+ * Refuses a state-changing request a web page could forge from the presenter's browser: the body must
+ * be declared JSON (a cross-site form or no-cors fetch cannot send that without a preflight), and any
+ * Origin or Sec-Fetch-Site header must say the request came from this same origin.
+ * @param req - The request.
+ * @param res - The response (written on refusal).
+ * @returns True when the request may proceed.
+ */
+function sameOriginJson(req: IncomingMessage, res: ServerResponse): boolean {
+  const type = String(req.headers['content-type'] ?? '').split(';')[0]!.trim().toLowerCase();
+  if (type !== 'application/json') {
+    sendNoStoreJson(res, 415, { error: 'unsupported_media_type', detail: 'Send the update as application/json.' });
+    return false;
+  }
+  const origin = req.headers.origin;
+  const site = req.headers['sec-fetch-site'];
+  const host = req.headers.host;
+  const sameOrigin = !origin || (!!host && (origin === `http://${host}` || origin === `https://${host}`));
+  if (!sameOrigin || (site !== undefined && site !== 'same-origin' && site !== 'none')) {
+    sendNoStoreJson(res, 403, { error: 'cross_origin', detail: 'Operator updates must come from the operator panel itself.' });
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Validates a VIP pre-warm request: a list of GitHub handles, optionally with public websites.
+ * @param body - Request body.
+ * @returns Handles and website map.
+ * @throws If the shape is wrong or there are too many handles.
+ */
+export function validatePrewarm(body: Record<string, unknown>): { handles: string[]; websites: Record<string, string> } {
+  const handles = body.handles;
+  if (!Array.isArray(handles) || handles.length === 0 || !handles.every((h) => typeof h === 'string' && h.trim().length > 0)) {
+    throw new Error('handles must be a non-empty list of GitHub usernames');
+  }
+  if (handles.length > MAX_PREWARM_HANDLES) throw new Error(`at most ${MAX_PREWARM_HANDLES} handles per request`);
+  const websites = body.websites ?? {};
+  if (typeof websites !== 'object' || websites === null || Array.isArray(websites) || !Object.values(websites).every((v) => typeof v === 'string')) {
+    throw new Error('websites must map a handle to a URL');
+  }
+  return { handles: handles as string[], websites: websites as Record<string, string> };
+}
+
+/**
+ * Pre-warms VIP/judge GitHub snapshots so they load instantly and are admitted past a full room.
+ * @param db - Open database.
+ * @param request - Validated handles and websites.
+ * @param options - Connector overrides (tests inject a fetcher).
+ * @returns Which handles were warmed, already cached, or failed.
+ */
+export function prewarmVips(db: DatabaseSync, request: { handles: string[]; websites: Record<string, string> }, options: GetSnapshotOptions = {}): Promise<PrewarmResult> {
+  return prewarmSnapshots(db, request.handles, { ...options, websites: request.websites, concurrency: 2 });
+}
 
 /**
  * Refuses a request that does not come straight from this machine's loopback.
@@ -271,7 +368,7 @@ export const routes: RouteDefinition[] = [
      * or the seed pool. The whole body is validated first; 400 applies nothing. Presenter machine only.
      */
     async handler(req, res, ctx) {
-      if (!presenterOnly(req, res)) return;
+      if (!presenterOnly(req, res) || !sameOriginJson(req, res)) return;
       let update: ReturnType<typeof validateCapacityUpdate>;
       try {
         update = validateCapacityUpdate(await readJsonBody(req));
@@ -282,6 +379,28 @@ export const routes: RouteDefinition[] = [
       applyCapacityUpdate(ctx.db, update);
       ctx.log.info('operator capacity update', update as Record<string, unknown>);
       sendNoStoreJson(res, 200, capacityState(ctx.db));
+    },
+  },
+  {
+    method: 'POST',
+    path: '/api/admin/prewarm',
+    /**
+     * `POST /api/admin/prewarm` `{ handles: string[], websites?: { [handle]: url } }`: fetches and caches
+     * VIP/judge snapshots (at most 50, two at a time). Pre-warmed handles are admitted past a full room.
+     * Presenter machine only.
+     */
+    async handler(req, res, ctx) {
+      if (!presenterOnly(req, res) || !sameOriginJson(req, res)) return;
+      let request: ReturnType<typeof validatePrewarm>;
+      try {
+        request = validatePrewarm(await readJsonBody(req));
+      } catch (error) { // prawduct:allow prawduct/broad-except -- request boundary: any malformed body is a 400
+        sendNoStoreJson(res, 400, { error: 'invalid_prewarm', detail: error instanceof Error ? error.message : String(error) });
+        return;
+      }
+      const result = await prewarmVips(ctx.db, request);
+      ctx.log.info('operator vip prewarm', { warmed: result.warmed.length, cached: result.alreadyCached.length, failed: result.failed.length });
+      sendNoStoreJson(res, 200, result);
     },
   },
 ];

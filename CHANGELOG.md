@@ -7,23 +7,24 @@ All notable changes to Ariadne-PM are documented in this file.
 ### Added
 - **Background job worker, golden seed personas and `/admin` capacity controller (A-016, #15):**
   - `src/worker/job-runner.ts` runs `async_jobs`. Start it with `node src/worker/job-runner.ts`, a separate process sharing the WAL database; live views pick up its events within 1 s.
-    - It leases due jobs atomically and returns jobs abandoned by a crashed worker to the queue.
+    - It leases due jobs atomically and returns jobs abandoned by a crashed worker to the queue, giving up (and logging it) after 3 attempts.
     - It gates on consent first: a job for a missing or withdrawn participant is skipped, recorded as `succeeded` with a `skipped: consent_withdrawn` note.
     - `participant.analyze`, Stage 1: fetch the GitHub/website snapshot (A-003), store A-004 capabilities and A-005 needs (including the participant's goal as their confirmed need), mark the participant `ready`, re-match the pool, then explain and announce the matches (A-006/A-007).
-    - `participant.analyze`, Stage 2: model enrichment of capabilities, needs and match cards fans out under `workerConcurrency` and falls back to Stage 1 without a key. A refined fingerprint is written back to the snapshot so `/me` and `/stage` show it.
+    - `participant.analyze`, Stage 2: model enrichment of capabilities, needs and match cards follows; concurrent model calls never exceed `workerConcurrency` (one limiter shared across ticks), and a missing key, error or timeout falls back to Stage 1. A refined fingerprint is written back to the snapshot so `/me` and `/stage` show it.
     - GitHub rate-limit and outage errors retry with backoff, up to 3 attempts. An unknown user fails at once. A final failure marks the participant `failed` and publishes `analysis.failed`.
     - `matches.refresh` re-matches.
     - A match a participant has acted on (any intro state other than `candidate`, or an approval) is never re-scored or re-explained.
   - `src/worker/seed-personas.ts` and `data/golden-seed-24.json` hold 25 fictional builders (`github.com/ariadne-seed-NN`) across systems, frontend, LLM evaluation, agents, data and product. `hydrateSeedPersonas()` runs each through the same deterministic A-004/A-005 pipeline as a live participant (snapshot, fingerprint, evidence, claims, needs). Ids are deterministic and nothing is published.
-  - `src/routes/admin.ts` serves `GET /admin` (the operator panel), `GET /api/admin/capacity` and `POST /api/admin/capacity`, all presenter-machine only (`isPresenterRequest`). Controls:
-    - room capacity presets (15–300);
+  - `src/routes/admin.ts` serves `GET /admin` (the operator panel), `GET /api/admin/capacity`, `POST /api/admin/capacity` and `POST /api/admin/prewarm`. All are presenter-machine only (`isPresenterRequest`), and the POSTs also require `application/json` from the same origin, so another web page cannot forge them. Controls:
+    - room capacity presets (15–300), which auto-scale worker concurrency and fetch mode (≤30 → 8, ≤80 → 16, ≤150 → 24 and fast fetch, more → 32) unless overridden;
+    - VIP/judge pre-warm (up to 50 handles), so those snapshots load instantly and are admitted past a full room;
     - the intake lock (onboarding's admission policy);
     - worker concurrency (8/16/24/32);
     - GitHub fetch mode (`full-graphql` keeps the full REST budget; `fast-rest-top5` skips the README);
-    - the seed pool (enabling hydrates the 25 seeds and re-matches; disabling removes them).
+    - the seed pool (enabling hydrates the 25 seeds and re-matches; disabling removes them). Seeds added bare by the stage HUD's toggle are hydrated by the worker on its next tick.
 
     The whole update is validated first, so a bad field changes nothing. Worker settings reach the worker process through `data/worker-settings.json` (override with `ARIADNE_WORKER_SETTINGS_PATH`).
-  - Known limitation, reported to PM/Arc: A-004 claim names (`React`, `Go`…) and A-005 need labels (`Frontend (React)`, `Backend services`…) mostly do not overlap. Since A-006 matches by name, many live attendees outside the LLM/agent cluster get no surfaced matches until the vocabularies are aligned.
+  - A-006 scorer (approved by PM/Arc): A-004 claim names (`React`, `Go`…) and A-005 need labels (`Frontend (React)`, `Backend services`…) barely overlapped, so need/offer fit was 0 for most pairs. `NEED_LABEL_EXPANSIONS` now lets a generic need count the concrete capabilities that satisfy it. The cosine, weights and cap are unchanged. Measured on 25 live persona profiles against the 25 seeds: profiles with no surfaced match drop from 15 to 10, and surfaced matches rise from 24 to 51. The remainder is limited by the 0.35 similarity weight.
 - **A-012 Mutual Introductions & Private Intro Room (`src/matching/intro-state-machine.ts`, `src/routes/introductions.ts`, `public/app/intro-room.*`, Issue #12):**
   - `POST /api/matches/:id/decision` (`interested` | `pass`) for the match's two participants only (403 otherwise), authenticated by the `/join` session. Transitions run through the A-001 contract (`classifyIntroTransition`): the first Interested proposes (`introduction.proposed`), the counterpart's Interested accepts and the system completes the intro in the same transaction (`introduction.accepted` + `introduction.completed`, `channel: 'web'`, lighting the stage Golden Arc), Pass declines (`introduction.declined` with the public counter only). Repeated taps are idempotent no-ops; per-match idempotency keys make every event fire at most once. Stage identity appears only for participants with stage-display consent.
   - Zero-OAuth onboarding never verifies GitHub ownership, so a signed-in session counts as the verified actor by default; `ARIADNE_REQUIRE_VERIFIED_OWNERSHIP=1` restores strict verification.
