@@ -448,6 +448,9 @@ describe('Stage 2', () => {
       ['foreign_url', thesis(card, { why_you_match: 'The kit at gitlab.com/someone/kit is a good start.' })],
       ['foreign_url', thesis(card, { why_you_match: 'Read example.com/path before you meet.' })],
       ['foreign_url', thesis(card, { why_you_match: 'Book a room on example.com first.' })],
+      ['foreign_url', thesis(card, { why_you_match: 'Visit evil.ru today.' })],
+      ['foreign_url', thesis(card, { why_you_match: 'Both of you know Rust/gitlab.com/x well.' })],
+      ['foreign_url', thesis(card, { why_you_match: 'see...gitlab.com/x and my_site.com/x' })],
       ['missing_element', thesis(card, { why_you_match: '   ' })],
       ['missing_element', thesis(card, { collaboration_angle: 'Spend 15 minutes wiring the worklet to the SFU.' })],
       ['private_detail', thesis(card, { why_you_match: `Ask ${b.participant.github_username} about the deck.` })],
@@ -517,7 +520,7 @@ describe('Stage 2', () => {
   test('capability pairs such as Rust/WebRTC and the phrase and/or are not mistaken for repos', async () => {
     const { a, b, card } = staged();
     const result = await enrichExplanation(card, a, b, {
-      llm: fakeLlm(thesis(card, { why_you_match: 'One of you lives in Rust/WebRTC and the other in TypeScript/WebAudio, and/or both, e.g. Node.js-style tooling.' })),
+      llm: fakeLlm(thesis(card, { why_you_match: 'One of you lives in Rust/WebRTC and the other in TypeScript/WebAudio, and/or both, e.g. Node.js-style tooling and a main.py script.' })),
       now: NOW,
     });
     assert.equal(result.source, 'llm', result.rejection);

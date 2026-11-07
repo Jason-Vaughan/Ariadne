@@ -18,7 +18,7 @@ All notable changes to Ariadne-PM are documented in this file.
   - `src/matching/evidence-formatter.ts`: evidence pills from only the cited, owned, `EvidenceReceiptSchema`-valid receipts, deduplicated by URL within each side (two people may share a repo); a card needs at least two, with at least one per participant.
   - Stage 2 (`enrichExplanation`): asks an injected model for a richer "why you match" thesis and collaboration angle, with a 4 s timeout that aborts the request. The prompt carries only aliases, capabilities, needs and the pair's own pills. A verification gate rejects the whole reply, and Stage 1 stands, if it:
     - cites a receipt outside the pair, or cites only one side;
-    - contains a URL that isn't one of the pair's receipts (including links written without a scheme, such as `gitlab.com/x` or `example.com`), or names a repo (any bare `owner/repo` or `github.com/...` path) that isn't one of theirs. Two capabilities the pair actually holds or needs (e.g. `Rust/WebRTC`) are not treated as a repo;
+    - contains a URL that isn't one of the pair's receipts (including any link written without a scheme, such as `gitlab.com/x`, `example.com` or `evil.ru`, wherever it appears; only pathless code or file names like `Node.js` or `main.py` are exempt), or names a repo (any bare `owner/repo` or `github.com/...` path) that isn't one of theirs. Two capabilities the pair actually holds or needs (e.g. `Rust/WebRTC`) are not treated as a repo;
     - has a first step that does not name both participants;
     - contains an email, an @handle, a contact card, or a GitHub login outside the pair's own repo names and URLs;
     - is empty or too long.
