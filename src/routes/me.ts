@@ -285,25 +285,37 @@ export function dashboardFor(db: DatabaseSync, participant: ParticipantRow) {
   };
 }
 
+/** The column and value that mark a record as an AI inference, per table. */
+const INFERENCE_MARKER = {
+  capability_claims: { column: 'epistemic_type', value: 'AI_INFERENCE' },
+  opportunity_needs: { column: 'label', value: 'Potential Opportunity (AI Inference)' },
+} as const;
+
+export type DismissOutcome = 'dismissed' | 'not_found' | 'not_dismissible';
+
 /**
  * Marks one of the participant's own AI-inferred records dismissed and queues a match refresh.
+ * Observed facts and participant-confirmed needs cannot be dismissed.
  * @param db - Database handle.
  * @param table - `capability_claims` or `opportunity_needs`.
  * @param id - Record id.
  * @param participantId - Owner; records of other participants are never touched.
- * @returns Whether a record was dismissed.
+ * @returns What happened.
  */
-function dismiss(db: DatabaseSync, table: 'capability_claims' | 'opportunity_needs', id: string, participantId: string): boolean {
-  const result = db
-    .prepare(`UPDATE ${table} SET dismissed_by_user = 1 WHERE id = ? AND participant_id = ?`)
-    .run(id, participantId);
-  if (Number(result.changes) === 0) return false;
+function dismiss(db: DatabaseSync, table: 'capability_claims' | 'opportunity_needs', id: string, participantId: string): DismissOutcome {
+  const marker = INFERENCE_MARKER[table];
+  const row = db.prepare(`SELECT ${marker.column} AS kind FROM ${table} WHERE id = ? AND participant_id = ?`).get(id, participantId) as
+    | { kind: string }
+    | undefined;
+  if (!row) return 'not_found';
+  if (row.kind !== marker.value) return 'not_dismissible';
+  db.prepare(`UPDATE ${table} SET dismissed_by_user = 1 WHERE id = ? AND participant_id = ?`).run(id, participantId);
   const now = new Date().toISOString();
   db.prepare(
     `INSERT INTO async_jobs (id, kind, participant_id, status, payload_json, attempts, run_after, created_at, updated_at)
      VALUES (?, ?, ?, 'queued', ?, 0, ?, ?, ?)`,
   ).run(randomUUID(), MATCH_REFRESH_JOB_KIND, participantId, JSON.stringify({ reason: 'dismissed', table, id }), now, now, now);
-  return true;
+  return 'dismissed';
 }
 
 /**
@@ -315,7 +327,11 @@ function dismissHandler(table: 'capability_claims' | 'opportunity_needs') {
   return (req: IncomingMessage, res: ServerResponse, ctx: { db: DatabaseSync; params: Record<string, string>; log: { info(m: string, f?: Record<string, unknown>): void } }) => {
     const participant = sessionParticipant(req, ctx.db);
     if (!participant) return sendJson(res, 401, { error: 'not_signed_in' });
-    if (!dismiss(ctx.db, table, ctx.params.id ?? '', participant.id)) return sendJson(res, 404, { error: 'not_found' });
+    const outcome = dismiss(ctx.db, table, ctx.params.id ?? '', participant.id);
+    if (outcome === 'not_found') return sendJson(res, 404, { error: 'not_found' });
+    if (outcome === 'not_dismissible') {
+      return sendJson(res, 409, { error: 'not_dismissible', message: 'Only AI inferences can be dismissed.' });
+    }
     ctx.log.info('inference dismissed', { participant_id: participant.id, table, id: ctx.params.id });
     sendJson(res, 200, { dismissed: true });
   };

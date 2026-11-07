@@ -240,6 +240,25 @@ describe('/me routes', () => {
     assert.equal((await fetch(`${base}/api/me/claims/x/dismiss`, { method: 'POST' })).status, 401);
   });
 
+  it('refuses to dismiss observed facts or confirmed needs', async () => {
+    db.prepare(
+      `INSERT INTO capability_claims (id, participant_id, category, name, epistemic_type, proficiency_signal, confidence, uncertainty_note, evidence_receipt_ids)
+       VALUES ('30000000-0000-4000-8000-000000000003', ?, 'language', 'Rust', 'OBSERVED_FACT', 'primary', 0.95, NULL, '["x"]')`,
+    ).run(me.id);
+    db.prepare(
+      `INSERT INTO opportunity_needs (id, participant_id, project_repo, opportunity_type, label, summary, desired_capabilities, confidence, uncertainty_note, evidence_receipt_ids)
+       VALUES ('40000000-0000-4000-8000-000000000002', ?, 'octocat/app', 'open_issue_help', 'Participant Confirmed Need', 'Needs a designer', '[]', 0.9, 'Confirmed.', '[]')`,
+    ).run(me.id);
+    const claim = await fetch(`${base}/api/me/claims/30000000-0000-4000-8000-000000000003/dismiss`, { method: 'POST', headers: { cookie: me.cookie } });
+    assert.equal(claim.status, 409);
+    const need = await fetch(`${base}/api/me/needs/40000000-0000-4000-8000-000000000002/dismiss`, { method: 'POST', headers: { cookie: me.cookie } });
+    assert.equal(need.status, 409);
+    const data = await dashboard();
+    assert.equal(data.offers.length, 1);
+    assert.equal(data.needs.length, 1);
+    assert.equal(Number((db.prepare('SELECT COUNT(*) AS n FROM async_jobs WHERE kind = ?').get(MATCH_REFRESH_JOB_KIND) as { n: number }).n), 0);
+  });
+
   it('dismisses an AI-inferred need', async () => {
     db.prepare(
       `INSERT INTO opportunity_needs (id, participant_id, project_repo, opportunity_type, summary, desired_capabilities, confidence, uncertainty_note, evidence_receipt_ids)
