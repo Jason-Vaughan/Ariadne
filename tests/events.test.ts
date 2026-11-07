@@ -10,7 +10,16 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { EventPollResponseSchema, PublicEventEnvelopeSchema } from '../src/contracts/index.ts';
 import type { PublicEventEnvelope } from '../src/contracts/index.ts';
-import { latestSeqId, parseCursor, publishEvent, readEventsAfter, subscribe, subscriberCount } from '../src/events/bus.ts';
+import { randomUUID } from 'node:crypto';
+import {
+  latestSeqId,
+  parseCursor,
+  publishEvent,
+  readEventPage,
+  readEventsAfter,
+  subscribe,
+  subscriberCount,
+} from '../src/events/bus.ts';
 import { createEventRoutes, formatSseFrame } from '../src/routes/events.ts';
 import type { RouteDefinition } from '../src/server.ts';
 
@@ -47,10 +56,10 @@ function openDb(path = ':memory:'): DatabaseSync {
  * @returns The payload.
  */
 function evaluated(score: number) {
-  return { match_id: MATCH_ID, pseudonym_a: 'Thread-7C4E', pseudonym_b: 'Spool-A1B2', composite_score: score };
+  return { match_id: MATCH_ID, display_alias_a: 'Thread-7C4E', display_alias_b: 'Spool-A1B2', composite_score: score };
 }
 
-const registered = { participant_pseudonym: 'Thread-7C4E' };
+const registered = { display_alias: 'Thread-7C4E' };
 
 interface Harness {
   db: DatabaseSync;
@@ -180,6 +189,20 @@ async function eventually(condition: () => boolean, timeoutMs = 2000): Promise<v
 }
 
 /**
+ * Writes a row straight into `domain_events`, bypassing `publishEvent()`, as a foreign writer could.
+ * The payload leaks an unconsented username, so the public contract rejects it.
+ * @param db - An open database handle.
+ */
+function insertLeakyRow(db: DatabaseSync): void {
+  db.prepare('INSERT INTO domain_events (event_id, type, payload_json, occurred_at) VALUES (?, ?, ?, ?)').run(
+    randomUUID(),
+    'participant.registered',
+    JSON.stringify({ display_alias: 'Thread-7C4E', github_username: 'octocat' }),
+    new Date().toISOString(),
+  );
+}
+
+/**
  * Counts stored events.
  * @param db - An open database handle.
  * @returns Row count of `domain_events`.
@@ -223,7 +246,7 @@ describe('event bus', () => {
       { ...registered, avatar_url: 'https://avatars.example/1' },
       { ...registered, contact_card: '@me' },
       { ...registered, login: 'octocat' },
-      { participant_pseudonym: 'octocat' },
+      { display_alias: 'octocat' },
     ];
     for (const payload of leaks) {
       assert.throws(() => publishEvent(db, 'participant.registered', payload as any), JSON.stringify(payload));
@@ -234,11 +257,11 @@ describe('event bus', () => {
 
   test('identity is accepted only inside a consented display block', () => {
     const db = openDb();
-    const display = { public_display_consent: true as const, github_username: 'octocat', avatar_url: null };
+    const display = { stage_display_consent: true as const, github_username: 'octocat', avatar_url: null };
     const { envelope } = publishEvent(db, 'participant.registered', { ...registered, display });
     assert.deepEqual(envelope.payload, { ...registered, display });
     assert.throws(() =>
-      publishEvent(db, 'participant.registered', { ...registered, display: { ...display, public_display_consent: false } } as any),
+      publishEvent(db, 'participant.registered', { ...registered, display: { ...display, stage_display_consent: false } } as any),
     );
     assert.equal(rowCount(db), 1);
     db.close();
@@ -256,7 +279,7 @@ describe('event bus', () => {
     const woken: number[] = [];
     const unsubscribe = subscribe(db, (seq) => woken.push(seq));
     const key = `${MATCH_ID}:a:interested`;
-    const proposed = { match_id: MATCH_ID, pseudonym_a: 'Thread-7C4E', pseudonym_b: 'Spool-A1B2' };
+    const proposed = { match_id: MATCH_ID, display_alias_a: 'Thread-7C4E', display_alias_b: 'Spool-A1B2' };
     const first = publishEvent(db, 'introduction.proposed', proposed, { idempotencyKey: key });
     const second = publishEvent(db, 'introduction.proposed', proposed, { idempotencyKey: key });
     assert.equal(first.inserted, true);
@@ -265,6 +288,30 @@ describe('event bus', () => {
     assert.equal(rowCount(db), 1);
     assert.deepEqual(woken, [first.envelope.seq_id]);
     unsubscribe();
+    db.close();
+  });
+
+  test('reusing an idempotency key for a different event type is an error', () => {
+    const db = openDb();
+    const pair = { match_id: MATCH_ID, display_alias_a: 'Thread-7C4E', display_alias_b: 'Spool-A1B2' };
+    publishEvent(db, 'introduction.proposed', pair, { idempotencyKey: 'k1' });
+    assert.throws(() => publishEvent(db, 'introduction.accepted', pair, { idempotencyKey: 'k1' }), /already used/);
+    assert.equal(rowCount(db), 1);
+    db.close();
+  });
+
+  test('withholds stored rows that fail the public contract, reports them, and still advances the cursor', () => {
+    const db = openDb();
+    const before = publishEvent(db, 'participant.registered', registered).envelope;
+    insertLeakyRow(db);
+    const after = publishEvent(db, 'match.evaluated', evaluated(5)).envelope;
+    const rejected: number[] = [];
+    const page = readEventPage(db, 0, 500, (seq) => rejected.push(seq));
+    assert.deepEqual(page.events, [before, after]);
+    assert.deepEqual(rejected, [2]);
+    assert.equal(page.lastScanned, 3);
+    assert.equal(page.scanned, 3);
+    assert.deepEqual(readEventPage(db, 1, 1), { events: [], lastScanned: 2, scanned: 1 });
     db.close();
   });
 
@@ -326,6 +373,31 @@ describe('GET /api/events/poll', () => {
     const h = await startHarness();
     try {
       assert.deepEqual((await getJson(`${h.base}/api/events/poll`)).body, { events: [], latest_seq_id: 0 });
+    } finally {
+      await h.close();
+    }
+  });
+
+  test('a cursor beyond the head (store was reset) pages from the start, like the stream', async () => {
+    const h = await startHarness();
+    try {
+      const all = [1, 2].map((n) => publishEvent(h.db, 'match.evaluated', evaluated(n)).envelope);
+      const { body } = await getJson(`${h.base}/api/events/poll?after=9999`);
+      assert.deepEqual(body, { events: all, latest_seq_id: 2 });
+    } finally {
+      await h.close();
+    }
+  });
+
+  test('never serves a stored row that fails the public contract', async () => {
+    const h = await startHarness();
+    try {
+      insertLeakyRow(h.db);
+      const ok = publishEvent(h.db, 'participant.registered', registered).envelope;
+      const res = await fetch(`${h.base}/api/events/poll?after=0`);
+      const text = await res.text();
+      assert.doesNotMatch(text, /octocat/);
+      assert.deepEqual(JSON.parse(text), { events: [ok], latest_seq_id: 2 });
     } finally {
       await h.close();
     }
@@ -492,6 +564,23 @@ describe('GET /api/events/stream', () => {
       await client.waitFor((t) => t.includes('retry:'));
       assert.throws(() => publishEvent(h.db, 'participant.registered', { ...registered, github_username: 'octocat' } as any));
       const ok = publishEvent(h.db, 'participant.registered', registered).envelope;
+      await client.waitFor(() => client.events().length === 1);
+      assert.deepEqual(client.events(), [ok]);
+      assert.doesNotMatch(client.text(), /octocat/);
+    } finally {
+      client.close();
+      await h.close();
+    }
+  });
+
+  test('a full batch of contract-failing rows neither stalls the stream nor reaches it', async () => {
+    const h = await startHarness();
+    h.db.exec('BEGIN');
+    for (let n = 0; n < 600; n++) insertLeakyRow(h.db);
+    h.db.exec('COMMIT');
+    const ok = publishEvent(h.db, 'participant.registered', registered).envelope;
+    const client = await openSse(`${h.base}/api/events/stream?after=0`);
+    try {
       await client.waitFor(() => client.events().length === 1);
       assert.deepEqual(client.events(), [ok]);
       assert.doesNotMatch(client.text(), /octocat/);

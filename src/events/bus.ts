@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { EventEmitter } from 'node:events';
 import type { DatabaseSync } from 'node:sqlite';
-import { EVENT_PAYLOAD_SCHEMAS, EventTypeSchema } from '../contracts/index.ts';
+import { EVENT_PAYLOAD_SCHEMAS, EventTypeSchema, PublicEventEnvelopeSchema } from '../contracts/index.ts';
 import type { EventPayload, EventType, PublicEventEnvelope } from '../contracts/index.ts';
 
 export const MAX_BATCH = 500;
@@ -33,10 +33,19 @@ interface EventRow {
 const SELECT_COLUMNS = 'seq_id, event_id, type, payload_json, occurred_at';
 const emitters = new WeakMap<DatabaseSync, EventEmitter>();
 
+export interface EventPage {
+  /** Contract-valid envelopes, oldest first. */
+  events: PublicEventEnvelope[];
+  /** Highest `seq_id` examined, valid or not (the cursor to read from next); `after` when nothing was read. */
+  lastScanned: number;
+  /** Rows examined; equal to the limit means more may follow. */
+  scanned: number;
+}
+
 /**
- * Converts a stored row into its public envelope. Rows are validated on the way in, so they are trusted here.
+ * Converts a stored row into its public envelope without validating it.
  * @param row - A `domain_events` row.
- * @returns The public envelope.
+ * @returns The envelope as stored.
  */
 function toEnvelope(row: EventRow): PublicEventEnvelope {
   return {
@@ -46,6 +55,23 @@ function toEnvelope(row: EventRow): PublicEventEnvelope {
     occurred_at: row.occurred_at,
     payload: JSON.parse(row.payload_json),
   } as PublicEventEnvelope;
+}
+
+/**
+ * Validates a stored row against the public envelope contract. Rows written by other
+ * connections (e.g. the worker) may not have gone through `publishEvent()`.
+ * @param row - A `domain_events` row.
+ * @returns The envelope, or `null` when the row is malformed or would expose non-public data.
+ */
+function toPublicEnvelope(row: EventRow): PublicEventEnvelope | null {
+  let candidate: unknown;
+  try {
+    candidate = toEnvelope(row);
+  } catch {
+    return null;
+  }
+  const parsed = PublicEventEnvelopeSchema.safeParse(candidate);
+  return parsed.success ? parsed.data : null;
 }
 
 /**
@@ -95,6 +121,9 @@ export function publishEvent<T extends EventType>(
       .prepare(`SELECT ${SELECT_COLUMNS} FROM domain_events WHERE idempotency_key = ?`)
       .get(idempotencyKey) as EventRow | undefined;
     if (!existing) throw new Error(`Event insert for ${eventType} wrote nothing and matched no idempotency key`);
+    if (existing.type !== eventType) {
+      throw new Error(`Idempotency key already used by a ${existing.type} event, not ${eventType}`);
+    }
     return { envelope: toEnvelope(existing), inserted: false };
   }
 
@@ -106,18 +135,54 @@ export function publishEvent<T extends EventType>(
 }
 
 /**
- * Reads public envelopes with `seq_id` greater than a cursor, oldest first.
+ * Reads one page of rows after a cursor and keeps only contract-valid envelopes. A row that fails
+ * the public contract is skipped (and reported) rather than served, but still advances the cursor.
  * @param db - An open database handle.
  * @param after - Exclusive lower bound on `seq_id`.
- * @param limit - Maximum rows to return (clamped to 1..MAX_BATCH).
- * @returns The envelopes.
+ * @param limit - Maximum rows to examine (clamped to 1..MAX_BATCH).
+ * @param onRejected - Called with the `seq_id` of each skipped row.
+ * @returns The valid envelopes and how far the page scanned.
  */
-export function readEventsAfter(db: DatabaseSync, after: number, limit = MAX_BATCH): PublicEventEnvelope[] {
+export function readEventPage(
+  db: DatabaseSync,
+  after: number,
+  limit = MAX_BATCH,
+  onRejected?: (seqId: number) => void,
+): EventPage {
   const bounded = Math.min(Math.max(Math.trunc(limit), 1), MAX_BATCH);
   const rows = db
     .prepare(`SELECT ${SELECT_COLUMNS} FROM domain_events WHERE seq_id > ? ORDER BY seq_id ASC LIMIT ?`)
     .all(after, bounded) as unknown as EventRow[];
-  return rows.map(toEnvelope);
+  const events: PublicEventEnvelope[] = [];
+  for (const row of rows) {
+    const envelope = toPublicEnvelope(row);
+    if (envelope) events.push(envelope);
+    else onRejected?.(Number(row.seq_id));
+  }
+  const lastRow = rows.at(-1);
+  return { events, lastScanned: lastRow ? Number(lastRow.seq_id) : after, scanned: rows.length };
+}
+
+/**
+ * Reads contract-valid public envelopes with `seq_id` greater than a cursor, oldest first.
+ * @param db - An open database handle.
+ * @param after - Exclusive lower bound on `seq_id`.
+ * @param limit - Maximum rows to examine (clamped to 1..MAX_BATCH).
+ * @returns The envelopes.
+ */
+export function readEventsAfter(db: DatabaseSync, after: number, limit = MAX_BATCH): PublicEventEnvelope[] {
+  return readEventPage(db, after, limit).events;
+}
+
+/**
+ * Normalizes a client cursor against the current head. A cursor past the head means the store
+ * was reset (e.g. a fresh demo database), so the client is sent back to the start.
+ * @param cursor - The client's cursor.
+ * @param head - The current latest `seq_id`.
+ * @returns The cursor to read after.
+ */
+export function effectiveCursor(cursor: number, head: number): number {
+  return cursor > head ? 0 : cursor;
 }
 
 /**

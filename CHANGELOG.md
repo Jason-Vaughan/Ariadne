@@ -6,10 +6,11 @@ All notable changes to Ariadne-PM are documented in this file.
 
 ### Added
 - **Append-only SQLite event bus with SSE stream and polling fallback (A-009, #9):**
-  - `src/events/bus.ts`: `publishEvent()` validates the payload against the A-001 strict per-type schema (`EVENT_PAYLOAD_SCHEMAS`) and only then appends it to A-001's `domain_events` table. That schema is the privacy gate: a payload carrying a raw username, contact card or any key the contract does not name is rejected and nothing is written, and identity is accepted only inside a `display` block with `public_display_consent: true`.
-  - Idempotent publishing: a repeated `idempotencyKey` (e.g. `<match_id>:a:interested`) inserts nothing, returns the stored event, and wakes no subscriber.
+  - `src/events/bus.ts`: `publishEvent()` validates the payload against the A-001 strict per-type schema (`EVENT_PAYLOAD_SCHEMAS`) and only then appends it to A-001's `domain_events` table. That schema is the privacy gate: a payload carrying a raw username, contact card or any key the contract does not name is rejected and nothing is written, and identity is accepted only inside a `display` block with `stage_display_consent: true`.
+  - Rows are re-checked against `PublicEventEnvelopeSchema` when read, because other connections (e.g. the worker) can write `domain_events` without going through `publishEvent()`. A row that fails is withheld and logged, and never stalls the cursor.
+  - Idempotent publishing: a repeated `idempotencyKey` (e.g. `<match_id>:a:interested`) inserts nothing, returns the stored event, and wakes no subscriber. Reusing a key for a different event type is an error.
   - `GET /api/events/stream`: Server-Sent Events. Each frame's `id` is its `seq_id`, so `Last-Event-ID` (or `?after=`) replays exactly the missed events. With no cursor the stream starts live. A cursor beyond the head (after a database reset) replays from the start. The stream pauses for a slow client instead of buffering the whole replay. A 15 s keep-alive is an SSE comment, never an event. Events written by other connections (e.g. the worker) are picked up within 1 s.
-  - `GET /api/events/poll?after=<seq_id>&limit=<n>` returns `{ events, latest_seq_id }`, the same events the stream replays for the same cursor; a malformed cursor returns 400.
+  - `GET /api/events/poll?after=<seq_id>&limit=<n>` returns `{ events, latest_seq_id }`, the same events the stream replays for the same cursor, including after a database reset; a malformed cursor returns 400.
   - Mounts through `src/server.ts`'s route auto-loader (A-014, #19) and builds on the A-001 contracts and schema (#20); both must merge first. Test with `node --test tests/events.test.ts`.
   - Zero dependencies; mounts through `src/server.ts`'s route auto-loader. Test with `node --test tests/events.test.ts`.
 - **A-001 Core Contracts & SQLite Schema (`src/contracts/*`, `src/db/schema.sql`, `tests/contracts.test.ts`, Issue #1):**

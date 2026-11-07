@@ -1,7 +1,8 @@
 import type { ServerResponse } from 'node:http';
 import type { RouteDefinition } from '../server.ts';
-import { latestSeqId, MAX_BATCH, parseCursor, readEventsAfter, subscribe } from '../events/bus.ts';
+import { effectiveCursor, latestSeqId, MAX_BATCH, parseCursor, readEventPage, subscribe } from '../events/bus.ts';
 import type { PublicEventEnvelope } from '../contracts/index.ts';
+import type { Logger } from '../server.ts';
 
 export const HEARTBEAT_MS = 15_000;
 // Picks up events written by other connections (e.g. the worker), which never signal this process.
@@ -29,6 +30,15 @@ function sendNoStoreJson(res: ServerResponse, status: number, body: unknown): vo
     'x-content-type-options': 'nosniff',
   });
   res.end(text);
+}
+
+/**
+ * Builds the callback that reports a stored row withheld for failing the public contract.
+ * @param log - The request logger.
+ * @returns A callback taking the withheld row's `seq_id`.
+ */
+function logRejected(log: Logger): (seqId: number) => void {
+  return (seqId) => log.info('event withheld: stored row fails the public event contract', { seq_id: seqId });
 }
 
 /**
@@ -63,8 +73,14 @@ export function createEventRoutes(options: EventRouteOptions = {}): RouteDefinit
           sendNoStoreJson(res, 400, { error: 'invalid_cursor', detail: 'after and limit must be non-negative integers' });
           return;
         }
-        const events = readEventsAfter(ctx.db, after ?? 0, Math.min(limit ?? DEFAULT_POLL_LIMIT, MAX_BATCH));
-        sendNoStoreJson(res, 200, { events, latest_seq_id: latestSeqId(ctx.db) });
+        const head = latestSeqId(ctx.db);
+        const page = readEventPage(
+          ctx.db,
+          effectiveCursor(after ?? 0, head),
+          Math.min(limit ?? DEFAULT_POLL_LIMIT, MAX_BATCH),
+          logRejected(ctx.log),
+        );
+        sendNoStoreJson(res, 200, { events: page.events, latest_seq_id: head });
       },
     },
     {
@@ -98,10 +114,10 @@ export function createEventRoutes(options: EventRouteOptions = {}): RouteDefinit
         res.write(`retry: ${RETRY_MS}\n\n`);
 
         const head = latestSeqId(ctx.db);
-        // A cursor past the head means the store was reset (e.g. a fresh demo DB): replay it from the start.
-        let lastSent = cursor === undefined ? head : cursor > head ? 0 : cursor;
+        let lastSent = cursor === undefined ? head : effectiveCursor(cursor, head);
         let closed = false;
         let waitingForDrain = false;
+        const onRejected = logRejected(ctx.log);
 
         /**
          * Sends stored events after the last one this client received, pausing while the socket buffer is full.
@@ -111,8 +127,8 @@ export function createEventRoutes(options: EventRouteOptions = {}): RouteDefinit
           if (closed || waitingForDrain) return;
           try {
             for (;;) {
-              const batch = readEventsAfter(ctx.db, lastSent, MAX_BATCH);
-              for (const event of batch) {
+              const page = readEventPage(ctx.db, lastSent, MAX_BATCH, onRejected);
+              for (const event of page.events) {
                 lastSent = event.seq_id;
                 if (!res.write(formatSseFrame(event))) {
                   waitingForDrain = true;
@@ -123,7 +139,8 @@ export function createEventRoutes(options: EventRouteOptions = {}): RouteDefinit
                   return;
                 }
               }
-              if (batch.length < MAX_BATCH) return;
+              lastSent = page.lastScanned;
+              if (page.scanned < MAX_BATCH) return;
             }
           } catch (error) { // prawduct:allow prawduct/broad-except -- per-connection boundary: one broken stream must not affect others
             ctx.log.info('event stream closed after read failure', {
