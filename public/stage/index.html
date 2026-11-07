@@ -22,7 +22,8 @@
       <button type="button" id="qr-float-toggle" data-action="qr:floating" aria-pressed="true">📌 Floating QR<kbd>A</kbd></button>
       <button type="button" id="seed-toggle" data-action="seed" aria-pressed="false">🌱 Seed AI Devs: OFF<kbd>S</kbd></button>
       <button type="button" id="privacy-toggle" data-action="privacy" aria-pressed="false">🔒 Privacy<kbd>P</kbd></button>
-      <button type="button" id="cycle-toggle" data-action="cycle" aria-pressed="false">⚡ Auto-Cycle<kbd>Space</kbd></button>
+      <button type="button" id="cycle-toggle" data-action="cycle" aria-pressed="false">⚡ Auto-Cycle<kbd title="Space">␣</kbd></button>
+      <button type="button" id="info-toggle" data-action="info" aria-pressed="false">ℹ️ Info<kbd>I</kbd></button>
     </div>
   </header>
 
@@ -52,7 +53,10 @@
         <button type="button" data-action="spotlight:next">Next ▶<kbd>→</kbd></button>
       </div>
     </section>
-    <div id="hud" class="hud" aria-label="Operator status">Connecting…</div>
+    <div class="hud-bar">
+      <button type="button" id="view-info" class="view-info" data-action="info">ℹ️ How View 1 works</button>
+      <div id="hud" class="hud" aria-label="Operator status">Connecting…</div>
+    </div>
   </main>
 
   <aside id="qr-floating" aria-label="Floating join QR">
@@ -64,6 +68,10 @@
     <div class="qr-float-url" id="qr-float-url"></div>
     <div class="qr-float-count"><strong id="qr-float-count">0</strong> Builders Scanned In</div>
   </aside>
+
+  <div id="info-modal" role="dialog" aria-modal="true" aria-label="How Ariadne works" hidden>
+    <div class="info-card" id="info-card"></div>
+  </div>
 
   <div id="qr-modal" hidden>
     <div class="qr-card">
@@ -82,6 +90,7 @@ import { renderPipeline } from './activity-feed.js';
 import { renderFingerprintGallery } from './fingerprints.js';
 import { renderSpotlight, resolveIndex, SPOTLIGHT_ADVANCE_MS, stepIndex } from './spotlight.js';
 import { bindControls, hudItems, renderHud } from './operator-controls.js';
+import { renderExplainer } from './explainers.js';
 
 const GRAPH_WIDTH = 1856;
 // Nodes stay above the legend strip along the bottom of the view.
@@ -108,6 +117,7 @@ const state = {
   spotId: null,
   spotAuto: true,
   spotTimer: null,
+  infoTab: '1',
 };
 
 /** Scale the fixed 1920x1080 stage to fit the window, letterboxed and centred. */
@@ -126,6 +136,7 @@ function showView(view) {
   state.view = view;
   for (const el of document.querySelectorAll('.view')) el.classList.toggle('active', el.dataset.view === view);
   for (const el of document.querySelectorAll('nav.views button')) el.classList.toggle('active', el.dataset.view === view);
+  $('view-info').textContent = `ℹ️ How View ${view} works`;
   scheduleSpotlightAdvance();
 }
 
@@ -404,6 +415,20 @@ function makeDraggable(panel, handle) {
   handle.addEventListener('pointercancel', end);
 }
 
+/**
+ * Open the explainer on a tab, or close it.
+ * @param {string|null} tab view number to show, or null to close
+ */
+function setInfo(tab) {
+  const modal = $('info-modal');
+  modal.hidden = tab === null;
+  $('info-toggle').setAttribute('aria-pressed', String(tab !== null));
+  if (tab !== null) {
+    state.infoTab = tab;
+    renderExplainer($('info-card'), tab);
+  }
+}
+
 /** Start or stop hands-free rotation through views 1 → 4. */
 function toggleCycle() {
   if (state.cycleTimer) {
@@ -424,6 +449,9 @@ function dispatch(action) {
   if (action.startsWith('view:')) showView(action.slice(5));
   else if (action === 'qr') toggleQr();
   else if (action === 'qr:floating') toggleFloatingQr();
+  else if (action === 'info') setInfo($('info-modal').hidden ? state.view : null);
+  else if (action === 'info:close') setInfo(null);
+  else if (action.startsWith('info:tab:')) setInfo(action.slice(9));
   else if (action === 'seed') toggleSeeds();
   else if (action === 'privacy') togglePrivacy();
   else if (action === 'cycle') toggleCycle();
@@ -436,6 +464,10 @@ function dispatch(action) {
 }
 
 bindControls(document, () => state.view, dispatch);
+// A click on the dimmed backdrop (not on the card) closes the explainer.
+$('info-modal').addEventListener('click', (event) => {
+  if (event.target === $('info-modal')) setInfo(null);
+});
 makeDraggable($('qr-floating'), $('qr-float-handle'));
 window.addEventListener('resize', fitStage);
 

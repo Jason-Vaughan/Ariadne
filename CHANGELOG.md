@@ -5,6 +5,7 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Stage explainer: "How it works" for every view (A-023, #52; `public/stage/explainers.js`, `public/stage/{index.html,stage.css,activity-feed.js,operator-controls.js}`):** An `ℹ️ Info` header button, the `I` / `?` hotkeys, an "ℹ️ How View N works" pill and an ℹ️ badge on each pipeline column open a full-screen explainer. It has four tabs (pipeline, 6-axis fingerprint math, Web of Connections, and matching theory: why not Elo) and opens on the current view's tab. `Escape` closes it. Every figure on the slides comes from one `EXPLAINER_FACTS` object that tests pin to the code's own constants (score weights, 45-point threshold, anti-clone cap 38, top-3, 25 seeds, 10 repos, ±25 Stage 2 shift, Gemini 2.5 Flash, the fingerprint weight and saturation formulas), so the stage can't drift from the scorer. Control clicks are now delegated, so dynamically drawn tabs and badges work, and the header controls are slightly smaller so the new button fits at 1920px.
 - **A-021 stage display on by default in the `/join` form, @handle first on `/me` (Issue #48):** the stage-display box is pre-checked and sent explicitly; the server default stays off for requests that omit it. `/me` leads with `@github_username`.
 
 ### Fixed

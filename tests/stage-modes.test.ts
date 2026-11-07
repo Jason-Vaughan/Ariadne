@@ -1,7 +1,7 @@
 import { describe, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { request } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -31,6 +31,14 @@ import {
 import { galleryOrder, radarPoint, radarPolygon, strongestAxis } from '../public/stage/fingerprints.js';
 import { breakdownRows, resolveIndex, stepIndex } from '../public/stage/spotlight.js';
 import { actionForKey, hudItems } from '../public/stage/operator-controls.js';
+import { EXPLAINER_FACTS, EXPLAINERS, explainerFor, renderExplainer } from '../public/stage/explainers.js';
+import { ANTI_CLONE_SCORE_CAP, MATCH_SURFACE_THRESHOLD, SCORE_WEIGHTS } from '../src/contracts/types.ts';
+import { computeFingerprint, GITHUB_TIMEOUT_MS, MAX_REPOS, WEBSITE_MAX_BYTES, WEBSITE_TIMEOUT_MS } from '../src/github/connector.ts';
+import { DEFAULT_LLM_MODEL, MAX_FINGERPRINT_SHIFT } from '../src/intelligence/capability-agent.ts';
+import { MINIMUM_CITED_EVIDENCE } from '../src/matching/anti-clone.ts';
+import { DEFAULT_TOP_K } from '../src/matching/scorer.ts';
+import { SEED_COUNT, TOP_K } from '../src/routes/stage-snapshot.ts';
+import { byClass, byTag, FakeNode, installFakeDocument } from './helpers/fake-dom.ts';
 
 const REPO_ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const NOW = '2026-11-07T19:00:00Z';
@@ -476,4 +484,88 @@ test('/stage/ mounts the view modules and serves them as JavaScript', async (t) 
     assert.ok(page.body.includes(id), id);
   }
   assert.doesNotMatch(page.body, /arrives with A-011/, 'no placeholder views remain');
+});
+
+describe('stage explainer (I / ?)', () => {
+  test('I, ? and Escape open and close the explainer in every view', () => {
+    for (const view of ['1', '2', '3', '4']) {
+      assert.equal(actionForKey({ key: 'i' }, view), 'info', `i in view ${view}`);
+      assert.equal(actionForKey({ key: 'I' }, view), 'info', `I in view ${view}`);
+      assert.equal(actionForKey({ key: '?' }, view), 'info', `? in view ${view}`);
+      assert.equal(actionForKey({ key: 'Escape' }, view), 'info:close', `Escape in view ${view}`);
+    }
+  });
+
+  test('there is one slide per view, and an unknown view falls back to View 1', () => {
+    assert.deepEqual(EXPLAINERS.map((e) => e.view), ['1', '2', '3', '4']);
+    for (const e of EXPLAINERS) assert.ok(e.points.length >= 3, e.title);
+    assert.equal(explainerFor('3').view, '3');
+    assert.equal(explainerFor('9').view, '1');
+  });
+
+  test('every figure on the slides is the one the code uses', () => {
+    assert.deepEqual(EXPLAINER_FACTS.weights, SCORE_WEIGHTS);
+    assert.equal(EXPLAINER_FACTS.surfaceThreshold, MATCH_SURFACE_THRESHOLD);
+    assert.equal(EXPLAINER_FACTS.antiCloneCap, ANTI_CLONE_SCORE_CAP);
+    assert.ok(EXPLAINER_FACTS.antiCloneCap < EXPLAINER_FACTS.surfaceThreshold);
+    assert.equal(EXPLAINER_FACTS.minEvidencePerSide * 2, MINIMUM_CITED_EVIDENCE);
+    assert.equal(EXPLAINER_FACTS.topK, DEFAULT_TOP_K);
+    assert.equal(EXPLAINER_FACTS.topK, TOP_K);
+    assert.equal(EXPLAINER_FACTS.seeds, SEED_COUNT);
+    assert.equal(EXPLAINER_FACTS.repos, MAX_REPOS);
+    assert.equal(EXPLAINER_FACTS.githubTimeoutMs, GITHUB_TIMEOUT_MS);
+    assert.equal(EXPLAINER_FACTS.websiteTimeoutMs, WEBSITE_TIMEOUT_MS);
+    assert.equal(EXPLAINER_FACTS.websiteMaxKb * 1024, WEBSITE_MAX_BYTES);
+    assert.equal(EXPLAINER_FACTS.maxShift, MAX_FINGERPRINT_SHIFT);
+    assert.equal(EXPLAINER_FACTS.stage2Model.toLowerCase().replace(/ /g, '-'), DEFAULT_LLM_MODEL);
+  });
+
+  test('the fingerprint formulas on View 2 match computeFingerprint', () => {
+    const repo = (stars: number) => ({
+      full_name: 'x/plain', html_url: 'https://github.com/x/plain', description: '', language: 'Go', topics: [], stars,
+      pushed_at: '2026-11-01T00:00:00Z', updated_at: '2026-11-01T00:00:00Z',
+    });
+    const fp = (input: Partial<Parameters<typeof computeFingerprint>[0]>) =>
+      computeFingerprint({ profile: { bio: '' }, repos: [], readme: null, website: null, ...input });
+    const curve = (raw: number) => Math.round(100 * (1 - Math.exp(-raw / EXPLAINER_FACTS.saturation)));
+    const weight = (stars: number) => 1 + Math.min(1, Math.log10(1 + stars) / 2);
+    assert.equal(fp({ repos: [repo(0)] }).systems_infra, curve(weight(0)));
+    assert.equal(fp({ repos: [repo(99)] }).systems_infra, curve(weight(99)), 'stars double the weight at most');
+    assert.equal(fp({ repos: [repo(1_000_000)] }).systems_infra, curve(2));
+    const buzz = 'kubernetes docker terraform infrastructure devops distributed database compiler kernel networking';
+    assert.equal(fp({ profile: { bio: buzz } }).systems_infra, curve(0.5 * EXPLAINER_FACTS.keywordCaps.bio), 'bio keywords are capped');
+  });
+
+  test('the slides state the corrected facts, not the earlier draft figures', () => {
+    const text = JSON.stringify(EXPLAINERS);
+    assert.match(text, /35% capability similarity \+ 30% need ↔ offer fit \+ 15% complementarity \+ 10% novelty \+ 10% freshness/);
+    assert.match(text, /capped at 38, below the 45-point surfacing threshold/);
+    assert.match(text, /10 most recently pushed public non-fork repos/);
+    assert.match(text, /±25 points/);
+    assert.doesNotMatch(text, /top 12|40 surfacing|50% overlap|<\s*\d+\s*ms/i);
+  });
+
+  test('renderExplainer draws four tabs, marks the active one and shows its formulas', () => {
+    installFakeDocument();
+    const card = new FakeNode('div');
+    renderExplainer(card as unknown as HTMLElement, '4');
+    const tabs = card.findAll(byClass('info-tab'));
+    assert.equal(tabs.length, 4);
+    assert.deepEqual(tabs.map((t) => t.dataset.action), ['info:tab:1', 'info:tab:2', 'info:tab:3', 'info:tab:4']);
+    assert.deepEqual(tabs.map((t) => t.getAttribute('aria-selected')), ['false', 'false', 'false', 'true']);
+    assert.equal(card.findAll(byClass('info-close'))[0]?.dataset.action, 'info:close');
+    assert.match(card.findAll(byTag('h2'))[0]?.text() ?? '', /why not Elo/i);
+    assert.equal(card.findAll(byClass('info-formula')).length, 1);
+    renderExplainer(card as unknown as HTMLElement, '2');
+    assert.equal(card.findAll(byClass('info-formula')).length, 2, 'tab switch replaces the slide');
+  });
+
+  test('the page wires the Info button, the per-view pill and the explainer modal', () => {
+    const html = readFileSync(join(REPO_ROOT, 'public', 'stage', 'index.html'), 'utf8');
+    assert.ok(html.includes('<button type="button" id="info-toggle" data-action="info" aria-pressed="false">ℹ️ Info<kbd>I</kbd></button>'));
+    assert.ok(html.includes('id="view-info" class="view-info" data-action="info"'));
+    assert.ok(html.indexOf('<div id="info-modal"') > html.indexOf('</main>'), 'the modal covers every view');
+    assert.ok(html.includes("else if (action === 'info') setInfo($('info-modal').hidden ? state.view : null);"), 'opens on the current view');
+    assert.ok(html.includes("if (event.target === $('info-modal')) setInfo(null);"), 'clicking the backdrop closes it');
+  });
 });
