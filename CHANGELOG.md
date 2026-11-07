@@ -14,17 +14,18 @@ All notable changes to Ariadne-PM are documented in this file.
     - honest limitations, including inferred needs, stale issues, and that a score is not a request for help;
     - the cited evidence pills.
 
-    Participants are named by display alias only. With a database, each card is upserted into `matches` (intro state, approvals and shared notes are never overwritten) and `match.evaluated` is published once per pair and score. A 30-person pool's cards build in under 50 ms.
-  - `src/matching/evidence-formatter.ts`: evidence pills from only the cited, owned, `EvidenceReceiptSchema`-valid receipts, deduplicated by URL; a card needs at least two, with at least one per participant.
+    Participants are named by display alias only. With a database, each card is upserted into `matches` and `match.evaluated` is published (once per pair and score), in one transaction per pair. Intro state, approvals and shared notes are never overwritten, and while the score and evidence are unchanged an accepted Stage 2 thesis is kept. A pair that cannot be explained is skipped and logged, and the rest of the batch still runs. A 30-person pool's cards build in under 50 ms.
+  - `src/matching/evidence-formatter.ts`: evidence pills from only the cited, owned, `EvidenceReceiptSchema`-valid receipts, deduplicated by URL within each side (two people may share a repo); a card needs at least two, with at least one per participant.
   - Stage 2 (`enrichExplanation`): asks an injected model for a richer "why you match" thesis and collaboration angle, with a 4 s timeout that aborts the request. The prompt carries only aliases, capabilities, needs and the pair's own pills. A verification gate rejects the whole reply, and Stage 1 stands, if it:
     - cites a receipt outside the pair, or cites only one side;
-    - contains a URL that isn't one of the pair's receipts;
+    - contains a URL that isn't one of the pair's receipts, or names a repo (bare `owner/repo` or a `github.com/...` path) that isn't one of theirs;
+    - has a first step that does not name both participants;
     - contains an email, an @handle, a contact card, or a GitHub login outside the pair's own repo names and URLs;
     - is empty or too long.
 
-    A missing client, a timeout, an error or a malformed reply also fall back to Stage 1. On success, only the summary and first step change (the `matches` row too); the score line and evidence stay.
+    A missing client, a timeout, an error, a malformed reply, or a row re-scored in the meantime also fall back to Stage 1, and every fallback is logged with its reason. On success, the summary keeps the score line and the deterministic who-brings-what sentences, followed by the model's thesis, and the first step is replaced. With a database, the update applies only to the row the card was built from, and `match.evaluated` is published again (stage 2) so `/me` and `/stage` refresh live.
   - `createGeminiClient()` / `geminiClientFromEnv()` (`ARIADNE_GEMINI_API_KEY` or `GEMINI_API_KEY`, default model `gemini-2.5-flash`) call `generateContent`. Tests cover the request shape with a fake fetch; it has not been run against the live API.
-  - Not done: `match.enriched` from ISSUE_BACKLOG/A-007.md, because the type is not in A-001's event catalog (raised with PM/Arc), so Stage 2 emits no event. Paths follow the PM dispatch envelope rather than the backlog's `src/lib/agents/*`.
+  - `match.enriched` from ISSUE_BACKLOG/A-007.md is not used, because it is not in A-001's frozen event catalog; Arc ruled the stage 2 refresh rides on `match.evaluated` instead. Paths follow the PM dispatch envelope rather than the backlog's `src/lib/agents/*`.
 - **Deterministic five-component match scorer, anti-clone guard and Top-K selector (A-006, #6):**
   - `src/matching/scorer.ts`: `scorePair()` computes A-001's `ScoreBreakdown` using MATCH_SCORING_SPEC.md §3:
     - `capability_similarity`: confidence × proficiency cosine;

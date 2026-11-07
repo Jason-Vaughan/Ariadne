@@ -24,11 +24,13 @@ const SOURCE_LABELS: Readonly<Record<EvidenceReceipt['source_type'], string>> = 
 };
 
 const URL_PATTERN = /https?:\/\/[^\s)<>"'\]]+/gi;
+const GITHUB_PATH_PATTERN = /(?:https?:\/\/)?(?:www\.)?github\.com\/([A-Za-z0-9-]{1,39}(?:\/[A-Za-z0-9._-]{1,100})?)/gi;
+const REPO_TOKEN_PATTERN = /(^|[^A-Za-z0-9._\/-])([a-z0-9][a-z0-9-]{0,38}\/[A-Za-z0-9._-]{1,100})(?=$|[^A-Za-z0-9._\/-])/g;
 const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
 
 /**
  * Turns the cited receipts of a pair into evidence pills: only receipts in `citedIds` that
- * belong to one of the two participants and pass `EvidenceReceiptSchema`, deduplicated by URL,
+ * belong to one of the two participants and pass `EvidenceReceiptSchema`, deduplicated by URL within each side,
  * ordered side A first, then by most recent activity.
  * @param citedIds - Receipt ids the pair's score cites.
  * @param participantA - Participant A's id and receipts.
@@ -42,8 +44,9 @@ export function formatEvidencePills(
 ): EvidencePill[] {
   const cited = new Set(citedIds);
   const pills: EvidencePill[] = [];
-  const seenUrls = new Set<string>();
   for (const [side, owner] of [['a', participantA], ['b', participantB]] as const) {
+    // Deduplicate per side: two people may legitimately cite the same shared repo.
+    const seenUrls = new Set<string>();
     const receipts = owner.evidence
       .filter((r) => cited.has(r.id) && r.participant_id === owner.id && EvidenceReceiptSchema.safeParse(r).success)
       .sort((x, y) => Date.parse(y.source_updated_at) - Date.parse(x.source_updated_at) || (x.id < y.id ? -1 : 1));
@@ -89,4 +92,23 @@ export function extractUrls(text: string): string[] {
  */
 export function containsEmail(text: string): boolean {
   return EMAIL_PATTERN.test(text);
+}
+
+/**
+ * Lists every github.com path mentioned in a text, with or without a scheme (`owner` or `owner/repo`).
+ * @param text - Free text.
+ * @returns Lowercased paths without trailing punctuation.
+ */
+export function extractGithubPaths(text: string): string[] {
+  return [...text.matchAll(GITHUB_PATH_PATTERN)].map((m) => m[1]!.replace(/[.,;:!?]+$/, '').toLowerCase());
+}
+
+/**
+ * Lists bare `owner/repo`-shaped tokens whose owner looks like a GitHub login (lowercase).
+ * Capability pairs written in title case, such as `Rust/WebRTC`, are not matched.
+ * @param text - Free text with URLs already removed.
+ * @returns Lowercased tokens.
+ */
+export function extractRepoTokens(text: string): string[] {
+  return [...text.matchAll(REPO_TOKEN_PATTERN)].map((m) => m[2]!.replace(/[.,;:!?]+$/, '').toLowerCase());
 }

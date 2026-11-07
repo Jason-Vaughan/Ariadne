@@ -2,15 +2,18 @@ import type { DatabaseSync } from 'node:sqlite';
 import { MatchProposalSchema } from '../contracts/index.ts';
 import type { MatchProposal, ScoreBreakdown } from '../contracts/index.ts';
 import { publishEvent } from '../events/bus.ts';
-import { containsEmail, extractUrls, formatEvidencePills, hasCrossEvidence } from './evidence-formatter.ts';
+import { containsEmail, extractGithubPaths, extractRepoTokens, extractUrls, formatEvidencePills, hasCrossEvidence } from './evidence-formatter.ts';
 import type { EvidencePill } from './evidence-formatter.ts';
 import { normalizeCapability } from './scorer.ts';
 import type { PairScore, ParticipantProfile } from './scorer.ts';
+import type { Logger } from '../server.ts';
 
 export const ENRICHMENT_TIMEOUT_MS = 4_000;
 export const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
 const MAX_TEXT = 600;
-const HANDLE_PATTERN = /(^|[\s(])@[A-Za-z0-9-]{1,39}\b/;
+// Emails are caught separately; this finds an @handle in any surrounding (quotes, brackets, start of text).
+const HANDLE_PATTERN = /(^|[^A-Za-z0-9._%+-])@[A-Za-z0-9-]{1,39}\b/;
+const NON_REPO_TOKENS: ReadonlySet<string> = new Set(['and/or', 'either/or', 'n/a']);
 const WILLINGNESS_NOTE =
   'The score estimates collaboration potential from public work; it does not mean either of you has asked for help.';
 
@@ -18,6 +21,8 @@ const WILLINGNESS_NOTE =
 export interface StagedExplanation {
   proposal: MatchProposal;
   pills: EvidencePill[];
+  /** The deterministic "who brings what" sentences; kept in every summary, enriched or not. */
+  pairing: string;
 }
 
 export interface Stage1Options {
@@ -25,6 +30,8 @@ export interface Stage1Options {
   now: Date;
   /** When given, proposals are upserted into `matches` and `match.evaluated` is published. */
   db?: DatabaseSync;
+  /** Receives one line per pair that could not be explained. */
+  log?: Logger;
 }
 
 /** Minimal text-completion client; inject a fake in tests or `createGeminiClient()` in production. */
@@ -35,8 +42,11 @@ export interface ExplanationLlm {
 export interface EnrichOptions {
   llm?: ExplanationLlm;
   timeoutMs?: number;
+  /** When given, an accepted thesis updates the `matches` row and publishes `match.evaluated` (stage 2). */
   db?: DatabaseSync;
   now: Date;
+  /** Receives one line per fallback or failure, with the reason. */
+  log?: Logger;
 }
 
 export type EnrichmentRejection =
@@ -47,8 +57,11 @@ export type EnrichmentRejection =
   | 'foreign_citation'
   | 'one_sided_citation'
   | 'foreign_url'
+  | 'foreign_repo'
   | 'private_detail'
-  | 'too_long';
+  | 'missing_element'
+  | 'too_long'
+  | 'stale';
 
 export interface EnrichmentResult {
   proposal: MatchProposal;
@@ -165,7 +178,8 @@ export function buildStage1Explanation(pair: PairScore, a: ParticipantProfile, b
   ]
     .filter(Boolean)
     .join(' ');
-  const summary = bound([scoreLine(pair.composite_score, pair.score_breakdown), ...pairing, why].filter(Boolean).join(' '));
+  const pairingText = pairing.join(' ');
+  const summary = bound([scoreLine(pair.composite_score, pair.score_breakdown), pairingText, why].filter(Boolean).join(' '));
 
   const firstNeed = aForB.need ?? bForA.need;
   const helper = aForB.need ? aliasA : aliasB;
@@ -191,12 +205,14 @@ export function buildStage1Explanation(pair: PairScore, a: ParticipantProfile, b
     evidence_receipt_ids: pills.map((p) => p.receipt_id),
     intro_state: 'candidate',
   });
-  return { proposal, pills };
+  return { proposal, pills, pairing: pairingText };
 }
 
 /**
  * Inserts or refreshes a proposal's scored and explained fields in `matches`. Introduction state,
  * approvals and shared notes are never touched, so a re-score cannot undo a participant's decision.
+ * While the score and evidence are unchanged, the stored summary and first step are kept, so an
+ * accepted Stage 2 thesis survives a re-run of Stage 1.
  * @param db - Open database handle.
  * @param proposal - The proposal to store.
  * @param now - Timestamp for created_at / updated_at.
@@ -210,9 +226,13 @@ export function upsertProposal(db: DatabaseSync, proposal: MatchProposal, now: D
      ON CONFLICT (id) DO UPDATE SET
        composite_score = excluded.composite_score,
        score_breakdown = excluded.score_breakdown,
-       complementary_summary = excluded.complementary_summary,
+       complementary_summary = CASE WHEN matches.composite_score = excluded.composite_score
+         AND matches.evidence_receipt_ids = excluded.evidence_receipt_ids
+         THEN matches.complementary_summary ELSE excluded.complementary_summary END,
        relevant_projects = excluded.relevant_projects,
-       suggested_first_collaboration = excluded.suggested_first_collaboration,
+       suggested_first_collaboration = CASE WHEN matches.composite_score = excluded.composite_score
+         AND matches.evidence_receipt_ids = excluded.evidence_receipt_ids
+         THEN matches.suggested_first_collaboration ELSE excluded.suggested_first_collaboration END,
        confidence_limitations = excluded.confidence_limitations,
        evidence_receipt_ids = excluded.evidence_receipt_ids,
        updated_at = excluded.updated_at`,
@@ -234,7 +254,8 @@ export function upsertProposal(db: DatabaseSync, proposal: MatchProposal, now: D
 
 /**
  * Stage 1 for a whole selection: builds each distinct pair's card once and, with a database,
- * upserts it and publishes `match.evaluated` (idempotent per pair and score).
+ * upserts it and publishes `match.evaluated` (idempotent per pair and score) in one transaction.
+ * A pair that cannot be explained is skipped and logged; the rest of the batch still runs.
  * @param selection - `selectTopMatches()` output.
  * @param profiles - The pool's profiles.
  * @param options - Timestamp and optional database.
@@ -252,22 +273,37 @@ export function explainMatches(
   for (const pair of [...pairs.values()].sort((x, y) => (x.match_id < y.match_id ? -1 : 1))) {
     const a = byId.get(pair.participant_a_id);
     const b = byId.get(pair.participant_b_id);
-    if (!a || !b) throw new Error(`Missing profile for pair ${pair.match_id}`);
-    const staged = buildStage1Explanation(pair, a, b);
-    explained.set(pair.match_id, staged);
-    if (options.db) {
-      upsertProposal(options.db, staged.proposal, options.now);
-      publishEvent(
-        options.db,
-        'match.evaluated',
-        {
-          match_id: pair.match_id,
-          display_alias_a: a.participant.display_alias,
-          display_alias_b: b.participant.display_alias,
-          composite_score: pair.composite_score,
-        },
-        { idempotencyKey: `${pair.match_id}:evaluated:${pair.composite_score}` },
-      );
+    try {
+      if (!a || !b) throw new Error('missing profile');
+      const staged = buildStage1Explanation(pair, a, b);
+      if (options.db) {
+        const db = options.db;
+        db.exec('BEGIN');
+        try {
+          upsertProposal(db, staged.proposal, options.now);
+          publishEvent(
+            db,
+            'match.evaluated',
+            {
+              match_id: pair.match_id,
+              display_alias_a: a.participant.display_alias,
+              display_alias_b: b.participant.display_alias,
+              composite_score: pair.composite_score,
+            },
+            { idempotencyKey: `${pair.match_id}:evaluated:stage1:${pair.composite_score}` },
+          );
+          db.exec('COMMIT');
+        } catch (error) {
+          db.exec('ROLLBACK');
+          throw error;
+        }
+      }
+      explained.set(pair.match_id, staged);
+    } catch (error) { // prawduct:allow prawduct/broad-except -- per-pair boundary: one bad pair must not stop the rest of the batch
+      options.log?.info('match explanation skipped', {
+        match_id: pair.match_id,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
   return explained;
@@ -295,7 +331,9 @@ export function buildEnrichmentPrompt(staged: StagedExplanation, a: ParticipantP
     `Score: ${scoreLine(staged.proposal.composite_score, staged.proposal.score_breakdown)}`,
     'Evidence you may cite (use only these ids and URLs):',
     pills,
-    'Rules: refer to people only by the aliases above; do not invent URLs, handles, emails or contact details;',
+    'Rules: refer to people only by the aliases above; mention repositories only by the names listed above;',
+    'do not invent URLs, repository names, handles, emails or contact details;',
+    `collaboration_angle must be one concrete 15-minute first step that names both ${a.participant.display_alias} and ${b.participant.display_alias};`,
     'cite at least one evidence id from each side; keep each field under 400 characters.',
     'Reply with JSON only: {"why_you_match": string, "collaboration_angle": string, "cited_receipt_ids": string[]}',
   ].join('\n');
@@ -317,8 +355,20 @@ export function verifyThesis(thesis: LlmThesis, staged: StagedExplanation, a: Pa
   const text = `${thesis.why_you_match}\n${thesis.collaboration_angle}`;
   const allowedUrls = new Set(staged.pills.map((p) => p.url));
   if (!extractUrls(text).every((u) => allowedUrls.has(u))) return 'foreign_url';
+  const allowedRepos = new Set(staged.pills.flatMap((p) => (p.repo ? [p.repo.toLowerCase()] : [])));
+  const allowedPaths = new Set([
+    ...allowedRepos,
+    ...staged.pills.flatMap((p) => extractGithubPaths(p.url)),
+  ]);
+  if (!extractGithubPaths(text).every((path) => allowedPaths.has(path))) return 'foreign_repo';
+  let withoutUrls = text;
+  for (const url of extractUrls(text)) withoutUrls = withoutUrls.split(url).join(' ');
+  withoutUrls = withoutUrls.replace(/(?:www\.)?github\.com\/\S*/gi, ' ');
+  if (!extractRepoTokens(withoutUrls).every((token) => allowedRepos.has(token) || NON_REPO_TOKENS.has(token))) return 'foreign_repo';
   // Repo names and their URLs legitimately contain owners' logins, so a login is only "leaked" outside them.
   let outsideEvidence = text.toLowerCase();
+  // Display aliases are public by design, so an alias that happens to spell a login is not a leak.
+  for (const alias of [a.participant.display_alias, b.participant.display_alias]) outsideEvidence = outsideEvidence.split(alias.toLowerCase()).join(' ');
   for (const p of staged.pills) {
     outsideEvidence = outsideEvidence.split(p.url.toLowerCase()).join(' ');
     if (p.repo) outsideEvidence = outsideEvidence.split(p.repo.toLowerCase()).join(' ');
@@ -333,11 +383,24 @@ export function verifyThesis(thesis: LlmThesis, staged: StagedExplanation, a: Pa
   ) {
     return 'private_detail';
   }
-  const summary = `${scoreLine(staged.proposal.composite_score, staged.proposal.score_breakdown)} ${thesis.why_you_match.trim()}`;
+  const angle = thesis.collaboration_angle;
+  if (!angle.includes(a.participant.display_alias) || !angle.includes(b.participant.display_alias)) return 'missing_element';
+  const summary = enrichedSummary(staged, thesis.why_you_match);
   if (summary.length > MAX_TEXT || thesis.collaboration_angle.trim().length > MAX_TEXT || !thesis.why_you_match.trim() || !thesis.collaboration_angle.trim()) {
     return 'too_long';
   }
   return null;
+}
+
+/**
+ * The enriched summary: the score line and the deterministic "who brings what" sentences stay,
+ * followed by the model's thesis.
+ * @param staged - The Stage 1 card.
+ * @param why - The model's `why_you_match`.
+ * @returns The summary text.
+ */
+function enrichedSummary(staged: StagedExplanation, why: string): string {
+  return [scoreLine(staged.proposal.composite_score, staged.proposal.score_breakdown), staged.pairing, why.trim()].filter(Boolean).join(' ');
 }
 
 /**
@@ -365,8 +428,9 @@ function parseThesis(raw: string): LlmThesis | null {
 
 /**
  * Stage 2: asks the injected model for a richer thesis and keeps it only if the verification gate
- * passes. On a missing client, timeout, error, malformed reply or failed gate, Stage 1 stands.
- * Never throws for model failures.
+ * passes. On a missing client, timeout, error, malformed reply, failed gate or a row re-scored in the
+ * meantime, Stage 1 stands (and the reason is logged). With a database, an accepted thesis updates the
+ * row and publishes `match.evaluated` again so live views refresh. Never throws for model failures.
  * @param staged - The Stage 1 card.
  * @param a - Participant A's profile.
  * @param b - Participant B's profile.
@@ -379,7 +443,12 @@ export async function enrichExplanation(
   b: ParticipantProfile,
   options: EnrichOptions,
 ): Promise<EnrichmentResult> {
-  const fallback = (rejection: EnrichmentRejection): EnrichmentResult => ({ proposal: staged.proposal, source: 'stage1', rejection });
+  const fallback = (rejection: EnrichmentRejection, detail?: string): EnrichmentResult => {
+    if (rejection !== 'no_client') {
+      options.log?.info('match enrichment kept stage 1', { match_id: staged.proposal.id, reason: rejection, ...(detail ? { detail } : {}) });
+    }
+    return { proposal: staged.proposal, source: 'stage1', rejection };
+  };
   if (!options.llm) return fallback('no_client');
 
   const controller = new AbortController();
@@ -393,8 +462,8 @@ export async function enrichExplanation(
   let raw: string | 'timeout';
   try {
     raw = await Promise.race([options.llm.complete(buildEnrichmentPrompt(staged, a, b), { signal: controller.signal }), timeout]);
-  } catch { // prawduct:allow prawduct/broad-except -- external model boundary: any client failure falls back to Stage 1
-    return fallback('error');
+  } catch (error) { // prawduct:allow prawduct/broad-except -- external model boundary: any client failure falls back to Stage 1
+    return fallback('error', error instanceof Error ? error.message : String(error));
   } finally {
     clearTimeout(timer);
   }
@@ -407,13 +476,47 @@ export async function enrichExplanation(
 
   const proposal = MatchProposalSchema.parse({
     ...staged.proposal,
-    complementary_summary: `${scoreLine(staged.proposal.composite_score, staged.proposal.score_breakdown)} ${thesis.why_you_match.trim()}`,
+    complementary_summary: enrichedSummary(staged, thesis.why_you_match),
     suggested_first_collaboration: thesis.collaboration_angle.trim(),
   });
   if (options.db) {
-    options.db
-      .prepare('UPDATE matches SET complementary_summary = ?, suggested_first_collaboration = ?, updated_at = ? WHERE id = ?')
-      .run(proposal.complementary_summary, proposal.suggested_first_collaboration, options.now.toISOString(), proposal.id);
+    const db = options.db;
+    db.exec('BEGIN');
+    try {
+      // Only the row this card was built from: a re-score in the meantime makes this thesis stale.
+      const updated = db
+        .prepare(
+          `UPDATE matches SET complementary_summary = ?, suggested_first_collaboration = ?, updated_at = ?
+           WHERE id = ? AND composite_score = ? AND evidence_receipt_ids = ?`,
+        )
+        .run(
+          proposal.complementary_summary,
+          proposal.suggested_first_collaboration,
+          options.now.toISOString(),
+          proposal.id,
+          proposal.composite_score,
+          JSON.stringify(proposal.evidence_receipt_ids),
+        );
+      if (Number(updated.changes) === 0) {
+        db.exec('ROLLBACK');
+        return fallback('stale');
+      }
+      publishEvent(
+        db,
+        'match.evaluated',
+        {
+          match_id: proposal.id,
+          display_alias_a: a.participant.display_alias,
+          display_alias_b: b.participant.display_alias,
+          composite_score: proposal.composite_score,
+        },
+        { idempotencyKey: `${proposal.id}:evaluated:stage2:${proposal.composite_score}` },
+      );
+      db.exec('COMMIT');
+    } catch (error) {
+      db.exec('ROLLBACK');
+      throw error;
+    }
   }
   return { proposal, source: 'llm' };
 }

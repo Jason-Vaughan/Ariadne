@@ -67,7 +67,7 @@ interface ClaimSpec {
  */
 function profile(alias: string, project: string, claims: ClaimSpec[], wants: string[] = [], contactCard: string | null = null): ParticipantProfile {
   const id = nextId();
-  const login = alias.toLowerCase();
+  const login = `dev-${alias.toLowerCase().replace(/[^a-z0-9]/g, '')}`;
   const repo = `${login}/${project}`;
   const participant = ParticipantSchema.parse({
     id,
@@ -176,6 +176,8 @@ function pair(): [ParticipantProfile, ParticipantProfile] {
  */
 function staged(): { a: ParticipantProfile; b: ParticipantProfile; card: StagedExplanation } {
   const [a, b] = pair();
+  aliases.a = { id: a.participant.id, alias: a.participant.display_alias };
+  aliases.b = { id: b.participant.id, alias: b.participant.display_alias };
   return { a, b, card: buildStage1Explanation(scorePair(a, b, { now: NOW }), a, b) };
 }
 
@@ -214,6 +216,26 @@ function fakeLlm(reply: string | ((prompt: string) => string)): ExplanationLlm &
 }
 
 /**
+ * Display alias of the card's participant A, read from its Stage 1 pairing text.
+ * @param card - The Stage 1 card.
+ * @returns The alias.
+ */
+function aliasA(card: StagedExplanation): string {
+  return card.proposal.participant_a_id === aliases.a.id ? aliases.a.alias : aliases.b.alias;
+}
+
+/**
+ * Display alias of the card's participant B.
+ * @param card - The Stage 1 card.
+ * @returns The alias.
+ */
+function aliasB(card: StagedExplanation): string {
+  return card.proposal.participant_b_id === aliases.a.id ? aliases.a.alias : aliases.b.alias;
+}
+
+const aliases = { a: { id: '', alias: '' }, b: { id: '', alias: '' } };
+
+/**
  * A grounded thesis citing one pill from each side.
  * @param card - The Stage 1 card.
  * @param overrides - Fields to replace.
@@ -224,7 +246,7 @@ function thesis(card: StagedExplanation, overrides: Record<string, unknown> = {}
   const pb = card.pills.find((p) => p.side === 'b')!;
   return JSON.stringify({
     why_you_match: `One of you runs the media server in ${pa.repo}, the other builds the browser audio UI in ${pb.repo}: ${pa.url}`,
-    collaboration_angle: 'Wire the audio worklet to the SFU for one call and measure latency together.',
+    collaboration_angle: `For 15 minutes, ${card.proposal.participant_a_id ? aliasA(card) : ''} and ${aliasB(card)} wire the audio worklet to the SFU for one call and measure latency together.`,
     cited_receipt_ids: [pa.receipt_id, pb.receipt_id],
     ...overrides,
   });
@@ -318,6 +340,34 @@ describe('Stage 1', () => {
     db.close();
   });
 
+  test('two participants citing the same shared repo URL both keep their evidence', () => {
+    const [a, b] = pair();
+    const sharedUrl = 'https://github.com/media-org/shared-sfu';
+    const share = (p: ParticipantProfile): ParticipantProfile => ({
+      ...p,
+      evidence: p.evidence.map((r) => (r.source_type === 'repo_metadata' ? { ...r, source_url: sharedUrl, repo_full_name: 'media-org/shared-sfu' } : r)),
+    });
+    const sa = share(a);
+    const sb = share(b);
+    const card = buildStage1Explanation(scorePair(sa, sb, { now: NOW }), sa, sb);
+    assert.ok(card.pills.some((p) => p.side === 'a' && p.url === sharedUrl));
+    assert.ok(card.pills.some((p) => p.side === 'b' && p.url === sharedUrl));
+  });
+
+  test('a pair that cannot be explained is skipped and logged; the rest of the batch still runs', () => {
+    const [a, b] = pair();
+    const db = dbWith([a, b]);
+    const good = scorePair(a, b, { now: NOW });
+    const orphan = { ...good, match_id: '6f1c2b1e-8a4d-4c1e-9b7a-2f3d4e5a6b7c', participant_b_id: 'ffffffff-0000-4000-8000-000000000000' };
+    const lines: Array<[string, Record<string, unknown> | undefined]> = [];
+    const cards = explainMatches(new Map([[a.participant.id, [orphan, good]]]), [a, b], { now: NOW, db, log: { info: (m, f) => void lines.push([m, f]) } });
+    assert.deepEqual([...cards.keys()], [good.match_id]);
+    assert.equal(lines.length, 1);
+    assert.equal(lines[0]![1]!.match_id, orphan.match_id);
+    assert.equal(readEventsAfter(db, 0).length, 1);
+    db.close();
+  });
+
   test('explains the top matches of a 30-person pool in under 50 ms (best of 5)', () => {
     const stacks: Array<[ClaimSpec[], string[]]> = [
       [[{ name: 'Rust', category: 'language' }, { name: 'WebRTC', category: 'systems_architecture' }, { name: 'realtime-media', category: 'domain' }], ['React']],
@@ -375,13 +425,17 @@ describe('Stage 2', () => {
       ['foreign_citation', thesis(card, { cited_receipt_ids: [pa.receipt_id, '00000000-0000-4000-8000-0000000000bb'] })],
       ['one_sided_citation', thesis(card, { cited_receipt_ids: [pa.receipt_id] })],
       ['foreign_url', thesis(card, { why_you_match: 'Both of you should read https://github.com/someone-else/repo today.' })],
-      ['private_detail', thesis(card, { collaboration_angle: 'Email spool@example.com to set up a call.' })],
-      ['private_detail', thesis(card, { collaboration_angle: 'Write to builders@hackathon.dev for a room.' })],
-      ['private_detail', thesis(card, { collaboration_angle: 'Ping @spool on chat after this.' })],
+      ['private_detail', thesis(card, { collaboration_angle: `${a.participant.display_alias} and ${b.participant.display_alias}: email spool@example.com to set up a call.` })],
+      ['private_detail', thesis(card, { collaboration_angle: `${a.participant.display_alias} and ${b.participant.display_alias}: write to builders@hackathon.dev for a room.` })],
+      ['private_detail', thesis(card, { collaboration_angle: `${a.participant.display_alias} and ${b.participant.display_alias}: ping @spool on chat after this.` })],
+      ['private_detail', thesis(card, { collaboration_angle: `${a.participant.display_alias} and ${b.participant.display_alias}: ask "@spool" for access.` })],
+      ['foreign_repo', thesis(card, { why_you_match: 'You could both learn from someone-else/media-kit first.' })],
+      ['foreign_repo', thesis(card, { why_you_match: 'Start from github.com/someone-else/media-kit together.' })],
+      ['missing_element', thesis(card, { collaboration_angle: 'Spend 15 minutes wiring the worklet to the SFU.' })],
       ['private_detail', thesis(card, { why_you_match: `Ask ${b.participant.github_username} about the deck.` })],
-      ['private_detail', thesis(card, { collaboration_angle: `Message them at ${a.participant.contact_card}.` })],
+      ['private_detail', thesis(card, { collaboration_angle: `${a.participant.display_alias} and ${b.participant.display_alias}: message them at ${a.participant.contact_card}.` })],
       ['too_long', thesis(card, { why_you_match: 'x'.repeat(700) })],
-      ['too_long', thesis(card, { collaboration_angle: '   ' })],
+      ['missing_element', thesis(card, { collaboration_angle: '   ' })],
       ['malformed', 'not json at all'],
       ['malformed', JSON.stringify({ why_you_match: 'hi', collaboration_angle: 'go', cited_receipt_ids: 'nope' })],
     ];
@@ -397,7 +451,10 @@ describe('Stage 2', () => {
     const { a, b, card } = staged();
     const repo = card.pills.find((p) => p.side === 'b')!.repo!;
     assert.ok(repo.startsWith(`${b.participant.github_username}/`));
-    const result = await enrichExplanation(card, a, b, { llm: fakeLlm(thesis(card, { collaboration_angle: `Open ${repo} together and trace one call.` })), now: NOW });
+    const result = await enrichExplanation(card, a, b, {
+      llm: fakeLlm(thesis(card, { collaboration_angle: `${a.participant.display_alias} and ${b.participant.display_alias} open ${repo} together for 15 minutes and trace one call.` })),
+      now: NOW,
+    });
     assert.equal(result.source, 'llm');
   });
 
@@ -412,7 +469,7 @@ describe('Stage 2', () => {
       ],
     };
     const result = await enrichExplanation(withProfile, a, b, {
-      llm: fakeLlm(thesis(card, { collaboration_angle: `Start from ${profileUrl} and pick one repo to pair on.` })),
+      llm: fakeLlm(thesis(card, { collaboration_angle: `${a.participant.display_alias} and ${b.participant.display_alias} start from ${profileUrl} and pick one repo to pair on.` })),
       now: NOW,
     });
     assert.equal(result.source, 'llm', result.rejection);
@@ -437,6 +494,55 @@ describe('Stage 2', () => {
     assert.equal(result.proposal, card.proposal);
     assert.ok(aborted);
     assert.ok(Date.now() - started < 1000);
+  });
+
+  test('capability pairs such as Rust/WebRTC and the phrase and/or are not mistaken for repos', async () => {
+    const { a, b, card } = staged();
+    const result = await enrichExplanation(card, a, b, {
+      llm: fakeLlm(thesis(card, { why_you_match: 'One of you lives in Rust/WebRTC and the other in TypeScript/WebAudio, and/or both.' })),
+      now: NOW,
+    });
+    assert.equal(result.source, 'llm', result.rejection);
+  });
+
+  test('an accepted thesis keeps the score line and the who-brings-what pairing, and publishes a stage 2 refresh', async () => {
+    const { a, b, card } = staged();
+    const db = dbWith([a, b]);
+    explainMatches(new Map([[a.participant.id, [scorePair(a, b, { now: NOW })]]]), [a, b], { now: NOW, db });
+    const result = await enrichExplanation(card, a, b, { llm: fakeLlm(thesis(card)), db, now: NOW });
+    assert.equal(result.source, 'llm');
+    assert.ok(result.proposal.complementary_summary.includes(card.pairing));
+    const events = readEventsAfter(db, 0);
+    assert.deepEqual(events.map((e) => e.type), ['match.evaluated', 'match.evaluated']);
+    await enrichExplanation(card, a, b, { llm: fakeLlm(thesis(card)), db, now: NOW });
+    assert.equal(readEventsAfter(db, 0).length, 2, 'stage 2 refresh is idempotent per score');
+    // Re-running Stage 1 with the same score and evidence keeps the enriched text.
+    explainMatches(new Map([[a.participant.id, [scorePair(a, b, { now: NOW })]]]), [a, b], { now: NOW, db });
+    const row = db.prepare('SELECT complementary_summary FROM matches WHERE id = ?').get(card.proposal.id) as Record<string, string>;
+    assert.equal(row.complementary_summary, result.proposal.complementary_summary);
+    db.close();
+  });
+
+  test('a thesis for a row re-scored in the meantime is discarded as stale', async () => {
+    const { a, b, card } = staged();
+    const db = dbWith([a, b]);
+    explainMatches(new Map([[a.participant.id, [scorePair(a, b, { now: NOW })]]]), [a, b], { now: NOW, db });
+    db.prepare('UPDATE matches SET composite_score = composite_score - 1 WHERE id = ?').run(card.proposal.id);
+    const result = await enrichExplanation(card, a, b, { llm: fakeLlm(thesis(card)), db, now: NOW });
+    assert.equal(result.rejection, 'stale');
+    const row = db.prepare('SELECT complementary_summary FROM matches WHERE id = ?').get(card.proposal.id) as Record<string, string>;
+    assert.equal(row.complementary_summary, card.proposal.complementary_summary);
+    assert.equal(readEventsAfter(db, 0).length, 1);
+    db.close();
+  });
+
+  test('fallbacks are logged with their reason and the underlying error', async () => {
+    const { a, b, card } = staged();
+    const lines: Array<[string, Record<string, unknown> | undefined]> = [];
+    const log = { info: (m: string, f?: Record<string, unknown>) => void lines.push([m, f]) };
+    await enrichExplanation(card, a, b, { llm: { complete: async () => Promise.reject(new Error('HTTP 401')) }, log, now: NOW });
+    await enrichExplanation(card, a, b, { log, now: NOW });
+    assert.deepEqual(lines, [['match enrichment kept stage 1', { match_id: card.proposal.id, reason: 'error', detail: 'HTTP 401' }]]);
   });
 
   test('the prompt carries aliases and the pair evidence but no GitHub logins or contact cards', () => {
