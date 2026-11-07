@@ -5,6 +5,13 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Added
+- **A-010 Stage Visualizer Shell (`/stage`), Top-3 Web of Connections, Golden Arcs & Seed Pool Toggle (`public/stage/*`, `src/routes/stage-snapshot.ts`, Issue #10):**
+  - 1920x1080 stage that scales to any screen: 6-metric KPI ribbon, clickable 4-view navigation (`1`–`4`), QR overlay (`Q`), seed toggle (`S`), privacy override (`P`) and 15s auto-cycle (`Space`). Views 1, 2 and 4 are placeholders until A-011.
+  - View 3 draws at most 3 edges per builder (golden threads kept first, then one-sided interest, then highest score): dashed cyan suggestions, pulsing orange one-sided interest, glowing gold arcs for mutual matches, plus a 5-second `⚡ NEW GOLDEN THREAD` banner and ripple when a match turns mutual.
+  - `GET /api/stage/snapshot`: public-safe state keyed by `display_alias`; a GitHub handle appears only with `stage_display_consent` and privacy mode off (`?privacy=1`). Participant ids, contact cards and withdrawn participants never appear.
+  - `POST /api/stage/seed-toggle`: puts 25 reserved seed participants (`Seed-0001`…, ids under `5eed0000-0000-4000-8000-`) into the pool or removes them with their matches, in well under 300ms. Presenter-only: refused (403) for any request that arrived through the public tunnel.
+  - `GET /api/stage/join-qr.svg`: dependency-free QR encoder (byte mode, level M, versions 1–10) for `ARIADNE_PUBLIC_URL` + `/join`, verified against an independent decoder.
+  - Live updates via `/api/events/stream` (SSE), falling back to `/api/events/poll`, then to snapshot polling.
 - **A-001 Core Contracts & SQLite Schema (`src/contracts/*`, `src/db/schema.sql`, `tests/contracts.test.ts`, Issue #1):**
   - Zod-validated TypeScript contracts for `Participant` (incl. optional `website_url`), `EvidenceReceipt` (incl. `public_website` source), `CapabilityClaim`, `OpportunityNeed`, `MatchProposal` with the five-component `ScoreBreakdown` (`0.35·capability_similarity + 0.30·need_offer_fit + 0.15·complementarity + 0.10·novelty + 0.10·freshness`, per TangleClaw Rule #314; `compositeScore`, `SCORE_WEIGHTS`, an anti-clone cap of 38 via `ANTI_CLONE_SCORE_CAP` / `isCloneLike` when a pair has no need/offer fit and no complementarity, ≥ 2 cited evidence receipts), the 12-type `EventType` catalog, strict per-type `PublicEventEnvelope` payloads and the poll response.
   - Public event payloads identify participants by `display_alias` only and are strict: GitHub identity appears only inside a `display` object that requires `stage_display_consent: true` (Rule #314 naming); tokens, contact cards and raw usernames are rejected.

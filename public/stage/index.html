@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ariadne Stage</title>
+<link rel="stylesheet" href="./stage.css">
+</head>
+<body>
+<div id="stage">
+  <div class="tc-bg-watermark" aria-hidden="true"><img src="/tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt=""></div>
+  <header>
+    <div class="brand">ARIADNE<span>FIND YOUR THREAD</span></div>
+    <nav class="views" aria-label="Stage views">
+      <button type="button" data-view="1">1: Under-the-Hood Pipeline</button>
+      <button type="button" data-view="2">2: Builder Fingerprints</button>
+      <button type="button" data-view="3">3: Web of Connections</button>
+      <button type="button" data-view="4">4: Match Spotlight</button>
+    </nav>
+    <div class="controls">
+      <button type="button" id="qr-toggle" aria-pressed="false">📱 QR Overlay<kbd>Q</kbd></button>
+      <button type="button" id="seed-toggle" aria-pressed="false">🌱 Seed AI Devs: OFF<kbd>S</kbd></button>
+      <button type="button" id="privacy-toggle" aria-pressed="false">🔒 Privacy<kbd>P</kbd></button>
+      <button type="button" id="cycle-toggle" aria-pressed="false">⚡ Auto-Cycle<kbd>Space</kbd></button>
+    </div>
+  </header>
+
+  <section class="kpis" aria-label="Live metrics">
+    <div class="kpi"><span>Builders scanned in</span><strong id="kpi-live">0</strong></div>
+    <div class="kpi seed"><span>Seed AI devs</span><strong id="kpi-seed">0</strong></div>
+    <div class="kpi"><span>Profiles analysed</span><strong id="kpi-ready">0</strong></div>
+    <div class="kpi"><span>Suggested matches</span><strong id="kpi-matches">0</strong></div>
+    <div class="kpi"><span>One-sided interest</span><strong id="kpi-interest">0</strong></div>
+    <div class="kpi gold"><span>Golden threads</span><strong id="kpi-golden">0</strong></div>
+  </section>
+
+  <main>
+    <div id="golden-banner" role="status" hidden></div>
+    <section class="view" data-view="1"><div class="placeholder"><div><strong>Under-the-Hood Pipeline</strong>Crawl → Extract → Fingerprint → Match arrives with A-011.</div></div></section>
+    <section class="view" data-view="2"><div class="placeholder"><div><strong>Builder Fingerprints</strong>The 6-axis fingerprint gallery arrives with A-011.</div></div></section>
+    <section class="view" data-view="3">
+      <svg id="graph" viewBox="0 0 1856 848" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Web of connections: each builder's top three matches"></svg>
+      <div class="graph-empty" id="graph-empty">Waiting for builders to scan in…</div>
+      <div class="legend"><span><i class="l-suggested"></i>Suggested top-3 match</span><span><i class="l-one-sided"></i>One-sided interest</span><span><i class="l-golden"></i>Golden thread (mutual)</span></div>
+      <div id="status">Connecting…</div>
+    </section>
+    <section class="view" data-view="4"><div class="placeholder"><div><strong>Match Spotlight</strong>The side-by-side match deep-dive arrives with A-011.</div></div></section>
+  </main>
+
+  <div id="qr-modal" hidden>
+    <div class="qr-card">
+      <div class="qr-badge">⚡ SCAN TO JOIN — REQUIRES GITHUB PROFILE</div>
+      <div class="qr-frame" id="qr-frame"></div>
+      <div class="qr-url" id="qr-url"></div>
+      <div class="qr-count"><strong id="qr-count">0</strong> Builders Scanned In</div>
+      <div class="qr-hint">Press Q to close</div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { findNewGoldenEdges, goldenBannerText, layoutGraph, renderGraph } from './network-graph.js';
+
+const GRAPH_WIDTH = 1856;
+// Nodes stay above the legend strip along the bottom of the view.
+const LAYOUT_HEIGHT = 780;
+const CYCLE_MS = 15000;
+const BANNER_MS = 5000;
+const HEARTBEAT_MS = 15000;
+const SNAPSHOT_POLL_MS = 3000;
+const EVENT_POLL_MS = 2000;
+
+const $ = (id) => document.getElementById(id);
+const state = {
+  view: '3',
+  privacy: false,
+  cycleTimer: null,
+  snapshot: null,
+  positions: new Map(),
+  goldenIds: null,
+  refreshTimer: null,
+  seedBusy: false,
+};
+
+/** Scale the fixed 1920x1080 stage to fit the window, letterboxed and centred. */
+function fitStage() {
+  const scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+  const stage = $('stage');
+  stage.style.transform = `translate(${(window.innerWidth - 1920 * scale) / 2}px, ${(window.innerHeight - 1080 * scale) / 2}px) scale(${scale})`;
+}
+
+/**
+ * Show one of the four views.
+ * @param {string} view
+ */
+function showView(view) {
+  state.view = view;
+  for (const el of document.querySelectorAll('.view')) el.classList.toggle('active', el.dataset.view === view);
+  for (const el of document.querySelectorAll('nav.views button')) el.classList.toggle('active', el.dataset.view === view);
+}
+
+/**
+ * Write the six headline metrics.
+ * @param {object} kpis
+ */
+function renderKpis(kpis) {
+  $('kpi-live').textContent = kpis.live_builders;
+  $('kpi-seed').textContent = kpis.seed_builders;
+  $('kpi-ready').textContent = kpis.profiles_ready;
+  $('kpi-matches').textContent = kpis.matches;
+  $('kpi-interest').textContent = kpis.one_sided;
+  $('kpi-golden').textContent = kpis.golden_threads;
+  $('qr-count').textContent = kpis.live_builders;
+}
+
+/**
+ * Reflect seed mode and whether this screen may change it.
+ * @param {object} snapshot
+ */
+function renderSeedButton(snapshot) {
+  const button = $('seed-toggle');
+  button.setAttribute('aria-pressed', String(snapshot.seed_mode));
+  button.firstChild.textContent = `🌱 Seed AI Devs: ${snapshot.seed_mode ? `ON (+${snapshot.kpis.seed_builders})` : 'OFF'}`;
+  button.disabled = !snapshot.presenter || state.seedBusy;
+  button.title = snapshot.presenter ? '' : 'Stage controls work only on the host machine (127.0.0.1:3420).';
+}
+
+/**
+ * Fill the QR overlay from the configured join URL.
+ * @param {string|null} joinUrl
+ */
+function renderQr(joinUrl) {
+  const frame = $('qr-frame');
+  if (frame.dataset.url === String(joinUrl)) return;
+  frame.dataset.url = String(joinUrl);
+  if (joinUrl) {
+    const img = document.createElement('img');
+    img.src = '/api/stage/join-qr.svg';
+    img.alt = `QR code for ${joinUrl}`;
+    frame.replaceChildren(img);
+    $('qr-url').textContent = joinUrl.replace(/^https:\/\//, '');
+  } else {
+    const msg = document.createElement('div');
+    msg.className = 'qr-missing';
+    msg.textContent = 'Join URL not configured: start the server with ARIADNE_PUBLIC_URL set to the public tunnel URL.';
+    frame.replaceChildren(msg);
+    $('qr-url').textContent = '';
+  }
+}
+
+/**
+ * Show the golden-thread celebration for a few seconds.
+ * @param {string} text
+ */
+function celebrate(text) {
+  const banner = $('golden-banner');
+  banner.textContent = text;
+  banner.hidden = false;
+  clearTimeout(celebrate.timer);
+  celebrate.timer = setTimeout(() => { banner.hidden = true; }, BANNER_MS);
+}
+
+/**
+ * Apply a new snapshot: metrics, controls, graph, and a celebration for each new golden thread.
+ * @param {object} snapshot
+ */
+function applySnapshot(snapshot) {
+  state.snapshot = snapshot;
+  renderKpis(snapshot.kpis);
+  renderSeedButton(snapshot);
+  renderQr(snapshot.join_url);
+
+  const fresh = state.goldenIds ? findNewGoldenEdges(state.goldenIds, snapshot.edges) : [];
+  state.goldenIds = new Set(snapshot.edges.filter((e) => e.state === 'golden').map((e) => e.match_id));
+  const nodesByAlias = new Map(snapshot.nodes.map((n) => [n.alias, n]));
+  if (fresh.length) celebrate(goldenBannerText(fresh[fresh.length - 1], nodesByAlias));
+
+  state.positions = layoutGraph(snapshot.nodes, snapshot.edges, {
+    width: GRAPH_WIDTH,
+    height: LAYOUT_HEIGHT,
+    previous: state.positions,
+    iterations: state.positions.size ? 80 : 250,
+  });
+  renderGraph($('graph'), snapshot, state.positions, new Set(fresh.map((e) => e.match_id)));
+  $('graph-empty').hidden = snapshot.nodes.length > 0;
+}
+
+/** Fetch and apply the current stage snapshot. */
+async function refresh() {
+  const res = await fetch(`/api/stage/snapshot${state.privacy ? '?privacy=1' : ''}`, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`snapshot ${res.status}`);
+  applySnapshot(await res.json());
+}
+
+/** Coalesce bursts of events into one snapshot refresh. */
+function scheduleRefresh() {
+  clearTimeout(state.refreshTimer);
+  state.refreshTimer = setTimeout(() => refresh().catch(() => {}), 250);
+}
+
+/**
+ * Report the live-update channel in the corner of View 3.
+ * @param {string} text
+ */
+function setStatus(text) {
+  $('status').textContent = text;
+}
+
+/** Last resort when no event channel exists: re-read the snapshot on a timer. */
+function startSnapshotPolling() {
+  setStatus('Live: snapshot polling');
+  setInterval(() => refresh().catch(() => {}), SNAPSHOT_POLL_MS);
+}
+
+/**
+ * Poll `/api/events/poll` from a cursor; fall back to snapshot polling if the endpoint is missing.
+ * @param {number} after
+ */
+function startEventPolling(after) {
+  let cursor = after;
+  setStatus('Live: event polling');
+  const tick = async () => {
+    try {
+      const res = await fetch(`/api/events/poll?after=${cursor}`, { cache: 'no-store' });
+      if (res.status === 404) {
+        startSnapshotPolling();
+        return;
+      }
+      if (res.ok) {
+        const body = await res.json();
+        if (body.events?.length) scheduleRefresh();
+        cursor = Math.max(cursor, body.latest_seq_id ?? cursor);
+      }
+    } catch {
+      // Network blips are retried on the next tick.
+    }
+    setTimeout(tick, EVENT_POLL_MS);
+  };
+  tick();
+}
+
+/** Prefer the SSE stream; drop to polling the first time it fails. */
+function startLiveUpdates() {
+  if (!('EventSource' in window)) {
+    startEventPolling(state.snapshot?.latest_seq_id ?? 0);
+    return;
+  }
+  const source = new EventSource('/api/events/stream');
+  source.onopen = () => setStatus('Live: SSE');
+  source.onmessage = scheduleRefresh;
+  for (const type of ['participant.registered', 'profile.analysis.completed', 'match.candidate.generated', 'match.evaluated',
+    'introduction.proposed', 'introduction.accepted', 'introduction.declined', 'introduction.completed', 'analysis.failed']) {
+    source.addEventListener(type, scheduleRefresh);
+  }
+  source.onerror = () => {
+    source.close();
+    startEventPolling(state.snapshot?.latest_seq_id ?? 0);
+  };
+  setInterval(() => refresh().catch(() => {}), HEARTBEAT_MS);
+}
+
+/** Flip seed mode through the presenter-only endpoint. */
+async function toggleSeeds() {
+  if (!state.snapshot?.presenter || state.seedBusy) return;
+  state.seedBusy = true;
+  renderSeedButton(state.snapshot);
+  try {
+    const res = await fetch('/api/stage/seed-toggle', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ enabled: !state.snapshot.seed_mode }),
+    });
+    if (!res.ok) throw new Error(`seed toggle ${res.status}`);
+  } finally {
+    state.seedBusy = false;
+    await refresh().catch(() => {});
+  }
+}
+
+/** Toggle strict pseudonyms on every label; the server drops identities from the snapshot. */
+function togglePrivacy() {
+  state.privacy = !state.privacy;
+  $('privacy-toggle').setAttribute('aria-pressed', String(state.privacy));
+  refresh().catch(() => {});
+}
+
+/** Show or hide the QR overlay. */
+function toggleQr() {
+  const modal = $('qr-modal');
+  modal.hidden = !modal.hidden;
+  $('qr-toggle').setAttribute('aria-pressed', String(!modal.hidden));
+}
+
+/** Start or stop hands-free rotation through views 1 → 4. */
+function toggleCycle() {
+  if (state.cycleTimer) {
+    clearInterval(state.cycleTimer);
+    state.cycleTimer = null;
+  } else {
+    state.cycleTimer = setInterval(() => showView(String((Number(state.view) % 4) + 1)), CYCLE_MS);
+  }
+  $('cycle-toggle').setAttribute('aria-pressed', String(Boolean(state.cycleTimer)));
+}
+
+/**
+ * Stage hotkeys: 1–4 views, Q QR, S seeds, P privacy, Space auto-cycle.
+ * @param {KeyboardEvent} event
+ */
+function onKey(event) {
+  if (event.metaKey || event.ctrlKey || event.altKey) return;
+  const key = event.key.toLowerCase();
+  if (['1', '2', '3', '4'].includes(key)) showView(key);
+  else if (key === 'q') toggleQr();
+  else if (key === 's') toggleSeeds();
+  else if (key === 'p') togglePrivacy();
+  else if (key === ' ') toggleCycle();
+  else return;
+  event.preventDefault();
+}
+
+for (const button of document.querySelectorAll('nav.views button')) button.addEventListener('click', () => showView(button.dataset.view));
+$('qr-toggle').addEventListener('click', toggleQr);
+$('seed-toggle').addEventListener('click', toggleSeeds);
+$('privacy-toggle').addEventListener('click', togglePrivacy);
+$('cycle-toggle').addEventListener('click', toggleCycle);
+document.addEventListener('keydown', onKey);
+window.addEventListener('resize', fitStage);
+
+fitStage();
+showView(state.view);
+refresh()
+  .catch(() => setStatus('Snapshot unavailable — retrying'))
+  .finally(startLiveUpdates);
+</script>
+</body>
+</html>
