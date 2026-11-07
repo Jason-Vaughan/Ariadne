@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark light">
+  <title>Join Ariadne</title>
+  <style>
+    :root {
+      --bg: #0b0d12; --panel: #151923; --text: #f3f5f9; --muted: #a6aec0; --line: #2a3142;
+      --accent: #ffd34d; --accent-ink: #1a1400; --error: #ff8f8f; --ok: #7ee2a8;
+    }
+    @media (prefers-color-scheme: light) {
+      :root { --bg: #f6f7fb; --panel: #ffffff; --text: #141821; --muted: #566074; --line: #d9deea; --accent: #ffcc1f; --accent-ink: #1a1400; --error: #b42318; --ok: #146c43; }
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    main { max-width: 480px; margin: 0 auto; padding: 16px 16px calc(24px + env(safe-area-inset-bottom)); }
+    .badge { display: block; text-align: center; font-weight: 800; letter-spacing: .04em; font-size: 1.05rem;
+      background: var(--accent); color: var(--accent-ink); border-radius: 10px; padding: 12px 10px; margin: 4px 0 18px; }
+    h1 { font-size: 1.6rem; margin: 0 0 4px; }
+    .lede { color: var(--muted); margin: 0 0 18px; }
+    form, .notice { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+    label { display: block; font-weight: 650; margin: 14px 0 6px; }
+    label:first-child { margin-top: 0; }
+    .optional { color: var(--muted); font-weight: 400; }
+    input[type=text], input[type=url] { width: 100%; font-size: 1.05rem; padding: 12px; border-radius: 10px;
+      border: 1px solid var(--line); background: var(--bg); color: var(--text); }
+    input:focus { outline: 3px solid var(--accent); outline-offset: 1px; }
+    .help { color: var(--muted); font-size: .88rem; margin: 6px 0 0; }
+    .field-error { color: var(--error); font-size: .9rem; margin: 6px 0 0; min-height: 0; }
+    .check { display: flex; gap: 10px; align-items: flex-start; margin: 16px 0 0; font-weight: 500; }
+    .check input { width: 22px; height: 22px; margin: 1px 0 0; flex: none; }
+    button { width: 100%; margin-top: 20px; font-size: 1.1rem; font-weight: 750; padding: 14px; border: 0; border-radius: 12px;
+      background: var(--accent); color: var(--accent-ink); }
+    button:disabled { opacity: .55; }
+    button.secondary { background: transparent; color: var(--text); border: 1px solid var(--line); margin-top: 10px; }
+    .notice { text-align: center; }
+    .notice p { font-size: 1.15rem; margin: 6px 0 14px; }
+    .status { margin-top: 12px; text-align: center; color: var(--muted); }
+    [hidden] { display: none !important; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="badge" role="note">⚡ REQUIRES GITHUB PROFILE</div>
+    <h1>Join Ariadne</h1>
+    <p class="lede">Find the builders here whose public work fits yours. Takes one tap — no GitHub login.</p>
+
+    <section id="capacity" class="notice" hidden aria-live="polite">
+      <p id="capacity-message">🚧 System is currently at capacity — please try back later!</p>
+      <button type="button" id="retry">🔄 Try Again</button>
+      <button type="button" id="prewarm-entry" class="secondary">🎟️ I'm a pre-registered judge or guest</button>
+    </section>
+
+    <form id="join-form" novalidate>
+      <label for="github">GitHub username or profile URL</label>
+      <input id="github" name="github" type="text" inputmode="url" autocomplete="username" autocapitalize="none"
+             spellcheck="false" placeholder="@octocat" required maxlength="200">
+      <p class="field-error" id="github-error" role="alert"></p>
+
+      <label for="website_url">Public Website / Portfolio URL <span class="optional">(optional)</span></label>
+      <input id="website_url" name="website_url" type="url" inputmode="url" autocapitalize="none" spellcheck="false"
+             placeholder="jasonvaughan.com" maxlength="2048">
+      <p class="help">Optional: Add a personal website or portfolio (must be publicly accessible with no login required, e.g. jasonvaughan.com).</p>
+      <p class="field-error" id="website_url-error" role="alert"></p>
+
+      <label for="goal">What I'm building or looking for today <span class="optional">(optional)</span></label>
+      <input id="goal" name="goal" type="text" maxlength="160" placeholder="Looking for a WebRTC co-hacker">
+      <p class="field-error" id="goal-error" role="alert"></p>
+
+      <label class="check">
+        <input type="checkbox" id="consent_processing" name="consent_processing" required>
+        <span>I agree that Ariadne may analyze my <strong>public</strong> GitHub profile and website to suggest collaborators. Required.</span>
+      </label>
+      <p class="field-error" id="consent_processing-error" role="alert"></p>
+
+      <label class="check">
+        <input type="checkbox" id="stage_display_consent" name="stage_display_consent">
+        <span>Display my @github handle on the 16:9 stage visualizer. Optional — otherwise the stage shows only an anonymous alias.</span>
+      </label>
+
+      <button type="submit" id="submit">Join</button>
+      <p class="status" id="status" aria-live="polite"></p>
+    </form>
+  </main>
+  <script src="/app/join.js" defer></script>
+</body>
+</html>
