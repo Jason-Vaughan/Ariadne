@@ -4,6 +4,9 @@ All notable changes to Ariadne-PM are documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **A-021 stage display on by default in the `/join` form, @handle first on `/me` (Issue #48):** the stage-display box is pre-checked and sent explicitly; the server default stays off for requests that omit it. `/me` leads with `@github_username`.
+
 ### Fixed
 - **Stage event feed drops withdrawn and removed builders (#46, `src/routes/stage-snapshot.ts`):** After a builder used "Withdraw & Delete My Data", View 1 still listed their past events by alias (and seed events stayed after seeds were switched off). `recent_events` now keeps only events whose builders are all on stage now: a single alias must be present, and a pair event needs both. Events that name no builder always stay. The feed scans the last 400 events so it stays full after removals.
 - **`/me` and the intro room stuck behind a buffering tunnel (Issue #44):** a Cloudflare tunnel can hold the SSE response open while buffering its frames, so `onerror` never fired and `/me` stayed on "Reading your public GitHub…" until a manual refresh. `/me` now re-fetches `/api/me` every 2 s whatever the stream is doing (also after a failed first load), and the intro room polls every 2.5 s even while locked, so it opens by itself when the counterpart taps Interested. Both pages skip re-rendering unchanged data, so the timer neither flickers nor wipes in-card messages; the room stops polling rooms that will never open.
