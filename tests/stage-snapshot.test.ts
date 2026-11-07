@@ -567,7 +567,8 @@ test('stageSafeEvent fills identities from current stage displays and removes ev
 test('/stage/ opens on View 1 and carries a floating QR outside the views', () => {
   const html = readFileSync(join(REPO_ROOT, 'public', 'stage', 'index.html'), 'utf8');
   assert.match(html, /const state = \{\n  view: '1',/);
-  assert.match(html, /<button type="button" id="qr-float-toggle" data-action="qr:floating" aria-pressed="false">📌 Floating QR<kbd>A<\/kbd><\/button>/);
+  assert.match(html, /<button type="button" id="qr-float-toggle" data-action="qr:floating" aria-pressed="true">📌 Floating QR<kbd>A<\/kbd><\/button>/);
+  assert.ok(html.includes('<aside id="qr-floating" aria-label="Floating join QR">'), 'the floating QR is on when the stage loads');
   const panel = html.indexOf('<aside id="qr-floating"');
   assert.ok(panel > html.indexOf('</main>'), 'the floating QR sits outside every view, so it persists across them');
   for (const id of ['id="qr-float-handle"', 'id="qr-float-frame"', 'id="qr-float-url"', 'id="qr-float-count"', 'Drag to move']) {

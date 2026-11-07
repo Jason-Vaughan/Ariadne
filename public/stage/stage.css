@@ -234,7 +234,7 @@ main { position: relative; overflow: hidden; }
 .qr-hint { color: var(--muted); font-size: 20px; margin-top: 10px; }
 
 /* Floating QR: persists across every view, dragged by its header */
-#qr-floating { position: absolute; left: 1470px; top: 560px; z-index: 8; width: 400px; background: rgba(6, 10, 20, 0.94); border: 2px solid var(--gold); border-radius: 18px; box-shadow: 0 0 30px rgba(250, 204, 21, 0.35); text-align: center; padding-bottom: 14px; }
+#qr-floating { position: absolute; left: 1488px; top: 548px; z-index: 8; width: 400px; background: rgba(6, 10, 20, 0.94); border: 2px solid var(--gold); border-radius: 18px; box-shadow: 0 0 30px rgba(250, 204, 21, 0.35); text-align: center; padding-bottom: 14px; }
 #qr-floating[hidden] { display: none; }
 #qr-floating.dragging { box-shadow: 0 0 44px rgba(250, 204, 21, 0.6); }
 .qr-float-handle { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; background: var(--gold); color: #111; font-size: 18px; font-weight: 900; border-radius: 15px 15px 0 0; cursor: grab; user-select: none; touch-action: none; }

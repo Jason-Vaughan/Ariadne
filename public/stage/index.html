@@ -19,7 +19,7 @@
     </nav>
     <div class="controls">
       <button type="button" id="qr-toggle" data-action="qr" aria-pressed="false">📱 QR Overlay<kbd>Q</kbd></button>
-      <button type="button" id="qr-float-toggle" data-action="qr:floating" aria-pressed="false">📌 Floating QR<kbd>A</kbd></button>
+      <button type="button" id="qr-float-toggle" data-action="qr:floating" aria-pressed="true">📌 Floating QR<kbd>A</kbd></button>
       <button type="button" id="seed-toggle" data-action="seed" aria-pressed="false">🌱 Seed AI Devs: OFF<kbd>S</kbd></button>
       <button type="button" id="privacy-toggle" data-action="privacy" aria-pressed="false">🔒 Privacy<kbd>P</kbd></button>
       <button type="button" id="cycle-toggle" data-action="cycle" aria-pressed="false">⚡ Auto-Cycle<kbd>Space</kbd></button>
@@ -55,7 +55,7 @@
     <div id="hud" class="hud" aria-label="Operator status">Connecting…</div>
   </main>
 
-  <aside id="qr-floating" aria-label="Floating join QR" hidden>
+  <aside id="qr-floating" aria-label="Floating join QR">
     <header class="qr-float-handle" id="qr-float-handle">
       <span>⚡ SCAN TO JOIN · Drag to move</span>
       <button type="button" class="qr-float-close" data-action="qr:floating" aria-label="Hide floating QR">×</button>

@@ -421,6 +421,7 @@ describe('operator controls', () => {
     for (const view of ['1', '2', '3', '4']) {
       assert.equal(actionForKey({ key: 'a' }, view), 'qr:floating', `A in view ${view}`);
       assert.equal(actionForKey({ key: 'A' }, view), 'qr:floating', `Shift+A in view ${view}`);
+      assert.equal(actionForKey({ key: 'r' }, view), 'qr:floating', `R in view ${view}`);
     }
   });
 
