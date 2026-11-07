@@ -9,7 +9,7 @@ import pathlib
 import re
 import sys
 
-BASE = pathlib.Path("/Users/jasonvaughan/Documents/Projects/Ariadne-PM/sprint-reports")
+BASE = pathlib.Path(__file__).resolve().parent.parent
 if str(BASE) not in sys.path:
     sys.path.insert(0, str(BASE))
 
@@ -22,18 +22,18 @@ style_block = style_match.group(0)
 script_block = script_match.group(0)
 
 # Wave 1 / v0.1.0 identifiers
-BASE_SHA_SHORT = "7d5b684"
-REL_MERGE_SHORT = "ab7bca9"
-REL_MERGE_SHA = "ab7bca900112233445566778899aabbccddeeff0"
+BASE_SHA_SHORT = "d965715"
+REL_MERGE_SHORT = "101d16c"
+REL_MERGE_SHA = "101d16c8134626c3b0596c05fc3bf12b8af04531"
 
-CARA_PR = 17
-CARA_MERGE_SHORT = "a101f01"
-CARB_PR = 18
-CARB_MERGE_SHORT = "b202f02"
-CARC_PR = 19
-CARC_MERGE_SHORT = "c303f03"
-CARD_PR = 20
-CARD_MERGE_SHORT = "d404f04"
+CARA_PR = 20
+CARA_MERGE_SHORT = "5bacf1e"
+CARB_PR = 19
+CARB_MERGE_SHORT = "719b35b"
+CARC_PR = 21
+CARC_MERGE_SHORT = "101d16c"
+CARD_PR = 18
+CARD_MERGE_SHORT = "4a75d2d"
 REL_PR = 21
 
 ade_kpi_html, ade_banner_html = render_ade_kpi_and_banner("v0.1.0")
@@ -110,10 +110,10 @@ html_part1 = f'''<!DOCTYPE html>
         <div class="hero-meta">
           <div><strong>Project / Repo:</strong> <code>Ariadne-PM (#149)</code> · <code>Jason-Vaughan/Ariadne</code></div>
           <div><strong>Base → Release:</strong> <code>{BASE_SHA_SHORT}</code> → <code>{REL_MERGE_SHORT}</code> (<code>v0.1.0</code>)</div>
-          <div><strong>Engineering Window (<code>T_eng</code>):</strong> <code>1h 12m (1.20h · 09:30 → 10:42 PST)</code></div>
-          <div><strong>PRs True-Merged:</strong> <code>5 / 5</code> (<code>#{CARA_PR}, #{CARB_PR}, #{CARC_PR}, #{CARD_PR}, #{REL_PR}</code>)</div>
-          <div><strong>Milestone #1 Issues Closed:</strong> <code>4 / 4</code> (<code>#1, #14, #9, #15</code> · <code>0</code> open)</div>
-          <div><strong>Governance Standard:</strong> <code>Rule #304 + SPRINT_REPORT_CONTRACT v2.0.0</code></div>
+          <div><strong>Engineering Window (<code>T_eng</code>):</strong> <code>50m 12s (0.84h · 11:01 → 11:52 PST)</code></div>
+          <div><strong>PRs Merged:</strong> <code>4 / 4</code> (<code>#{CARD_PR}, #{CARB_PR}, #{CARA_PR}, #{CARC_PR}</code>)</div>
+          <div><strong>Milestone #1 Issues Closed:</strong> <code>4 / 4</code> (<code>#1, #13, #9, #14</code> · <code>0</code> open)</div>
+          <div><strong>Governance Standard:</strong> <code>Rule #312/#313 + SPRINT_REPORT_CONTRACT v2.0.0</code></div>
         </div>
       </div>
 
@@ -121,22 +121,22 @@ html_part1 = f'''<!DOCTYPE html>
         <div class="kpi-card">
           <div class="kpi-label">Milestone #1 Closure Rate</div>
           <div class="kpi-value" style="color:var(--green)">4 / 4 (100%)</div>
-          <div class="kpi-sub"><code>#1, #14, #9, #15</code> closed in <code>v0.1.0</code> · <code>0</code> open</div>
+          <div class="kpi-sub"><code>#1, #13, #9, #14</code> closed in <code>v0.1.0</code> · <code>0</code> open</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">True-Merge PRs (Rule #282)</div>
-          <div class="kpi-value" style="color:var(--accent2)">5 / 5 PRs</div>
-          <div class="kpi-sub">Wave 1: <code>#{CARA_PR}</code>, <code>#{CARB_PR}</code>, <code>#{CARC_PR}</code>, <code>#{CARD_PR}</code> · Rel: <code>#{REL_PR}</code></div>
+          <div class="kpi-label">Merged PRs (Wave 1)</div>
+          <div class="kpi-value" style="color:var(--accent2)">4 / 4 PRs</div>
+          <div class="kpi-sub">Wave 1: <code>#{CARD_PR}</code>, <code>#{CARB_PR}</code>, <code>#{CARA_PR}</code>, <code>#{CARC_PR}</code> · Tag <code>v0.1.0</code></div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Total Run Time (Start → Finish)</div>
-          <div class="kpi-value" style="color:var(--purple)">1h 12m (1.20h)</div>
-          <div class="kpi-sub">Full <code>T_eng = 1.20h</code> · <code>0</code> file-envelope collisions</div>
+          <div class="kpi-value" style="color:var(--purple)">50m 12s (0.84h)</div>
+          <div class="kpi-sub">Full <code>T_eng = 0.84h</code> · <code>0</code> file-envelope collisions</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Net Code &amp; Test Footprint</div>
-          <div class="kpi-value" style="color:var(--green)">+1,480 / -24</div>
-          <div class="kpi-sub"><code>18</code> files touched across 4 feature PRs + release cut</div>
+          <div class="kpi-value" style="color:var(--green)">+5,132 / -49</div>
+          <div class="kpi-sub"><code>24</code> files touched across 4 Wave 1 PRs (<code>183/183</code> tests pass)</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Pairwise File Disjointness</div>
@@ -146,17 +146,17 @@ html_part1 = f'''<!DOCTYPE html>
         <div class="kpi-card">
           <div class="kpi-label">Dual-Gate Review Discipline</div>
           <div class="kpi-value" style="color:var(--amber)">4 / 4 Gates</div>
-          <div class="kpi-sub"><code>I-Gate (PRR)</code> + <code>A-Gate (Arc)</code> + <code>B-Gate (INT)</code> + <code>O-Gate (Obsr)</code></div>
+          <div class="kpi-sub"><code>R-Gate (PRR)</code> + <code>A-Gate (Arc)</code> + <code>I-Gate (INT)</code> + <code>O-Gate (Obsr)</code></div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Post-Merge Defects on Main</div>
           <div class="kpi-value" style="color:var(--green)">0 Defects</div>
-          <div class="kpi-sub">100% green CI &amp; SQLite WAL smoke verification</div>
+          <div class="kpi-sub">100% green CI (<code>183/183 node:test</code> + <code>7/7 Testament</code>) &amp; <code>:3420/api/health</code> 200 OK</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Allocated Sprint Cost (Tier 2)</div>
-          <div class="kpi-value" style="color:var(--green)">$2.95 Pool</div>
-          <div class="kpi-sub"><code>$0.00</code> marginal API fee · <code>$0.74/issue</code> · <code>~$25</code> API shadow</div>
+          <div class="kpi-value" style="color:var(--green)">$2.07 Pool</div>
+          <div class="kpi-sub"><code>$0.00</code> marginal API fee · <code>$0.52/issue</code> · <code>~$25</code> API shadow</div>
         </div>
 {ade_kpi_html}
       </div>
@@ -1183,9 +1183,14 @@ out_file = BASE / "v0.1.0/index.html"
 out_file.parent.mkdir(parents=True, exist_ok=True)
 out_file.write_text(html, encoding="utf-8")
 
-pm_plan = pathlib.Path("/Users/jasonvaughan/Documents/Projects/Ariadne-PM/.tangleclaw/plans/v010-sprint-report.html")
-pm_plan.parent.mkdir(parents=True, exist_ok=True)
-pm_plan.write_text(html, encoding="utf-8")
+public_report = BASE.parent / "public/reports/v0.1.0/index.html"
+public_report.parent.mkdir(parents=True, exist_ok=True)
+public_report.write_text(html, encoding="utf-8")
+
+local_plan = BASE.parent / ".tangleclaw/plans/v010-sprint-report.html"
+local_plan.parent.mkdir(parents=True, exist_ok=True)
+local_plan.write_text(html, encoding="utf-8")
 
 print(f"Wrote {out_file} ({len(html.encode('utf-8'))} bytes, {len(html.splitlines())} lines)")
-print(f"Wrote {pm_plan} ({len(html.encode('utf-8'))} bytes, {len(html.splitlines())} lines)")
+print(f"Wrote {public_report} ({len(html.encode('utf-8'))} bytes, {len(html.splitlines())} lines)")
+print(f"Wrote {local_plan} ({len(html.encode('utf-8'))} bytes, {len(html.splitlines())} lines)")
