@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark light">
+  <title>My Ariadne</title>
+  <link rel="stylesheet" href="/app/app.css">
+</head>
+<body>
+  <main>
+    <h1 id="alias">My Ariadne</h1>
+    <p class="muted" id="handle"></p>
+
+    <section class="card" aria-labelledby="progress-title">
+      <strong id="progress-title">Live research</strong>
+      <ol class="stepper" id="progress"></ol>
+    </section>
+
+    <h2>6-Axis Builder Fingerprint</h2>
+    <section class="card" id="fingerprint"><p class="muted">Reading your public GitHub…</p></section>
+
+    <h2>Superpowers (Offers)</h2>
+    <div class="pills" id="offers"></div>
+    <h2>Looking For (Needs)</h2>
+    <div class="pills" id="needs"></div>
+
+    <h2>Top-3 Complementary Matches</h2>
+    <div id="matches"><p class="muted">Matches appear here as soon as they are found.</p></div>
+
+    <button type="button" class="danger" id="withdraw">Withdraw &amp; Delete My Data</button>
+    <p class="note muted" id="withdraw-note"></p>
+  </main>
+  <script src="/app/me.js" defer></script>
+</body>
+</html>
