@@ -5,6 +5,12 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Added
+- **A-001 Core Contracts & SQLite Schema (`src/contracts/*`, `src/db/schema.sql`, `tests/contracts.test.ts`, Issue #1):**
+  - Zod-validated TypeScript contracts for `Participant` (incl. optional `website_url`), `EvidenceReceipt` (incl. `public_website` source), `CapabilityClaim`, `OpportunityNeed`, `MatchProposal`/`ScoreBreakdown`, the 12-type `EventType` catalog, strict per-type `PublicEventEnvelope` payloads and the poll response.
+  - Public event payloads are pseudonymous and strict: GitHub identity appears only inside a `display` object that requires `public_display_consent: true`; tokens, contact cards and raw usernames are rejected.
+  - `canTransitionIntroState` / `classifyIntroTransition` implement the mutual-introduction state machine, including verified-ownership gating and idempotent same-state no-ops.
+  - Idempotent SQLite WAL schema for `participants`, `github_snapshots`, `evidence_receipts`, `capability_claims`, `opportunity_needs`, `matches`, `domain_events` and `async_jobs`, with privacy defaults of 0, canonical match ordering, cascading participant purge and event idempotency keys.
+  - Root `package.json` / `tsconfig.json` (Node 22, TypeScript 5.9, Zod 4, Vitest 5): `npm test`, `npm run typecheck`.
 - **Onboarded Prawduct Protocol (`.prawduct/`, No Internal PRR) + Testament Test Runner (`.testament.toml`, `tests/test_ariadne_suite.py`) + Dual-Reviewer Bottleneck Mitigation (`CLAUDE.md`, `AGENTS.md`):**
   - Scaffolded `.prawduct/` via `prawduct-hook init-product` across `Jason-Vaughan/Ariadne` so all 4 Opus 5.5 Builder lanes (`Ariadne-Lane-A..D`) run under Prawduct governance, while explicitly waiving Prawduct's internal `pr` gate (`.prawduct/.gates-waived`) so Builders never waste tokens/time running internal PRR (`Ariadne-PRR` `#1568` and `Ariadne-Arc` `#1563` perform external PRR).
   - Configured Dual-Reviewer load balancing (`Ariadne-Arc` `#1563` reviews `Car A/B`; `Ariadne-PRR` `#1568` reviews `Car C/D`) to eliminate single-PRR queueing bottlenecks across the 4 parallel Builders.

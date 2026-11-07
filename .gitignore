@@ -26,3 +26,6 @@ __pycache__/
 
 # Prawduct plugin version marker (per-repo last-seen)
 .prawduct/.prawduct-version
+
+# Node
+node_modules/
