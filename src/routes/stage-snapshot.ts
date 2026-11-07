@@ -3,6 +3,13 @@ import type { DatabaseSync } from 'node:sqlite';
 import { performance } from 'node:perf_hooks';
 import { sendJson } from '../server.ts';
 import type { RouteDefinition } from '../server.ts';
+import { latestSeqId, readEventsAfter } from '../events/bus.ts';
+import type { PublicEventEnvelope } from '../contracts/events.ts';
+import { SCORE_WEIGHTS, ScoreBreakdownSchema } from '../contracts/types.ts';
+import type { ScoreBreakdown } from '../contracts/types.ts';
+import { FINGERPRINT_AXES } from '../github/connector.ts';
+import type { FingerprintVector } from '../github/connector.ts';
+import { getAdmissionPolicy } from './onboarding.ts';
 
 // ---------------------------------------------------------------------------
 // Seed pool
@@ -134,6 +141,12 @@ export interface StageSnapshot {
   };
   nodes: StageNode[];
   edges: StageEdge[];
+  pipeline: PipelineCounters;
+  /** Most recent public events, oldest first, with identities only for builders shown on stage. */
+  recent_events: PublicEventEnvelope[];
+  fingerprints: FingerprintCard[];
+  spotlight: SpotlightEntry[];
+  admission: { max_room_capacity: number; intake_locked: boolean; live_builders: number };
 }
 
 /**
@@ -248,15 +261,17 @@ export function buildStageSnapshot(db: DatabaseSync, options: SnapshotOptions = 
     allEdges.push({ match_id: m.id, a, b, score: Number(m.composite_score), state });
   }
 
-  const seq = db.prepare('SELECT COALESCE(MAX(seq_id), 0) AS seq FROM domain_events').get() as { seq: number };
+  const head = latestSeqId(db);
   const live = participants.filter((p) => !isSeedId(p.id));
+  const shown = new Set(nodes.filter((n) => n.display).map((n) => n.alias));
+  const policy = getAdmissionPolicy();
   return {
     generated_at: (options.now ?? new Date()).toISOString(),
     privacy_mode: privacyMode,
     seed_mode: live.length < participants.length,
     presenter: options.presenter ?? false,
     join_url: options.joinUrl ?? null,
-    latest_seq_id: Number(seq.seq),
+    latest_seq_id: head,
     kpis: {
       live_builders: live.length,
       seed_builders: participants.length - live.length,
@@ -267,7 +282,321 @@ export function buildStageSnapshot(db: DatabaseSync, options: SnapshotOptions = 
     },
     nodes,
     edges: capTopEdges(allEdges),
+    pipeline: buildPipelineCounters(db, participants, allEdges),
+    recent_events: readEventsAfter(db, Math.max(0, head - RECENT_EVENT_COUNT), RECENT_EVENT_COUNT).map((e) =>
+      stageSafeEvent(e, shown),
+    ),
+    fingerprints: buildFingerprintCards(db, participants, nodes),
+    spotlight: buildSpotlight(db, aliasById, nodes),
+    admission: { max_room_capacity: policy.maxRoomCapacity, intake_locked: policy.intakeLocked, live_builders: live.length },
   };
+}
+
+// ---------------------------------------------------------------------------
+// Stage modes: pipeline (view 1), fingerprints (view 2), spotlight (view 4)
+// ---------------------------------------------------------------------------
+
+export const RECENT_EVENT_COUNT = 40;
+export const SPOTLIGHT_LIMIT = 12;
+/** Evidence pills shown per builder on a fingerprint card or a spotlight side. */
+export const EVIDENCE_PILLS = 3;
+
+export interface PipelineCounters {
+  crawl: { registered: number; fetching: number; failed: number };
+  evidence: { receipts: number; repos: number; websites: number };
+  fingerprint: { analyzing: number; ready: number; claims: number };
+  match: { matches: number; one_sided: number; golden: number };
+}
+
+/**
+ * Counters for the four pipeline columns: crawl → evidence → fingerprint → match.
+ * Counts cover live builders only; seeds never pass through the pipeline.
+ * @param db - Open database.
+ * @param participants - Participants with consent granted.
+ * @param edges - Every visible match edge (before the top-3 cap).
+ * @returns Per-stage counters.
+ */
+function buildPipelineCounters(db: DatabaseSync, participants: ParticipantRow[], edges: StageEdge[]): PipelineCounters {
+  const live = participants.filter((p) => !isSeedId(p.id));
+  const byState = (state: string): number => live.filter((p) => p.analysis_state === state).length;
+  const evidence = db
+    .prepare(
+      `SELECT COUNT(*) AS receipts,
+              COUNT(DISTINCT r.repo_full_name) AS repos,
+              SUM(r.source_type = 'public_website') AS websites
+         FROM evidence_receipts r JOIN participants p ON p.id = r.participant_id
+        WHERE p.consent_status = 'granted' AND p.id NOT LIKE ?`,
+    )
+    .get(`${SEED_ID_PREFIX}%`) as { receipts: number; repos: number; websites: number | null };
+  const claims = db
+    .prepare(
+      `SELECT COUNT(*) AS n FROM capability_claims c JOIN participants p ON p.id = c.participant_id
+        WHERE p.consent_status = 'granted' AND p.id NOT LIKE ? AND c.dismissed_by_user = 0`,
+    )
+    .get(`${SEED_ID_PREFIX}%`) as { n: number };
+  return {
+    crawl: { registered: byState('registered'), fetching: byState('fetching_github'), failed: byState('failed') },
+    evidence: { receipts: Number(evidence.receipts), repos: Number(evidence.repos), websites: Number(evidence.websites ?? 0) },
+    fingerprint: { analyzing: byState('analyzing_profile'), ready: byState('ready'), claims: Number(claims.n) },
+    match: {
+      matches: edges.length,
+      one_sided: edges.filter((e) => e.state === 'one_sided').length,
+      golden: edges.filter((e) => e.state === 'golden').length,
+    },
+  };
+}
+
+/**
+ * Strip GitHub identities from an event unless that builder is shown on stage right now. An event
+ * records the consent in force when it was written; consent can be withdrawn and privacy mode can
+ * be switched on afterwards, so the stage re-applies the current rule.
+ * @param event - Contract-valid public event.
+ * @param shown - Aliases whose identity the stage may show.
+ * @returns A copy of the event that is safe to project.
+ */
+export function stageSafeEvent(event: PublicEventEnvelope, shown: Set<string>): PublicEventEnvelope {
+  const payload: Record<string, unknown> = { ...event.payload };
+  const strip = (aliasKey: string, displayKey: string): void => {
+    const alias = payload[aliasKey];
+    if (typeof alias !== 'string' || !shown.has(alias)) delete payload[displayKey];
+  };
+  strip('display_alias', 'display');
+  strip('display_alias_a', 'display_a');
+  strip('display_alias_b', 'display_b');
+  return { ...event, payload } as PublicEventEnvelope;
+}
+
+export interface EvidencePill {
+  source_type: string;
+  /** Present only for a builder shown on stage. */
+  title: string | null;
+  url: string | null;
+}
+
+export interface FingerprintCard {
+  alias: string;
+  label: string;
+  is_seed: boolean;
+  analysis_state: string;
+  /** 0–100 per axis, or null until the crawl has produced a snapshot. */
+  fingerprint: FingerprintVector | null;
+  evidence_count: number;
+  claim_count: number;
+  evidence: EvidencePill[];
+}
+
+interface EvidenceRow {
+  id: string;
+  participant_id: string;
+  source_type: string;
+  title_or_summary: string;
+  source_url: string;
+}
+
+/**
+ * Parse a stored fingerprint, keeping only the six known axes with values clamped to 0–100.
+ * @param raw - JSON text from the GitHub snapshot.
+ * @returns The vector, or null when absent or malformed.
+ */
+export function parseFingerprint(raw: string | null): FingerprintVector | null {
+  if (!raw) return null;
+  let value: unknown;
+  try {
+    value = JSON.parse(raw);
+  } catch {
+    return null;
+  }
+  if (!value || typeof value !== 'object') return null;
+  const vector = {} as FingerprintVector;
+  for (const axis of FINGERPRINT_AXES) {
+    const n = (value as Record<string, unknown>)[axis];
+    if (typeof n !== 'number' || !Number.isFinite(n)) return null;
+    vector[axis] = Math.min(100, Math.max(0, Math.round(n)));
+  }
+  return vector;
+}
+
+/**
+ * An evidence pill: source type always, title and link only for a builder shown on stage.
+ * Repository names and URLs routinely contain the GitHub handle, so they never accompany a pseudonym.
+ * @param row - Evidence receipt.
+ * @param shown - Whether the owning builder is shown on stage.
+ * @returns The pill.
+ */
+function evidencePill(row: EvidenceRow, shown: boolean): EvidencePill {
+  return { source_type: row.source_type, title: shown ? row.title_or_summary : null, url: shown ? row.source_url : null };
+}
+
+/**
+ * Load evidence receipts for participants, grouped by participant id.
+ * @param db - Open database.
+ * @returns Receipts per participant id, newest source first.
+ */
+function evidenceByParticipant(db: DatabaseSync): Map<string, EvidenceRow[]> {
+  const rows = db
+    .prepare(
+      `SELECT id, participant_id, source_type, title_or_summary, source_url FROM evidence_receipts
+        ORDER BY source_updated_at DESC, id`,
+    )
+    .all() as unknown as EvidenceRow[];
+  const grouped = new Map<string, EvidenceRow[]>();
+  for (const row of rows) {
+    const list = grouped.get(row.participant_id) ?? [];
+    list.push(row);
+    grouped.set(row.participant_id, list);
+  }
+  return grouped;
+}
+
+/**
+ * One fingerprint card per builder on stage.
+ * @param db - Open database.
+ * @param participants - Participants with consent granted (same order as `nodes`).
+ * @param nodes - Stage nodes, carrying the privacy-aware label.
+ * @returns Cards in node order.
+ */
+function buildFingerprintCards(db: DatabaseSync, participants: ParticipantRow[], nodes: StageNode[]): FingerprintCard[] {
+  const fingerprintOf = db.prepare(
+    `SELECT json_extract(payload_json, '$.fingerprint') AS fp FROM github_snapshots
+      WHERE participant_id = ? OR github_username = ? ORDER BY fetched_at DESC LIMIT 1`,
+  );
+  const claimsOf = db.prepare('SELECT COUNT(*) AS n FROM capability_claims WHERE participant_id = ? AND dismissed_by_user = 0');
+  const evidence = evidenceByParticipant(db);
+  return participants.map((p, i) => {
+    const node = nodes[i] as StageNode;
+    const row = fingerprintOf.get(p.id, p.github_username) as { fp: string | null } | undefined;
+    const receipts = evidence.get(p.id) ?? [];
+    return {
+      alias: node.alias,
+      label: node.label,
+      is_seed: node.is_seed,
+      analysis_state: node.analysis_state,
+      fingerprint: parseFingerprint(row?.fp ?? null),
+      evidence_count: receipts.length,
+      claim_count: Number((claimsOf.get(p.id) as { n: number }).n),
+      evidence: receipts.slice(0, EVIDENCE_PILLS).map((r) => evidencePill(r, node.display !== null)),
+    };
+  });
+}
+
+export interface SpotlightSide {
+  alias: string;
+  label: string;
+  is_seed: boolean;
+  evidence: EvidencePill[];
+}
+
+export interface SpotlightEntry {
+  match_id: string;
+  score: number;
+  state: EdgeState;
+  breakdown: ScoreBreakdown | null;
+  /** Weighted contribution of each component to the composite, in score points. */
+  contributions: Record<keyof ScoreBreakdown, number> | null;
+  a: SpotlightSide;
+  b: SpotlightSide;
+  /** "Why they match" and first collaboration: shown only when both builders are shown on stage. */
+  thesis: { summary: string; first_collaboration: string } | null;
+}
+
+interface SpotlightRow {
+  id: string;
+  participant_a_id: string;
+  participant_b_id: string;
+  composite_score: number;
+  intro_state: string;
+  score_breakdown: string;
+  complementary_summary: string;
+  suggested_first_collaboration: string;
+  evidence_receipt_ids: string;
+}
+
+/**
+ * Parse a stored score breakdown against the five-component contract.
+ * @param raw - JSON text.
+ * @returns The breakdown, or null when it does not satisfy the contract.
+ */
+export function parseBreakdown(raw: string): ScoreBreakdown | null {
+  try {
+    const parsed = ScoreBreakdownSchema.safeParse(JSON.parse(raw));
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Weighted contribution of each component, in score points (0–100 total before any anti-clone cap).
+ * @param breakdown - The five normalized components.
+ * @returns Points per component, one decimal place.
+ */
+export function scoreContributions(breakdown: ScoreBreakdown): Record<keyof ScoreBreakdown, number> {
+  const out = {} as Record<keyof ScoreBreakdown, number>;
+  for (const key of Object.keys(SCORE_WEIGHTS) as (keyof ScoreBreakdown)[]) {
+    out[key] = Math.round(SCORE_WEIGHTS[key] * breakdown[key] * 1000) / 10;
+  }
+  return out;
+}
+
+/**
+ * The match pairs to step through on the spotlight: golden threads first, then one-sided
+ * interest, then the highest scores. Each side shows only its own cited evidence.
+ * @param db - Open database.
+ * @param aliasById - Alias for every participant with consent granted.
+ * @param nodes - Stage nodes, carrying the privacy-aware label and display.
+ * @returns Up to SPOTLIGHT_LIMIT entries.
+ */
+function buildSpotlight(db: DatabaseSync, aliasById: Map<string, string>, nodes: StageNode[]): SpotlightEntry[] {
+  const nodeByAlias = new Map(nodes.map((n) => [n.alias, n]));
+  const rows = db
+    .prepare(
+      `SELECT id, participant_a_id, participant_b_id, composite_score, intro_state, score_breakdown,
+              complementary_summary, suggested_first_collaboration, evidence_receipt_ids
+         FROM matches WHERE intro_state <> 'declined'`,
+    )
+    .all() as unknown as SpotlightRow[];
+  const evidence = evidenceByParticipant(db);
+  const entries: SpotlightEntry[] = [];
+  for (const row of rows) {
+    const state = edgeStateFor(row.intro_state);
+    const nodeA = nodeByAlias.get(aliasById.get(row.participant_a_id) ?? '');
+    const nodeB = nodeByAlias.get(aliasById.get(row.participant_b_id) ?? '');
+    if (!state || !nodeA || !nodeB) continue;
+    let cited: string[] = [];
+    try {
+      const parsed: unknown = JSON.parse(row.evidence_receipt_ids);
+      if (Array.isArray(parsed)) cited = parsed.filter((x): x is string => typeof x === 'string');
+    } catch {
+      cited = [];
+    }
+    const side = (participantId: string, node: StageNode): SpotlightSide => ({
+      alias: node.alias,
+      label: node.label,
+      is_seed: node.is_seed,
+      evidence: (evidence.get(participantId) ?? [])
+        .filter((r) => cited.includes(r.id))
+        .slice(0, EVIDENCE_PILLS)
+        .map((r) => evidencePill(r, node.display !== null)),
+    });
+    const breakdown = parseBreakdown(row.score_breakdown);
+    entries.push({
+      match_id: row.id,
+      score: Number(row.composite_score),
+      state,
+      breakdown,
+      contributions: breakdown ? scoreContributions(breakdown) : null,
+      a: side(row.participant_a_id, nodeA),
+      b: side(row.participant_b_id, nodeB),
+      thesis:
+        nodeA.display && nodeB.display
+          ? { summary: row.complementary_summary, first_collaboration: row.suggested_first_collaboration }
+          : null,
+    });
+  }
+  entries.sort(
+    (x, y) => EDGE_PRIORITY[x.state] - EDGE_PRIORITY[y.state] || y.score - x.score || x.match_id.localeCompare(y.match_id),
+  );
+  return entries.slice(0, SPOTLIGHT_LIMIT);
 }
 
 // ---------------------------------------------------------------------------

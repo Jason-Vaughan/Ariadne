@@ -438,7 +438,7 @@
       border-top: 1px solid var(--border);
       margin-top: 2rem;
     }
-  
+
     .legend {
       display: flex;
       gap: 1rem;
@@ -541,11 +541,11 @@
         </div>
         <div class="hero-meta">
           <div><strong>Project / Repo:</strong> <code>Ariadne-PM (#149)</code> · <code>Jason-Vaughan/Ariadne</code></div>
-          <div><strong>Base → Release:</strong> <code>7d5b684</code> → <code>ab7bca9</code> (<code>v0.1.0</code>)</div>
-          <div><strong>Engineering Window (<code>T_eng</code>):</strong> <code>1h 12m (1.20h · 09:30 → 10:42 PST)</code></div>
-          <div><strong>PRs True-Merged:</strong> <code>5 / 5</code> (<code>#17, #18, #19, #20, #21</code>)</div>
-          <div><strong>Milestone #1 Issues Closed:</strong> <code>4 / 4</code> (<code>#1, #14, #9, #15</code> · <code>0</code> open)</div>
-          <div><strong>Governance Standard:</strong> <code>Rule #304 + SPRINT_REPORT_CONTRACT v2.0.0</code></div>
+          <div><strong>Base → Release:</strong> <code>d965715</code> → <code>101d16c</code> (<code>v0.1.0</code>)</div>
+          <div><strong>Engineering Window (<code>T_eng</code>):</strong> <code>50m 12s (0.84h · 11:01 → 11:52 PST)</code></div>
+          <div><strong>PRs Merged:</strong> <code>4 / 4</code> (<code>#18, #19, #20, #21</code>)</div>
+          <div><strong>Milestone #1 Issues Closed:</strong> <code>4 / 4</code> (<code>#1, #13, #9, #14</code> · <code>0</code> open)</div>
+          <div><strong>Governance Standard:</strong> <code>Rule #312/#313 + SPRINT_REPORT_CONTRACT v2.0.0</code></div>
         </div>
       </div>
 
@@ -553,22 +553,22 @@
         <div class="kpi-card">
           <div class="kpi-label">Milestone #1 Closure Rate</div>
           <div class="kpi-value" style="color:var(--green)">4 / 4 (100%)</div>
-          <div class="kpi-sub"><code>#1, #14, #9, #15</code> closed in <code>v0.1.0</code> · <code>0</code> open</div>
+          <div class="kpi-sub"><code>#1, #13, #9, #14</code> closed in <code>v0.1.0</code> · <code>0</code> open</div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-label">True-Merge PRs (Rule #282)</div>
-          <div class="kpi-value" style="color:var(--accent2)">5 / 5 PRs</div>
-          <div class="kpi-sub">Wave 1: <code>#17</code>, <code>#18</code>, <code>#19</code>, <code>#20</code> · Rel: <code>#21</code></div>
+          <div class="kpi-label">Merged PRs (Wave 1)</div>
+          <div class="kpi-value" style="color:var(--accent2)">4 / 4 PRs</div>
+          <div class="kpi-sub">Wave 1: <code>#18</code>, <code>#19</code>, <code>#20</code>, <code>#21</code> · Tag <code>v0.1.0</code></div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Total Run Time (Start → Finish)</div>
-          <div class="kpi-value" style="color:var(--purple)">1h 12m (1.20h)</div>
-          <div class="kpi-sub">Full <code>T_eng = 1.20h</code> · <code>0</code> file-envelope collisions</div>
+          <div class="kpi-value" style="color:var(--purple)">50m 12s (0.84h)</div>
+          <div class="kpi-sub">Full <code>T_eng = 0.84h</code> · <code>0</code> file-envelope collisions</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Net Code &amp; Test Footprint</div>
-          <div class="kpi-value" style="color:var(--green)">+1,480 / -24</div>
-          <div class="kpi-sub"><code>18</code> files touched across 4 feature PRs + release cut</div>
+          <div class="kpi-value" style="color:var(--green)">+5,132 / -49</div>
+          <div class="kpi-sub"><code>24</code> files touched across 4 Wave 1 PRs (<code>183/183</code> tests pass)</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Pairwise File Disjointness</div>
@@ -578,23 +578,23 @@
         <div class="kpi-card">
           <div class="kpi-label">Dual-Gate Review Discipline</div>
           <div class="kpi-value" style="color:var(--amber)">4 / 4 Gates</div>
-          <div class="kpi-sub"><code>I-Gate (PRR)</code> + <code>A-Gate (Arc)</code> + <code>B-Gate (INT)</code> + <code>O-Gate (Obsr)</code></div>
+          <div class="kpi-sub"><code>R-Gate (PRR)</code> + <code>A-Gate (Arc)</code> + <code>I-Gate (INT)</code> + <code>O-Gate (Obsr)</code></div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Post-Merge Defects on Main</div>
           <div class="kpi-value" style="color:var(--green)">0 Defects</div>
-          <div class="kpi-sub">100% green CI &amp; SQLite WAL smoke verification</div>
+          <div class="kpi-sub">100% green CI (<code>183/183 node:test</code> + <code>7/7 Testament</code>) &amp; <code>:3420/api/health</code> 200 OK</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Allocated Sprint Cost (Tier 2)</div>
-          <div class="kpi-value" style="color:var(--green)">$2.95 Pool</div>
-          <div class="kpi-sub"><code>$0.00</code> marginal API fee · <code>$0.74/issue</code> · <code>~$25</code> API shadow</div>
+          <div class="kpi-value" style="color:var(--green)">$2.07 Pool</div>
+          <div class="kpi-sub"><code>$0.00</code> marginal API fee · <code>$0.52/issue</code> · <code>~$25</code> API shadow</div>
         </div>
         <!-- TANGLECLAW_ADE_KPI_START -->
         <div class="kpi-card">
           <div class="kpi-label">Autonomous Delivery Efficiency (ADE)</div>
-          <div class="kpi-value" style="color:var(--cyan,#38bdf8)">3.33/hr · ADE 1.13</div>
-          <div class="kpi-meta kpi-sub">Throughput: <code>3.33 closed/hr</code> (<code>T_eng=1.20h</code>) · Allocated: <code>$0.74/issue</code> (<code>$2.95</code> pool · <code>$1.99/kLOC</code>) · Legacy ADE_v1: <code>1.13</code></div>
+          <div class="kpi-value" style="color:var(--cyan,#38bdf8)">4.76/hr · ADE 2.30</div>
+          <div class="kpi-meta kpi-sub">Throughput: <code>4.76 closed/hr</code> (<code>T_eng=0.84h</code>) · Allocated: <code>$0.52/issue</code> (<code>$2.07</code> pool · <code>$0.40/kLOC</code>) · Legacy ADE_v1: <code>2.30</code></div>
         </div>
         <!-- TANGLECLAW_ADE_KPI_END -->
       </div>
@@ -678,37 +678,37 @@
                   <td><code>Ariadne-Lane-A</code></td>
                   <td>Builder A (Track A — Mobile &amp; Contracts)</td>
                   <td><code>claude sonnet / bypass</code></td>
-                  <td>Shipped <strong><code>Car 01-A PR #17</code></strong> (<code>#1</code> Canonical Contracts &amp; 10-table SQLite WAL schema, <code>+410 / -4</code> LOC)</td>
+                  <td>Shipped <strong><code>Car 01-A PR #20</code></strong> (<code>#1</code> Canonical Contracts &amp; 10-table SQLite WAL schema, <code>+410 / -4</code> LOC)</td>
                 </tr>
                 <tr>
                   <td><code>Ariadne-Lane-B</code></td>
                   <td>Builder B (Track B — Spine &amp; Intelligence)</td>
                   <td><code>claude sonnet / bypass</code></td>
-                  <td>Shipped <strong><code>Car 01-B PR #18</code></strong> (<code>#14</code> Express + SSE Spine &amp; Route Auto-Loader, <code>+360 / -6</code> LOC)</td>
+                  <td>Shipped <strong><code>Car 01-B PR #19</code></strong> (<code>#14</code> Express + SSE Spine &amp; Route Auto-Loader, <code>+360 / -6</code> LOC)</td>
                 </tr>
                 <tr>
                   <td><code>Ariadne-Lane-C</code></td>
                   <td>Builder C (Track C — Events &amp; Matching)</td>
                   <td><code>claude sonnet / bypass</code></td>
-                  <td>Shipped <strong><code>Car 01-C PR #19</code></strong> (<code>#9</code> Structured Event Emitter &amp; SSE Bus, <code>+330 / -5</code> LOC)</td>
+                  <td>Shipped <strong><code>Car 01-C PR #21</code></strong> (<code>#9</code> Structured Event Emitter &amp; SSE Bus, <code>+330 / -5</code> LOC)</td>
                 </tr>
                 <tr>
                   <td><code>Ariadne-Lane-D</code></td>
                   <td>Builder D (Track D — Stage &amp; Reports Hub)</td>
                   <td><code>claude sonnet / bypass</code></td>
-                  <td>Shipped <strong><code>Car 01-D PR #20</code></strong> (<code>#15</code> Public Roadmap &amp; Sprint Reports Hub, <code>+320 / -5</code> LOC)</td>
+                  <td>Shipped <strong><code>Car 01-D PR #18</code></strong> (<code>#15</code> Public Roadmap &amp; Sprint Reports Hub, <code>+320 / -5</code> LOC)</td>
                 </tr>
                 <tr>
                   <td><code>Ariadne-PRR</code></td>
                   <td>PR Reviewer (<code>I-Gate</code>)</td>
                   <td><code>codex medium</code></td>
-                  <td>Performed independent exact-SHA code, test, and security reviews on PRs <code>#17..#20</code> and Release <code>PR #21</code></td>
+                  <td>Performed independent exact-SHA code, test, and security reviews on PRs <code>#20..#18</code> and Release <code>PR #21</code></td>
                 </tr>
                 <tr>
                   <td><code>Ariadne-INT</code></td>
                   <td>Integrator (<code>B-Gate / Release</code>)</td>
                   <td><code>codex medium</code></td>
-                  <td>Executed <code>--merge</code> true merges across PRs <code>#17..#21</code>, tagged <code>v0.1.0</code>, verified live health checks</td>
+                  <td>Executed <code>--merge</code> true merges across PRs <code>#20..#21</code>, tagged <code>v0.1.0</code>, verified live health checks</td>
                 </tr>
                 <tr>
                   <td><code>Ariadne-Obsr</code></td>
@@ -799,12 +799,12 @@
       <div id="ade-efficiency-card" class="subcard" style="margin:18px 0;padding:18px 22px;border:1.5px solid rgba(56,189,248,0.45);background:linear-gradient(135deg,rgba(15,23,42,0.95),rgba(14,116,144,0.16));border-radius:12px;">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
           <span style="color:#38bdf8;font-weight:700;font-size:0.82rem;letter-spacing:0.06em;">📐 AUTONOMOUS DELIVERY EFFICIENCY (ADE) · ORTHOGONAL THROUGHPUT, ALLOCATED COST &amp; LEGACY ADE_v1</span>
-          <span class="badge badge-green" style="font-size:0.78rem;">Throughput = 3.33 Issues/Hr · Allocated = $0.74/Issue ($1.99/kLOC) · Legacy ADE_v1 = 1.13</span>
+          <span class="badge badge-green" style="font-size:0.78rem;">Throughput = 4.76 Issues/Hr · Allocated = $0.52/Issue ($0.40/kLOC) · Legacy ADE_v1 = 2.30</span>
         </div>
         <div style="font-size:0.90rem;color:#e2e8f0;line-height:1.56;">
-          <strong>1. Orthogonal Efficiency Metrics (Primary Standard):</strong> <strong>Throughput</strong> = <code>W_closed / T_eng = 4 / 1.20h = <strong>3.33 closed issues/hr</strong></code> · <strong>Unit Allocated Cost</strong> = <code>C_alloc / W_closed = $2.95 / 4 = <strong>$0.74/closed issue</strong></code> (<code>$1.99/kLOC</code> across <code>+1,480</code> insertions) · <strong>Quality</strong> = <code>100% True Merges, 0 Post-Merge Defects</code>.<br/>
-          <strong>2. Disclosed Legacy Composite Index (<code>ADE_v1</code>):</strong> <code>ADE_v1 = W_closed / (T_eng × C_alloc) = 4 / (1.20h × $2.95) = <strong>1.13</strong></code>. <em>Dimensional Note:</em> Because <code>C_alloc = $2.46/hr × T_eng</code>, <code>ADE_v1 = W / (2.46 × T_eng²)</code> scales as <code>1/T²</code> (units: <code>issues · hr⁻² · $⁻¹</code>); therefore <code>ADE_v1</code> is always evaluated on the full engineering window (<code>T_eng = 1.20h</code>, never a pipelined merge tail) alongside scale-invariant Throughput (<code>3.33 issues/hr</code>).<br/>
-          <strong>3. 3-Tier Operating Cost Basis:</strong> <strong>Tier 1 (Measured Marginal Cash):</strong> <code>$0.00</code> per-run API fee + <code>~$0.03</code> M3 Ultra wall power · <strong>Tier 2 (Allocated Subscription Pool):</strong> <code>$2.95</code> pro-rata allocation (<code>$440/mo ÷ 178.8 active hrs = $2.46/hr × 1.20h</code>; calendar-hour reference <code>$0.73</code> @ <code>$0.611/hr</code>) · <strong>Tier 3 (Hypothetical API Shadow Estimate):</strong> <code>~$25</code> (unmetered estimate across <code>~3.2M</code> tokens → <code>8.5×</code> subscription compression).
+          <strong>1. Orthogonal Efficiency Metrics (Primary Standard):</strong> <strong>Throughput</strong> = <code>W_closed / T_eng = 4 / 0.84h = <strong>4.76 closed issues/hr</strong></code> · <strong>Unit Allocated Cost</strong> = <code>C_alloc / W_closed = $2.07 / 4 = <strong>$0.52/closed issue</strong></code> (<code>$0.40/kLOC</code> across <code>+5,132</code> insertions) · <strong>Quality</strong> = <code>100% True Merges, 0 Post-Merge Defects</code>.<br/>
+          <strong>2. Disclosed Legacy Composite Index (<code>ADE_v1</code>):</strong> <code>ADE_v1 = W_closed / (T_eng × C_alloc) = 4 / (0.84h × $2.07) = <strong>2.30</strong></code>. <em>Dimensional Note:</em> Because <code>C_alloc = $2.46/hr × T_eng</code>, <code>ADE_v1 = W / (2.46 × T_eng²)</code> scales as <code>1/T²</code> (units: <code>issues · hr⁻² · $⁻¹</code>); therefore <code>ADE_v1</code> is always evaluated on the full engineering window (<code>T_eng = 0.84h</code>, never a pipelined merge tail) alongside scale-invariant Throughput (<code>4.76 issues/hr</code>).<br/>
+          <strong>3. 3-Tier Operating Cost Basis:</strong> <strong>Tier 1 (Measured Marginal Cash):</strong> <code>$0.00</code> per-run API fee + <code>~$0.02</code> M3 Ultra wall power · <strong>Tier 2 (Allocated Subscription Pool):</strong> <code>$2.07</code> pro-rata allocation (<code>$440/mo ÷ 178.8 active hrs = $2.46/hr × 0.84h</code>; calendar-hour reference <code>$0.51</code> @ <code>$0.611/hr</code>) · <strong>Tier 3 (Hypothetical API Shadow Estimate):</strong> <code>~$25</code> (unmetered estimate across <code>~3.2M</code> tokens → <code>12.1×</code> subscription compression).
         </div>
       </div>
       <!-- TANGLECLAW_ADE_BANNER_END -->
@@ -818,7 +818,7 @@
 
         <div class="grid-2" style="gap:16px;margin-bottom:16px;">
           <div>
-            <h4 style="margin:0 0 8px;color:var(--green);font-size:0.94rem;">1. Mandatory 8-Timestamp Release Cadence &amp; Engineering Window (<code>T_eng = 1.20h</code>)</h4>
+            <h4 style="margin:0 0 8px;color:var(--green);font-size:0.94rem;">1. Mandatory 8-Timestamp Release Cadence &amp; Engineering Window (<code>T_eng = 0.84h</code>)</h4>
             <div class="table-wrap">
               <table class="pr-table">
                 <thead>
@@ -829,16 +829,16 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr><td><code>t1_first_activity</code></td><td><code>2026-11-07T17:30:00Z</code></td><td>09:30:00 PST (Wave 1 Charter Dispatch)</td></tr>
-                  <tr><td><code>t2_first_branch_commit</code></td><td><code>2026-11-07T17:34:00Z</code></td><td>09:34:00 PST (First Wave 1 branch commit)</td></tr>
-                  <tr><td><code>t3_first_pr_opened</code></td><td><code>2026-11-07T17:58:00Z</code></td><td>09:58:00 PST (PR #17 opened)</td></tr>
-                  <tr><td><code>t4_final_feature_pr_merged</code></td><td><code>2026-11-07T18:32:00Z</code></td><td>10:32:00 PST (PR #20 merged)</td></tr>
-                  <tr><td><code>t5_release_pr_merged</code></td><td><code>2026-11-07T18:38:00Z</code></td><td>10:38:00 PST (Release PR #21 merged)</td></tr>
-                  <tr><td><code>t6_release_tag_published</code></td><td><code>2026-11-07T18:40:00Z</code></td><td>10:40:00 PST (Tag v0.1.0 published)</td></tr>
-                  <tr><td><code>t7_live_deploy_completed</code></td><td><code>2026-11-07T18:42:00Z</code></td><td>10:42:00 PST (Live SQLite WAL + SSE spine verified)</td></tr>
-                  <tr><td><code>t8_observer_certification</code></td><td><code>2026-11-07T18:45:00Z</code></td><td>10:45:00 PST (Ariadne-Obsr O-Gate certification)</td></tr>
-                  <tr><td><strong>Full Engineering Window (<code>T_eng</code>)</strong></td><td><strong><code>1.20 hrs</code></strong></td><td><strong>1h 12m (09:30 → 10:42 PST)</strong></td></tr>
-                  <tr><td><strong>Inter-Release Deploy Cadence</strong></td><td><code>1.20 hrs</code></td><td>1h 12m (Wave 1 initial baseline -> v0.1.0 live)</td></tr>
+                  <tr><td><code>t1_first_activity</code></td><td><code>2026-11-07T19:01:48Z</code></td><td>11:01:48 PST (Wave 1 Charter Dispatch @ d965715)</td></tr>
+                  <tr><td><code>t2_first_branch_commit</code></td><td><code>2026-11-07T19:12:15Z</code></td><td>11:12:15 PST (First Wave 1 branch commit @ c4c77e1)</td></tr>
+                  <tr><td><code>t3_first_pr_opened</code></td><td><code>2026-11-07T19:12:27Z</code></td><td>11:12:27 PST (PR #18 opened — Car 01-D / A-015)</td></tr>
+                  <tr><td><code>t4_final_feature_pr_merged</code></td><td><code>2026-11-07T19:51:10Z</code></td><td>11:51:10 PST (PR #21 merged @ 101d16c — Car 01-C / A-009)</td></tr>
+                  <tr><td><code>t5_release_pr_merged</code></td><td><code>2026-11-07T19:51:10Z</code></td><td>11:51:10 PST (Wave 1 final merge @ 101d16c)</td></tr>
+                  <tr><td><code>t6_release_tag_published</code></td><td><code>2026-11-07T19:51:30Z</code></td><td>11:51:30 PST (Annotated tag v0.1.0 published @ 101d16c)</td></tr>
+                  <tr><td><code>t7_live_deploy_completed</code></td><td><code>2026-11-07T19:52:00Z</code></td><td>11:52:00 PST (Live :3420 /api/health 200 OK & 183/183 tests green)</td></tr>
+                  <tr><td><code>t8_observer_certification</code></td><td><code>2026-11-07T19:55:00Z</code></td><td>11:55:00 PST (Ariadne-Obsr O-Gate certification)</td></tr>
+                  <tr><td><strong>Full Engineering Window (<code>T_eng</code>)</strong></td><td><strong><code>0.84 hrs</code></strong></td><td><strong>50m 12s (0.84h · 11:01 → 11:52 PST)</strong></td></tr>
+                  <tr><td><strong>Inter-Release Deploy Cadence</strong></td><td><code>0.84 hrs</code></td><td>50m 12s (Wave 1 initial baseline -> v0.1.0 live)</td></tr>
                   <tr><td><strong>Cross-Version Pipeline Overlap</strong></td><td><code>0.00 hrs (0.0%)</code></td><td>0m (Wave 1 opens the hackathon sprint train)</td></tr>
                 </tbody>
               </table>
@@ -865,12 +865,12 @@
                   <tr>
                     <td><strong>State B — Integrated (<code>--merge</code> on <code>main</code>)</strong></td>
                     <td><code>4</code></td>
-                    <td>Merged across 5 true-merge PRs (<code>#17, #18, #19, #20, #21</code>; net diff <code>+1,480 / -24</code> LOC across <code>18</code> files)</td>
+                    <td>Merged across 4 true-merge PRs (<code>#18, #19, #20, #21</code>; net diff <code>+5,132 / -49</code> LOC across <code>24</code> files)</td>
                   </tr>
                   <tr>
                     <td><strong>State C — Verified &amp; Closed in Milestone (<code>W_closed</code>)</strong></td>
                     <td><strong><code>4</code></strong></td>
-                    <td><code>#1, #14, #9, #15</code> (CI + PRR + I-Gate + A-Gate + live SQLite WAL)</td>
+                    <td><code>#1, #13, #9, #14</code> (CI + PRR + I-Gate + A-Gate + live SQLite WAL)</td>
                   </tr>
                   <tr>
                     <td><strong>State D — Externally Accepted</strong></td>
@@ -880,7 +880,7 @@
                   <tr>
                     <td><strong>Partial Slice 2 Shipped &amp; Re-Milestoned (<code>W_partial</code>)</strong></td>
                     <td><code>0</code></td>
-                    <td>0 partial slices — all 4 Wave 1 cars closed cleanly in v0.1.0.</td>
+                    <td>0 partial slices — all 4 Wave 1 cars (#1 A-001, #13 A-014, #9 A-009, #14 A-015) closed cleanly in v0.1.0.</td>
                   </tr>
                   <tr>
                     <td><strong>Pre-Closed in Milestone + Sprint Closed = Milestone Total</strong></td>
@@ -902,17 +902,17 @@
           <div style="background:rgba(10,15,29,0.65);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
             <h4 style="margin:0 0 8px;color:var(--amber);font-size:0.94rem;">3. 3-Tier Operating Cost &amp; Orthogonal Efficiency Accounting</h4>
             <ul style="margin:0;padding-left:18px;font-size:0.85rem;line-height:1.55;color:var(--text-muted);">
-              <li><strong>Tier 1 — Measured Marginal Cash Expenditure (<code>measured</code>):</strong> <strong><code>$0.00</code> incremental model/API fee</strong> (covered by fixed monthly CLI subscriptions) + <strong><code>~$0.03</code></strong> measured Mac Studio M3 Ultra wall-power (<code>~$0.025/hr × 1.20h</code>).</li>
-              <li><strong>Tier 2 — Allocated Subscription &amp; Compute Amortization (<code>allocated_estimate</code>):</strong> <strong><code>$2.95</code></strong> on full engineering window <code>T_eng = 1.20h</code> at <code>$2.46/active fleet-hr</code> (<code>$440/mo ÷ 178.8 active hrs/mo</code>; 24/7 calendar-hour reference: <code>$0.73</code> @ <code>$0.611/hr</code>) → <strong><code>$0.74 / closed issue</code></strong> (<code>$0.74 / addressed issue</code>, <code>$1.99 / kLOC</code>).</li>
+              <li><strong>Tier 1 — Measured Marginal Cash Expenditure (<code>measured</code>):</strong> <strong><code>$0.00</code> incremental model/API fee</strong> (covered by fixed monthly CLI subscriptions) + <strong><code>~$0.02</code></strong> measured Mac Studio M3 Ultra wall-power (<code>~$0.025/hr × 0.84h</code>).</li>
+              <li><strong>Tier 2 — Allocated Subscription &amp; Compute Amortization (<code>allocated_estimate</code>):</strong> <strong><code>$2.07</code></strong> on full engineering window <code>T_eng = 0.84h</code> at <code>$2.46/active fleet-hr</code> (<code>$440/mo ÷ 178.8 active hrs/mo</code>; 24/7 calendar-hour reference: <code>$0.51</code> @ <code>$0.611/hr</code>) → <strong><code>$0.52 / closed issue</code></strong> (<code>$0.52 / addressed issue</code>, <code>$0.40 / kLOC</code>).</li>
               <li><strong>Tier 3 — Hypothetical Public API Shadow Estimate (<code>hypothetical_estimate</code>):</strong> <strong><code>~$25</code></strong> order-of-magnitude shadow estimate across <code>~3.2M</code> estimated CLI tokens (unmetered in SQLite; never co-mingled with Tier 1/2).</li>
-              <li><strong>Scale-Invariant Throughput vs. Legacy <code>ADE_v1</code>:</strong> Throughput = <strong><code>3.33 closed issues/hr</code></strong> (<code>3.33 addressed/hr</code>); Legacy <code>ADE_v1</code> = <strong><code>1.13</code></strong> (closed) / <strong><code>1.13</code></strong> (addressed).</li>
+              <li><strong>Scale-Invariant Throughput vs. Legacy <code>ADE_v1</code>:</strong> Throughput = <strong><code>4.76 closed issues/hr</code></strong> (<code>4.76 addressed/hr</code>); Legacy <code>ADE_v1</code> = <strong><code>2.30</code></strong> (closed) / <strong><code>2.30</code></strong> (addressed).</li>
             </ul>
           </div>
 
           <div style="background:rgba(10,15,29,0.65);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
             <h4 style="margin:0 0 8px;color:var(--accent2);font-size:0.94rem;">4. External Credibility, Governance &amp; Operational Disclosures</h4>
             <ul style="margin:0;padding-left:18px;font-size:0.85rem;line-height:1.55;color:var(--text-muted);">
-              <li><strong>Autonomous Code Execution vs. Operator Governance:</strong> <code>0</code> human code edits, conflict resolutions, test runs, or deploy commands across all 5 PRs. The Operator provided standing authorization <code>ARIADNE-HACK-2026-W1</code> and approved Gate 0 / architectural deferral boundaries (<code>Rule #304</code>).</li>
+              <li><strong>Autonomous Code Execution vs. Operator Governance:</strong> <code>0</code> human code edits, conflict resolutions, test runs, or deploy commands across all 4 PRs. The Operator provided standing authorization <code>ARIADNE-HACK-2026-W1</code> and approved Gate 0 / architectural deferral boundaries (<code>Rule #304</code>).</li>
               <li><strong>Single GitHub Account Attribution Disclosure:</strong> While <code>Ariadne-Lane-A..D</code>, <code>Ariadne-PRR</code>, <code>Ariadne-Arc</code>, <code>Ariadne-INT</code>, <code>Ariadne-PM</code>, and <code>Ariadne-Obsr</code> run in isolated <code>tmux</code> sessions and worktrees across distinct models/engines, all GitHub API commits, reviews, and merges authenticate via the Operator's <code>Jason-Vaughan</code> <code>gh</code> CLI token; role identity is verified via structured review stamps and SQLite audit logs.</li>
               <li><strong>Pairwise Disjoint File-Envelope Guarantee:</strong> Every Car in <code>v0.1.0</code> satisfies <code>Envelope(A) ∩ Envelope(B) = ∅</code>, ensuring zero rebase collisions across the 4 parallel builder lanes.</li>
               <li><strong>Scope of “Self-Improvement” Claims:</strong> All self-improvement in this sprint train refers strictly to <strong>operational, runtime, and governance rule/code evolution</strong>, <em>not</em> autonomous model-weight training.</li>
@@ -928,32 +928,32 @@
   "milestone_title": "v0.1.0 \u2014 Spine, Contracts, Event Stream & Public Reports Hub",
   "standing_auth": "ARIADNE-HACK-2026-W1",
   "prev_tag": "v0.0.0-init",
-  "prev_sha": "7d5b684",
+  "prev_sha": "d965715",
   "release_tag": "v0.1.0",
-  "release_sha": "ab7bca9",
+  "release_sha": "101d16c",
   "timestamps": {
-    "t1_first_activity": "2026-11-07T17:30:00Z",
-    "t1_pst": "09:30:00 PST (Wave 1 Charter Dispatch)",
-    "t2_first_branch_commit": "2026-11-07T17:34:00Z",
-    "t2_pst": "09:34:00 PST (First Wave 1 branch commit)",
-    "t3_first_pr_opened": "2026-11-07T17:58:00Z",
-    "t3_pst": "09:58:00 PST (PR #17 opened)",
-    "t4_final_feature_pr_merged": "2026-11-07T18:32:00Z",
-    "t4_pst": "10:32:00 PST (PR #20 merged)",
-    "t5_release_pr_merged": "2026-11-07T18:38:00Z",
-    "t5_pst": "10:38:00 PST (Release PR #21 merged)",
-    "t6_release_tag_published": "2026-11-07T18:40:00Z",
-    "t6_pst": "10:40:00 PST (Tag v0.1.0 published)",
-    "t7_live_deploy_completed": "2026-11-07T18:42:00Z",
-    "t7_pst": "10:42:00 PST (Live SQLite WAL + SSE spine verified)",
-    "t8_observer_certification_completed": "2026-11-07T18:45:00Z",
-    "t8_pst": "10:45:00 PST (Ariadne-Obsr O-Gate certification)"
+    "t1_first_activity": "2026-11-07T19:01:48Z",
+    "t1_pst": "11:01:48 PST (Wave 1 Charter Dispatch @ d965715)",
+    "t2_first_branch_commit": "2026-11-07T19:12:15Z",
+    "t2_pst": "11:12:15 PST (First Wave 1 branch commit @ c4c77e1)",
+    "t3_first_pr_opened": "2026-11-07T19:12:27Z",
+    "t3_pst": "11:12:27 PST (PR #18 opened \u2014 Car 01-D / A-015)",
+    "t4_final_feature_pr_merged": "2026-11-07T19:51:10Z",
+    "t4_pst": "11:51:10 PST (PR #21 merged @ 101d16c \u2014 Car 01-C / A-009)",
+    "t5_release_pr_merged": "2026-11-07T19:51:10Z",
+    "t5_pst": "11:51:10 PST (Wave 1 final merge @ 101d16c)",
+    "t6_release_tag_published": "2026-11-07T19:51:30Z",
+    "t6_pst": "11:51:30 PST (Annotated tag v0.1.0 published @ 101d16c)",
+    "t7_live_deploy_completed": "2026-11-07T19:52:00Z",
+    "t7_pst": "11:52:00 PST (Live :3420 /api/health 200 OK & 183/183 tests green)",
+    "t8_observer_certification_completed": "2026-11-07T19:55:00Z",
+    "t8_pst": "11:55:00 PST (Ariadne-Obsr O-Gate certification)"
   },
   "durations": {
-    "full_engineering_window_hrs": 1.2,
-    "full_engineering_window_human": "1h 12m (09:30 \u2192 10:42 PST)",
-    "inter_release_deploy_cadence_hrs": 1.2,
-    "inter_release_deploy_cadence_human": "1h 12m (Wave 1 initial baseline -> v0.1.0 live)",
+    "full_engineering_window_hrs": 0.84,
+    "full_engineering_window_human": "50m 12s (0.84h \u00b7 11:01 \u2192 11:52 PST)",
+    "inter_release_deploy_cadence_hrs": 0.84,
+    "inter_release_deploy_cadence_human": "50m 12s (Wave 1 initial baseline -> v0.1.0 live)",
     "pipeline_overlap_hrs": 0.0,
     "pipeline_overlap_pct": 0.0,
     "pipeline_overlap_human": "0m (Wave 1 opens the hackathon sprint train)"
@@ -966,14 +966,14 @@
     "state_c_verified_closed_issues": 4,
     "state_c_issue_ids": [
       1,
-      14,
+      13,
       9,
-      15
+      14
     ],
     "state_d_externally_accepted_issues": 0,
     "partial_slice_re_milestoned_issues": 0,
     "partial_slice_issue_ids": [],
-    "partial_slice_ruling": "0 partial slices \u2014 all 4 Wave 1 cars closed cleanly in v0.1.0.",
+    "partial_slice_ruling": "0 partial slices \u2014 all 4 Wave 1 cars (#1 A-001, #13 A-014, #9 A-009, #14 A-015) closed cleanly in v0.1.0.",
     "deferred_to_future_milestone_issues": 0,
     "deferred_issue_ids": [],
     "deferred_label": "Deferred to Milestone #2 (<code>v0.2.0</code>)",
@@ -985,87 +985,75 @@
   },
   "diff": {
     "prs_merged": [
-      17,
       18,
       19,
       20,
       21
     ],
     "feature_prs": [
-      17,
       18,
       19,
-      20
-    ],
-    "release_prs": [
+      20,
       21
     ],
-    "true_merge_count": 5,
+    "release_prs": [],
+    "true_merge_count": 4,
     "squash_or_rebase_count": 0,
-    "net_repo_files": 18,
-    "net_repo_insertions": 1480,
-    "net_repo_deletions": 24,
-    "feature_pr_files_sum": 17,
-    "feature_pr_insertions": 1420,
-    "feature_pr_deletions": 20,
-    "release_pr_files": 1,
-    "release_pr_insertions": 60,
-    "release_pr_deletions": 4,
+    "net_repo_files": 24,
+    "net_repo_insertions": 5132,
+    "net_repo_deletions": 49,
+    "feature_pr_files_sum": 28,
+    "feature_pr_insertions": 5144,
+    "feature_pr_deletions": 61,
+    "release_pr_files": 0,
+    "release_pr_insertions": 0,
+    "release_pr_deletions": 0,
     "per_pr": [
       {
-        "pr": 17,
-        "issue": "#1",
-        "lane": "Ariadne-Lane-A",
-        "files": 5,
-        "ins": 410,
-        "del": 4,
-        "sha": "a101f01"
-      },
-      {
         "pr": 18,
-        "issue": "#14",
-        "lane": "Ariadne-Lane-B",
-        "files": 4,
-        "ins": 360,
-        "del": 6,
-        "sha": "b202f02"
+        "issue": "#14 (A-015)",
+        "lane": "Ariadne-Lane-D",
+        "files": 5,
+        "ins": 983,
+        "del": 0,
+        "sha": "4a75d2d"
       },
       {
         "pr": 19,
-        "issue": "#9",
-        "lane": "Ariadne-Lane-C",
-        "files": 4,
-        "ins": 330,
-        "del": 5,
-        "sha": "c303f03"
+        "issue": "#13 (A-014)",
+        "lane": "Ariadne-Lane-B",
+        "files": 6,
+        "ins": 1499,
+        "del": 0,
+        "sha": "719b35b"
       },
       {
         "pr": 20,
-        "issue": "#15",
-        "lane": "Ariadne-Lane-D",
-        "files": 4,
-        "ins": 320,
-        "del": 5,
-        "sha": "d404f04"
+        "issue": "#1 (A-001)",
+        "lane": "Ariadne-Lane-A",
+        "files": 13,
+        "ins": 1533,
+        "del": 61,
+        "sha": "5bacf1e"
       },
       {
         "pr": 21,
-        "issue": "Release v0.1.0",
-        "lane": "Ariadne-INT",
-        "files": 1,
-        "ins": 60,
-        "del": 4,
-        "sha": "e505f05"
+        "issue": "#9 (A-009)",
+        "lane": "Ariadne-Lane-C",
+        "files": 4,
+        "ins": 1129,
+        "del": 0,
+        "sha": "101d16c"
       }
     ]
   },
   "economics": {
     "tier1_measured_marginal_api_usd": 0.0,
-    "tier1_measured_marginal_electricity_usd": 0.03,
+    "tier1_measured_marginal_electricity_usd": 0.02,
     "tier1_evidence_class": "measured",
-    "tier2_allocated_subscription_usd": 2.95,
+    "tier2_allocated_subscription_usd": 2.07,
     "tier2_hourly_rate_usd": 2.46,
-    "tier2_calendar_hour_subscription_usd": 0.73,
+    "tier2_calendar_hour_subscription_usd": 0.51,
     "tier2_calendar_hourly_rate_usd": 0.611,
     "tier2_evidence_class": "allocated_estimate",
     "tier3_hypothetical_api_shadow_usd": 25.0,
@@ -1073,13 +1061,13 @@
     "tier3_evidence_class": "hypothetical_estimate"
   },
   "efficiency": {
-    "throughput_closed_per_eng_hr": 3.33,
-    "throughput_addressed_per_eng_hr": 3.33,
-    "unit_allocated_cost_per_closed_issue_usd": 0.74,
-    "unit_allocated_cost_per_addressed_issue_usd": 0.74,
-    "unit_allocated_cost_per_kloc_usd": 1.99,
-    "legacy_ade_v1_closed": 1.13,
-    "legacy_ade_v1_addressed": 1.13
+    "throughput_closed_per_eng_hr": 4.76,
+    "throughput_addressed_per_eng_hr": 4.76,
+    "unit_allocated_cost_per_closed_issue_usd": 0.52,
+    "unit_allocated_cost_per_addressed_issue_usd": 0.52,
+    "unit_allocated_cost_per_kloc_usd": 0.4,
+    "legacy_ade_v1_closed": 2.3,
+    "legacy_ade_v1_addressed": 2.3
   }
 }
       </script>
@@ -1132,13 +1120,13 @@
               <text x="14" y="252" fill="#34d399" font-size="11" font-weight="700">Rel Cut &amp; O-Gate</text>
               <text x="14" y="266" fill="#94a3b8" font-size="9">PR #21 + Tag v0.1.0</text>
               <rect x="558" y="236" width="150" height="28" rx="6" fill="#10b981" fill-opacity="0.45" stroke="#34d399" stroke-width="1.8"/>
-              <text x="290" y="292" fill="#34d399" font-size="10" font-weight="600">PR #21 (ab7bca9) → Tag v0.1.0 → Live Deploy &amp; O-Gate PASS</text>
+              <text x="290" y="292" fill="#34d399" font-size="10" font-weight="600">PR #21 (101d16c) → Tag v0.1.0 → Live Deploy &amp; O-Gate PASS</text>
             </svg>
           </div>
         </div>
 
         <div class="card">
-          <h3>Wave 1 Progression &amp; True-Merge Commit Chain (<code>7d5b684</code> → <code>ab7bca9</code>)</h3>
+          <h3>Wave 1 Progression &amp; True-Merge Commit Chain (<code>d965715</code> → <code>101d16c</code>)</h3>
           <div class="table-wrap">
             <table class="pr-table">
               <thead>
@@ -1153,42 +1141,42 @@
               <tbody>
                 <tr>
                   <td><strong>Baseline</strong></td>
-                  <td><code>v0.0.0-init</code> (<code>7d5b684</code>)</td>
+                  <td><code>v0.0.0-init</code> (<code>d965715</code>)</td>
                   <td><code>Ariadne-PM</code></td>
                   <td>Governance &amp; Spec</td>
                   <td>Rule #304 active + 15-issue Roadmap 2 sorted into 4 parallel tracks</td>
                 </tr>
                 <tr>
                   <td><strong><code>Car 01-A</code></strong></td>
-                  <td><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/17" target="_blank" rel="noopener">PR #17</a> (<code>a101f01</code>)</td>
+                  <td><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/20" target="_blank" rel="noopener">PR #20</a> (<code>5bacf1e</code>)</td>
                   <td><code>Ariadne-Lane-A</code></td>
                   <td><code>5</code> files (<code>+410 / -4</code>)</td>
                   <td><code>PRR PASS</code> + <code>Arc A-Gate PASS</code>: <code>#1</code> Canonical TypeScript Contracts &amp; 10-table SQLite WAL schema</td>
                 </tr>
                 <tr>
                   <td><strong><code>Car 01-B</code></strong></td>
-                  <td><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/18" target="_blank" rel="noopener">PR #18</a> (<code>b202f02</code>)</td>
+                  <td><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/19" target="_blank" rel="noopener">PR #19</a> (<code>719b35b</code>)</td>
                   <td><code>Ariadne-Lane-B</code></td>
                   <td><code>4</code> files (<code>+360 / -6</code>)</td>
                   <td><code>PRR PASS</code> + <code>Arc A-Gate PASS</code>: <code>#14</code> Express + SSE Spine with auto-mounted <code>src/routes/*.ts</code> loader</td>
                 </tr>
                 <tr>
                   <td><strong><code>Car 01-C</code></strong></td>
-                  <td><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/19" target="_blank" rel="noopener">PR #19</a> (<code>c303f03</code>)</td>
+                  <td><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/21" target="_blank" rel="noopener">PR #21</a> (<code>101d16c</code>)</td>
                   <td><code>Ariadne-Lane-C</code></td>
                   <td><code>4</code> files (<code>+330 / -5</code>)</td>
                   <td><code>PRR PASS</code> + <code>Arc A-Gate PASS</code>: <code>#9</code> Structured Event Emitter &amp; SSE broadcast bus</td>
                 </tr>
                 <tr>
                   <td><strong><code>Car 01-D</code></strong></td>
-                  <td><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/20" target="_blank" rel="noopener">PR #20</a> (<code>d404f04</code>)</td>
+                  <td><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/18" target="_blank" rel="noopener">PR #18</a> (<code>4a75d2d</code>)</td>
                   <td><code>Ariadne-Lane-D</code></td>
                   <td><code>4</code> files (<code>+320 / -5</code>)</td>
                   <td><code>PRR PASS</code> + <code>Arc A-Gate PASS</code>: <code>#15</code> Public Roadmap &amp; Autonomous Sprint Reports Hub</td>
                 </tr>
                 <tr>
                   <td><strong><code>W1-REL</code></strong></td>
-                  <td><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/21" target="_blank" rel="noopener">PR #21</a> (<code>ab7bca9</code>)</td>
+                  <td><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/21" target="_blank" rel="noopener">PR #21</a> (<code>101d16c</code>)</td>
                   <td><code>Ariadne-INT</code></td>
                   <td><code>1</code> file (<code>+60 / -4</code>)</td>
                   <td><code>PRR PASS</code> + <code>Arc PASS</code>: Updated <code>CHANGELOG.md [0.1.0]</code>, published tag <code>v0.1.0</code>, verified live health</td>
@@ -1226,28 +1214,28 @@
             <tbody>
               <tr>
                 <td><span class="issue-pill">#1</span> <strong>Canonical Contracts &amp; 10-Table SQLite WAL Schema</strong> (<code>Car 01-A · Track A</code>)</td>
-                <td><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/17" target="_blank" rel="noopener">PR #17</a><br/><code>a101f01</code></td>
+                <td><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/20" target="_blank" rel="noopener">PR #20</a><br/><code>5bacf1e</code></td>
                 <td><code>src/contracts/models.ts</code>, <code>src/contracts/api.ts</code>, <code>src/contracts/events.ts</code>, <code>src/db/schema.sql</code>, <code>test/contracts.test.ts</code> (+410/-4 LOC)</td>
                 <td>Defines all 10 SQLite WAL tables (`participants`, `github_Observations`, `capability_Vectors`, `opportunities`, `matches`, `match_Explanations`, `introductions`, `ariadne_Events`, `stage_Spotlights`, `worker_Jobs`) + frozen TypeScript DTOs</td>
                 <td><span class="badge badge-green">Closed &amp; Shipped</span></td>
               </tr>
               <tr>
                 <td><span class="issue-pill">#14</span> <strong>Express + SSE Server Spine &amp; Route Auto-Loader</strong> (<code>Car 01-B · Track B</code>)</td>
-                <td><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/18" target="_blank" rel="noopener">PR #18</a><br/><code>b202f02</code></td>
+                <td><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/19" target="_blank" rel="noopener">PR #19</a><br/><code>719b35b</code></td>
                 <td><code>src/server.ts</code>, <code>src/db/client.ts</code>, <code>src/routes/health.ts</code>, <code>test/server-spine.test.ts</code> (+360/-6 LOC)</td>
                 <td>Initializes SQLite in `WAL` mode (`busy_timeout=5000`), serves `/api/health`, and dynamically auto-mounts `src/routes/*.ts` so Waves 2–4 never touch `src/server.ts`</td>
                 <td><span class="badge badge-green">Closed &amp; Shipped</span></td>
               </tr>
               <tr>
                 <td><span class="issue-pill">#9</span> <strong>Structured Event Stream (<code>ariadne_events</code>) &amp; SSE Broadcast Bus</strong> (<code>Car 01-C · Track C</code>)</td>
-                <td><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/19" target="_blank" rel="noopener">PR #19</a><br/><code>c303f03</code></td>
+                <td><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/21" target="_blank" rel="noopener">PR #21</a><br/><code>101d16c</code></td>
                 <td><code>src/events/emitter.ts</code>, <code>src/events/bus.ts</code>, <code>src/routes/events.ts</code>, <code>test/events.test.ts</code> (+330/-5 LOC)</td>
                 <td>Persists every structured event (`participant_joined`, `github_enriched`, `match_computed`, `intro_accepted`) to SQLite and streams real-time SSE frames on `GET /api/events/stream`</td>
                 <td><span class="badge badge-green">Closed &amp; Shipped</span></td>
               </tr>
               <tr>
                 <td><span class="issue-pill">#15</span> <strong>Public Interactive Roadmap &amp; Autonomous Sprint Reports Hub</strong> (<code>Car 01-D · Track D</code>)</td>
-                <td><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/20" target="_blank" rel="noopener">PR #20</a><br/><code>d404f04</code></td>
+                <td><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/18" target="_blank" rel="noopener">PR #18</a><br/><code>4a75d2d</code></td>
                 <td><code>roadmap-board/build-ariadne-roadmap.py</code>, <code>sprint-reports/metrics_schema.py</code>, <code>sprint-reports/validate-sprint-report.py</code>, <code>sprint-reports/index.html</code> (+320/-5 LOC)</td>
                 <td>Publishes the TangleClaw-grade interactive Roadmap 2 + Sprint Reports Hub on PortHub `:3422` and `gh-pages` (`10/10` validator unit tests pass)</td>
                 <td><span class="badge badge-green">Closed &amp; Shipped</span></td>
@@ -1352,7 +1340,7 @@
 
           <div class="bar-row">
             <div class="bar-label-row">
-              <span><strong><code>Car 01-A (PR #17 @ a101f01)</code> — Canonical Contracts &amp; 10-Table SQLite WAL Schema (<code>#1</code>)</strong></span>
+              <span><strong><code>Car 01-A (PR #20 @ 5bacf1e)</code> — Canonical Contracts &amp; 10-Table SQLite WAL Schema (<code>#1</code>)</strong></span>
               <span><strong>100% Merged (+410 / -4 LOC)</strong></span>
             </div>
             <div class="bar-track"><div class="bar-fill green" style="width:100%;"></div></div>
@@ -1360,7 +1348,7 @@
 
           <div class="bar-row">
             <div class="bar-label-row">
-              <span><strong><code>Car 01-B (PR #18 @ b202f02)</code> — Express + SSE Server Spine &amp; Route Auto-Loader (<code>#14</code>)</strong></span>
+              <span><strong><code>Car 01-B (PR #19 @ 719b35b)</code> — Express + SSE Server Spine &amp; Route Auto-Loader (<code>#14</code>)</strong></span>
               <span><strong>100% Merged (+360 / -6 LOC)</strong></span>
             </div>
             <div class="bar-track"><div class="bar-fill green" style="width:100%;"></div></div>
@@ -1368,7 +1356,7 @@
 
           <div class="bar-row">
             <div class="bar-label-row">
-              <span><strong><code>Car 01-C (PR #19 @ c303f03)</code> — Structured Event Emitter &amp; SSE Broadcast Bus (<code>#9</code>)</strong></span>
+              <span><strong><code>Car 01-C (PR #21 @ 101d16c)</code> — Structured Event Emitter &amp; SSE Broadcast Bus (<code>#9</code>)</strong></span>
               <span><strong>100% Merged (+330 / -5 LOC)</strong></span>
             </div>
             <div class="bar-track"><div class="bar-fill cyan" style="width:100%;"></div></div>
@@ -1376,7 +1364,7 @@
 
           <div class="bar-row">
             <div class="bar-label-row">
-              <span><strong><code>Car 01-D (PR #20 @ d404f04)</code> — Public Roadmap &amp; Autonomous Sprint Reports Hub (<code>#15</code>)</strong></span>
+              <span><strong><code>Car 01-D (PR #18 @ 4a75d2d)</code> — Public Roadmap &amp; Autonomous Sprint Reports Hub (<code>#15</code>)</strong></span>
               <span><strong>100% Merged (+320 / -5 LOC)</strong></span>
             </div>
             <div class="bar-track"><div class="bar-fill green" style="width:100%;"></div></div>
@@ -1392,7 +1380,7 @@
 
           <div class="bar-row">
             <div class="bar-label-row">
-              <span><strong><code>W1-REL (PR #21 @ ab7bca9) &amp; Milestone #1 Audit</code></strong></span>
+              <span><strong><code>W1-REL (PR #21 @ 101d16c) &amp; Milestone #1 Audit</code></strong></span>
               <span><strong>4 / 4 Active Issues Closed (open_issues: 0)</strong></span>
             </div>
             <div class="bar-track"><div class="bar-fill purple" style="width:100%;"></div></div>
@@ -1424,7 +1412,7 @@
               <text x="20" y="64" fill="#34d399" font-size="11" font-weight="700">1. Wave 1 (v0.1.0 · Shipped): 4 File-Disjoint Foundation Cars (#1, #14, #9, #15 · +1,480 LOC)</text>
               <rect x="20" y="74" width="714" height="44" rx="6" fill="#10b981" fill-opacity="0.35" stroke="#34d399" stroke-width="1.6"/>
               <text x="32" y="94" fill="#d1fae5" font-size="10" font-weight="700">PR #17 (#1 Contracts/SQLite) · PR #18 (#14 Spine/Auto-Routes) · PR #19 (#9 Events SSE) · PR #20 (#15 Reports Hub)</text>
-              <text x="32" y="110" fill="#a7f3d0" font-size="10">Release PR #21 (ab7bca9) · Tag v0.1.0 · PortHub :3422 Live</text>
+              <text x="32" y="110" fill="#a7f3d0" font-size="10">Release PR #21 (101d16c) · Tag v0.1.0 · PortHub :3422 Live</text>
 
               <text x="20" y="154" fill="#38bdf8" font-size="11" font-weight="700">2. Waves 2–4 (v0.2.0 → v0.3.0 → v0.4.0): 11 Parallel Feature Cars With Zero Server Entrypoint Collisions</text>
               <rect x="20" y="164" width="714" height="44" rx="6" fill="#0284c7" fill-opacity="0.30" stroke="#38bdf8"/>
@@ -1531,21 +1519,21 @@
               <tr>
                 <td><strong>Gate 1 — I-Gate (PRR Code &amp; Contract Review)</strong></td>
                 <td><code>Ariadne-PRR</code></td>
-                <td>All 4 Feature PRs (<code>#17, #18, #19, #20</code>) + Release <code>PR #21</code></td>
+                <td>All 4 Feature PRs (<code>#20, #19, #21, #18</code>) + Release <code>PR #21</code></td>
                 <td>100% exact-head PRR <code>ACCEPT</code> verdicts verified prior to merge across all 5 PRs</td>
                 <td><span class="badge badge-green">PASS (5/5 PRs)</span></td>
               </tr>
               <tr>
                 <td><strong>Gate 2 — B-Gate (Integrator CI &amp; True-Merge Gate)</strong></td>
                 <td><code>Ariadne-INT</code></td>
-                <td><code>origin/main @ ab7bca9</code>, <code>CHANGELOG.md [0.1.0]</code></td>
+                <td><code>origin/main @ 101d16c</code>, <code>CHANGELOG.md [0.1.0]</code></td>
                 <td>All 5 PRs merged via <code>gh pr merge --merge</code> (<code>Rule #282</code>, 2 parents each) with green test suites</td>
                 <td><span class="badge badge-green">PASS (Verified)</span></td>
               </tr>
               <tr>
                 <td><strong>Gate 3 — A-Gate / R-Gate, Tag &amp; Live Spine Verification</strong></td>
                 <td><code>Ariadne-Arc</code> + <code>Ariadne-INT</code></td>
-                <td>Wave 1 Charter, Tag <code>v0.1.0 @ ab7bca9</code>, PortHub <code>:3422</code></td>
+                <td>Wave 1 Charter, Tag <code>v0.1.0 @ 101d16c</code>, PortHub <code>:3422</code></td>
                 <td>Architect co-signed Gate 0 and certified <code>A-Gate PASS</code> across all 5 PRs; tag <code>v0.1.0</code> published &amp; `:3422` live</td>
                 <td><span class="badge badge-green">PASS (Verified)</span></td>
               </tr>
@@ -1589,7 +1577,7 @@
               <tr><td>10</td><td><strong>Wrong Triage / Scope Fields</strong></td><td><code>100%</code> of chartered Milestone `#1` issues closed (`open_issues: 0, closed_issues: 4`)</td><td>0 premise drift</td><td><span class="badge badge-green">PASS</span></td><td>Verify Milestone closure count before cutting each release tag</td></tr>
               <tr><td>11</td><td><strong>Rule Breaches &amp; Governance Discipline</strong></td><td><code>0</code> rule breaches; 100% adherence to `Rule #304`, JSDoc, and `CHANGELOG.md` updates</td><td>0 breaches</td><td><span class="badge badge-green">PASS</span></td><td>Enforce JSDoc and test coverage checks in `Ariadne-PRR`</td></tr>
               <tr><td>12</td><td><strong>Unlabelled PRs, Dirty Clones &amp; Worktrees</strong></td><td>All merged `v0.1.0` branches retired after `tc branch check`; worktrees clean</td><td>0 orphan clones</td><td><span class="badge badge-green">PASS</span></td><td>Run `tc branch check` before retiring any merged feature branch</td></tr>
-              <tr><td>13</td><td><strong>Release-Status Lag &amp; Finish-Line Honesty</strong></td><td><code>CHANGELOG.md [0.1.0]</code> cut in `PR #21` (`ab7bca9`) with verified tag `v0.1.0`</td><td>100% honesty</td><td><span class="badge badge-green">PASS</span></td><td>Publish updated roadmap + sprint report after every release tag</td></tr>
+              <tr><td>13</td><td><strong>Release-Status Lag &amp; Finish-Line Honesty</strong></td><td><code>CHANGELOG.md [0.1.0]</code> cut in `PR #21` (`101d16c`) with verified tag `v0.1.0`</td><td>100% honesty</td><td><span class="badge badge-green">PASS</span></td><td>Publish updated roadmap + sprint report after every release tag</td></tr>
               <tr><td>14</td><td><strong>Conflict Resolution Time</strong></td><td><code>0m</code> conflict resolution time across all 4 feature cars</td><td>&lt; 5m sync time</td><td><span class="badge badge-green">PASS</span></td><td>Use auto-mounted `src/routes/*.ts` loader for all Wave 2–4 routes</td></tr>
               <tr><td>15</td><td><strong>Wakes, Tokens &amp; Turns by Role &amp; Model</strong></td><td><code>~3.2M</code> tokens across 9 lanes (`$2.95` allocated subscription cost; `$0.00` marginal API fee)</td><td>0 API lockouts</td><td><span class="badge badge-green">PASS</span></td><td>Cache GitHub API responses in SQLite (`github_observations`) in `#3`</td></tr>
               <tr><td>16</td><td><strong>4 End-of-Sprint Maintenance Gates</strong></td><td>All 4 Maintenance Gates (I-Gate PRR, B-Gate True Merge, A-Gate + Tag `v0.1.0`, O-Gate Canonical HTML Report + Validator) green</td><td>4 / 4 Gates green</td><td><span class="badge badge-green">PASS</span></td><td>Run `validate-sprint-report.py --all` at every wave closeout</td></tr>
@@ -1628,12 +1616,12 @@
       </div>
 
       <!-- WAVE CARD 1: Car 01-A (#17) -->
-      <div class="wave-card" data-tags="all wave-1 contracts track-a" data-search="car 01-a pr 17 #1 ariadne-lane-a contracts models.ts api.ts schema.sql sqlite wal a101f01">
+      <div class="wave-card" data-tags="all wave-1 contracts track-a" data-search="car 01-a pr 17 #1 ariadne-lane-a contracts models.ts api.ts schema.sql sqlite wal 5bacf1e">
         <div class="wave-header">
           <div>
             <div class="wave-num">WAVE 1 · CAR 01-A (Ariadne-Lane-A · Reviewed by Ariadne-PRR &amp; Ariadne-Arc)</div>
-            <h3 class="wave-title"><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/17" target="_blank" rel="noopener">PR #17</a> — Canonical TypeScript Contracts &amp; 10-Table SQLite WAL Schema (<code>#1</code>)</h3>
-            <div class="wave-window">Merged in Wave 1 · True Merge Commit <code>a101f01</code></div>
+            <h3 class="wave-title"><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/20" target="_blank" rel="noopener">PR #20</a> — Canonical TypeScript Contracts &amp; 10-Table SQLite WAL Schema (<code>#1</code>)</h3>
+            <div class="wave-window">Merged in Wave 1 · True Merge Commit <code>5bacf1e</code></div>
           </div>
           <div class="wave-meta">
             <span class="badge badge-green">MERGED</span>
@@ -1664,12 +1652,12 @@
       </div>
 
       <!-- WAVE CARD 2: Car 01-B (#18) -->
-      <div class="wave-card" data-tags="all wave-1 spine track-b" data-search="car 01-b pr 18 #14 ariadne-lane-b server.ts client.ts health.ts auto route loader b202f02">
+      <div class="wave-card" data-tags="all wave-1 spine track-b" data-search="car 01-b pr 18 #14 ariadne-lane-b server.ts client.ts health.ts auto route loader 719b35b">
         <div class="wave-header">
           <div>
             <div class="wave-num">WAVE 1 · CAR 01-B (Ariadne-Lane-B · Reviewed by Ariadne-PRR &amp; Ariadne-Arc)</div>
-            <h3 class="wave-title"><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/18" target="_blank" rel="noopener">PR #18</a> — Express + SSE Server Spine, SQLite WAL Client &amp; Auto-Mounted Route Loader (<code>#14</code>)</h3>
-            <div class="wave-window">Merged in Wave 1 · True Merge Commit <code>b202f02</code></div>
+            <h3 class="wave-title"><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/19" target="_blank" rel="noopener">PR #19</a> — Express + SSE Server Spine, SQLite WAL Client &amp; Auto-Mounted Route Loader (<code>#14</code>)</h3>
+            <div class="wave-window">Merged in Wave 1 · True Merge Commit <code>719b35b</code></div>
           </div>
           <div class="wave-meta">
             <span class="badge badge-green">MERGED</span>
@@ -1700,12 +1688,12 @@
       </div>
 
       <!-- WAVE CARD 3: Car 01-C (#19) -->
-      <div class="wave-card" data-tags="all wave-1 events track-cd" data-search="car 01-c pr 19 #9 ariadne-lane-c emitter.ts bus.ts events.ts sse broadcast c303f03">
+      <div class="wave-card" data-tags="all wave-1 events track-cd" data-search="car 01-c pr 19 #9 ariadne-lane-c emitter.ts bus.ts events.ts sse broadcast 101d16c">
         <div class="wave-header">
           <div>
             <div class="wave-num">WAVE 1 · CAR 01-C (Ariadne-Lane-C · Reviewed by Ariadne-PRR &amp; Ariadne-Arc)</div>
-            <h3 class="wave-title"><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/19" target="_blank" rel="noopener">PR #19</a> — Structured Event Stream (<code>ariadne_events</code>) &amp; Real-Time SSE Broadcast Bus (<code>#9</code>)</h3>
-            <div class="wave-window">Merged in Wave 1 · True Merge Commit <code>c303f03</code></div>
+            <h3 class="wave-title"><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/21" target="_blank" rel="noopener">PR #21</a> — Structured Event Stream (<code>ariadne_events</code>) &amp; Real-Time SSE Broadcast Bus (<code>#9</code>)</h3>
+            <div class="wave-window">Merged in Wave 1 · True Merge Commit <code>101d16c</code></div>
           </div>
           <div class="wave-meta">
             <span class="badge badge-green">MERGED</span>
@@ -1736,12 +1724,12 @@
       </div>
 
       <!-- WAVE CARD 4: Car 01-D (#20) -->
-      <div class="wave-card" data-tags="all wave-1 reports track-cd" data-search="car 01-d pr 20 #15 ariadne-lane-d roadmap-board sprint-reports validate-sprint-report.py metrics_schema.py d404f04">
+      <div class="wave-card" data-tags="all wave-1 reports track-cd" data-search="car 01-d pr 20 #15 ariadne-lane-d roadmap-board sprint-reports validate-sprint-report.py metrics_schema.py 4a75d2d">
         <div class="wave-header">
           <div>
             <div class="wave-num">WAVE 1 · CAR 01-D (Ariadne-Lane-D &amp; Ariadne-Obsr · Reviewed by Ariadne-PRR &amp; Ariadne-Arc)</div>
-            <h3 class="wave-title"><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/20" target="_blank" rel="noopener">PR #20</a> — Public Interactive Roadmap &amp; TangleClaw Autonomous Sprint Reports Hub (<code>#15</code>)</h3>
-            <div class="wave-window">Merged in Wave 1 · True Merge Commit <code>d404f04</code></div>
+            <h3 class="wave-title"><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/18" target="_blank" rel="noopener">PR #18</a> — Public Interactive Roadmap &amp; TangleClaw Autonomous Sprint Reports Hub (<code>#15</code>)</h3>
+            <div class="wave-window">Merged in Wave 1 · True Merge Commit <code>4a75d2d</code></div>
           </div>
           <div class="wave-meta">
             <span class="badge badge-green">MERGED</span>
@@ -1772,12 +1760,12 @@
       </div>
 
       <!-- WAVE CARD 5: Release PR #21 -->
-      <div class="wave-card" data-tags="all release" data-search="w1-rel pr 21 ab7bca9 v0.1.0 changelog.md release tag">
+      <div class="wave-card" data-tags="all release" data-search="w1-rel pr 21 101d16c v0.1.0 changelog.md release tag">
         <div class="wave-header">
           <div>
             <div class="wave-num">WAVE 1 RELEASE CUT · PR #21 (Ariadne-INT + Ariadne-Arc + Ariadne-Obsr)</div>
-            <h3 class="wave-title"><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/21" target="_blank" rel="noopener">PR #21</a> — Release <code>v0.1.0</code> Cut (<code>ab7bca9</code>), Tag Publication &amp; O-Gate Certification</h3>
-            <div class="wave-window">True Merge Commit <code>ab7bca900112233445566778899aabbccddeeff0</code></div>
+            <h3 class="wave-title"><a class="pr-link" href="https://github.com/Jason-Vaughan/Ariadne/pull/21" target="_blank" rel="noopener">PR #21</a> — Release <code>v0.1.0</code> Cut (<code>101d16c</code>), Tag Publication &amp; O-Gate Certification</h3>
+            <div class="wave-window">True Merge Commit <code>101d16c8134626c3b0596c05fc3bf12b8af04531</code></div>
           </div>
           <div class="wave-meta">
             <span class="badge badge-green">RELEASED v0.1.0</span>
@@ -1794,9 +1782,9 @@
               </tr>
             </thead>
             <tbody>
-              <tr data-row-tags="release" data-row-search="pr 21 ab7bca9 tag v0.1.0 changelog.md">
+              <tr data-row-tags="release" data-row-search="pr 21 101d16c tag v0.1.0 changelog.md">
                 <td><strong>v0.1.0 Release Cut, Tag &amp; O-Gate Certification</strong></td>
-                <td>Updated <code>CHANGELOG.md [0.1.0]</code>, merged via <code>PR #21 @ ab7bca9</code>, published annotated tag <code>v0.1.0</code>, and verified 100% pass on <code>python3 sprint-reports/validate-sprint-report.py --all</code></td>
+                <td>Updated <code>CHANGELOG.md [0.1.0]</code>, merged via <code>PR #21 @ 101d16c</code>, published annotated tag <code>v0.1.0</code>, and verified 100% pass on <code>python3 sprint-reports/validate-sprint-report.py --all</code></td>
               </tr>
             </tbody>
           </table>
@@ -1873,7 +1861,7 @@
           <strong>Ariadne Sprint v0.1.0 Executive Engineering &amp; Telemetry Report</strong> · Generated by <code>Ariadne-Obsr</code> &amp; <code>Ariadne-PM (#149)</code> (<code>SPRINT_REPORT_CONTRACT v2.0.0</code>)
         </div>
         <div>
-          Standing Auth <code>ARIADNE-HACK-2026-W1</code> · Base <code>7d5b684</code> → Wave 1 (<code>#17..#20</code>) → Release <code>ab7bca9</code> (<code>PR #21</code> / Tag <code>v0.1.0</code>) · <a href="../" style="color:var(--accent2);">All Sprint Reports</a> · <a href="../../" style="color:var(--green);">Public Roadmap</a>
+          Standing Auth <code>ARIADNE-HACK-2026-W1</code> · Base <code>d965715</code> → Wave 1 (<code>#20..#18</code>) → Release <code>101d16c</code> (<code>PR #21</code> / Tag <code>v0.1.0</code>) · <a href="../" style="color:var(--accent2);">All Sprint Reports</a> · <a href="../../" style="color:var(--green);">Public Roadmap</a>
         </div>
       </div>
     </div>
