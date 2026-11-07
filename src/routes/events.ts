@@ -74,13 +74,18 @@ export function createEventRoutes(options: EventRouteOptions = {}): RouteDefinit
           return;
         }
         const head = latestSeqId(ctx.db);
-        const page = readEventPage(
-          ctx.db,
-          effectiveCursor(after ?? 0, head),
-          Math.min(limit ?? DEFAULT_POLL_LIMIT, MAX_BATCH),
-          logRejected(ctx.log),
-        );
-        sendNoStoreJson(res, 200, { events: page.events, latest_seq_id: head });
+        const wanted = Math.min(limit ?? DEFAULT_POLL_LIMIT, MAX_BATCH);
+        const onRejected = logRejected(ctx.log);
+        const events: PublicEventEnvelope[] = [];
+        let cursor = effectiveCursor(after ?? 0, head);
+        // Keep reading past withheld rows, so a page of them cannot leave the client re-asking forever.
+        for (;;) {
+          const page = readEventPage(ctx.db, cursor, MAX_BATCH, onRejected);
+          events.push(...page.events.slice(0, wanted - events.length));
+          if (events.length >= wanted || page.scanned < MAX_BATCH) break;
+          cursor = page.lastScanned;
+        }
+        sendNoStoreJson(res, 200, { events, latest_seq_id: head });
       },
     },
     {

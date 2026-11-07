@@ -403,6 +403,24 @@ describe('GET /api/events/poll', () => {
     }
   });
 
+  test('reads past withheld rows so a client resuming from its last event never stalls', async () => {
+    const h = await startHarness();
+    try {
+      insertLeakyRow(h.db);
+      const ok = publishEvent(h.db, 'participant.registered', registered).envelope;
+      assert.deepEqual((await getJson(`${h.base}/api/events/poll?after=0&limit=1`)).body, { events: [ok], latest_seq_id: 2 });
+
+      h.db.exec('BEGIN');
+      for (let n = 0; n < 600; n++) insertLeakyRow(h.db);
+      h.db.exec('COMMIT');
+      const later = publishEvent(h.db, 'match.evaluated', evaluated(9)).envelope;
+      const { body } = await getJson(`${h.base}/api/events/poll?after=${ok.seq_id}`);
+      assert.deepEqual(body.events, [later]);
+    } finally {
+      await h.close();
+    }
+  });
+
   test('rejects malformed cursors and limits with 400', async () => {
     const h = await startHarness();
     try {
