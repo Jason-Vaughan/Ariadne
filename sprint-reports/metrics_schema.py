@@ -383,8 +383,8 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
             "t6_pst": "13:19:32 PST (Annotated tag v0.4.0 published @ 160ef88)",
             "t7_live_deploy_completed": "2026-11-07T21:20:00Z",
             "t7_pst": "13:20:00 PST (Live :3420 /api/health 200 OK, worker running, 25 seed personas hydrated, 516/516 tests green)",
-            "t8_observer_certification_completed": "2026-11-07T21:35:00Z",
-            "t8_pst": "13:35:00 PST (Ariadne-Obsr O-Gate PASS comment on PR #40)",
+            "t8_observer_certification_completed": "2026-11-07T21:41:10Z",
+            "t8_pst": "13:41:10 PST (Ariadne-Obsr O-Gate PASS comment #6713375305 on PR #40)",
         },
         "durations": {
             "full_engineering_window_hrs": 0.85,
