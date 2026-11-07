@@ -5,6 +5,26 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Two-stage match explanation agent with evidence pills and a grounding gate (A-007, #7):**
+  - Stage 1 (`src/matching/explanation-agent.ts`, deterministic, no model): turns each pair selected by A-006 into a `MatchProposalSchema`-valid card carrying MATCH_SCORING_SPEC.md §4's seven elements:
+    - the score line with its five-component breakdown;
+    - the complementary capabilities each side brings to the other's needs;
+    - the shared domain and both sides' repos;
+    - a concrete 15-minute first step;
+    - honest limitations, including inferred needs, stale issues, and that a score is not a request for help;
+    - the cited evidence pills.
+
+    Participants are named by display alias only. With a database, each card is upserted into `matches` (intro state, approvals and shared notes are never overwritten) and `match.evaluated` is published once per pair and score. A 30-person pool's cards build in under 50 ms.
+  - `src/matching/evidence-formatter.ts`: evidence pills from only the cited, owned, `EvidenceReceiptSchema`-valid receipts, deduplicated by URL; a card needs at least two, with at least one per participant.
+  - Stage 2 (`enrichExplanation`): asks an injected model for a richer "why you match" thesis and collaboration angle, with a 4 s timeout that aborts the request. The prompt carries only aliases, capabilities, needs and the pair's own pills. A verification gate rejects the whole reply, and Stage 1 stands, if it:
+    - cites a receipt outside the pair, or cites only one side;
+    - contains a URL that isn't one of the pair's receipts;
+    - contains an email, an @handle, a contact card, or a GitHub login outside the pair's own repo names and URLs;
+    - is empty or too long.
+
+    A missing client, a timeout, an error or a malformed reply also fall back to Stage 1. On success, only the summary and first step change (the `matches` row too); the score line and evidence stay.
+  - `createGeminiClient()` / `geminiClientFromEnv()` (`ARIADNE_GEMINI_API_KEY` or `GEMINI_API_KEY`, default model `gemini-2.5-flash`) call `generateContent`. Tests cover the request shape with a fake fetch; it has not been run against the live API.
+  - Not done: `match.enriched` from ISSUE_BACKLOG/A-007.md, because the type is not in A-001's event catalog (raised with PM/Arc), so Stage 2 emits no event. Paths follow the PM dispatch envelope rather than the backlog's `src/lib/agents/*`.
 - **Deterministic five-component match scorer, anti-clone guard and Top-K selector (A-006, #6):**
   - `src/matching/scorer.ts`: `scorePair()` computes A-001's `ScoreBreakdown` using MATCH_SCORING_SPEC.md §3:
     - `capability_similarity`: confidence × proficiency cosine;

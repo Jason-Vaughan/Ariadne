@@ -1,0 +1,92 @@
+import { EvidenceReceiptSchema } from '../contracts/index.ts';
+import type { EvidenceReceipt } from '../contracts/index.ts';
+
+/** One clickable evidence pill on a match card. */
+export interface EvidencePill {
+  receipt_id: string;
+  /** Which participant the receipt belongs to. */
+  side: 'a' | 'b';
+  label: string;
+  url: string;
+  repo: string | null;
+  source_type: EvidenceReceipt['source_type'];
+  source_updated_at: string;
+}
+
+const SOURCE_LABELS: Readonly<Record<EvidenceReceipt['source_type'], string>> = {
+  repo_metadata: 'Repository',
+  readme_excerpt: 'README',
+  commit_activity: 'Recent commits',
+  open_issue: 'Open issue',
+  pull_request: 'Pull request',
+  user_profile: 'GitHub profile',
+  public_website: 'Website',
+};
+
+const URL_PATTERN = /https?:\/\/[^\s)<>"'\]]+/gi;
+const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
+
+/**
+ * Turns the cited receipts of a pair into evidence pills: only receipts in `citedIds` that
+ * belong to one of the two participants and pass `EvidenceReceiptSchema`, deduplicated by URL,
+ * ordered side A first, then by most recent activity.
+ * @param citedIds - Receipt ids the pair's score cites.
+ * @param participantA - Participant A's id and receipts.
+ * @param participantB - Participant B's id and receipts.
+ * @returns The pills.
+ */
+export function formatEvidencePills(
+  citedIds: readonly string[],
+  participantA: { id: string; evidence: readonly EvidenceReceipt[] },
+  participantB: { id: string; evidence: readonly EvidenceReceipt[] },
+): EvidencePill[] {
+  const cited = new Set(citedIds);
+  const pills: EvidencePill[] = [];
+  const seenUrls = new Set<string>();
+  for (const [side, owner] of [['a', participantA], ['b', participantB]] as const) {
+    const receipts = owner.evidence
+      .filter((r) => cited.has(r.id) && r.participant_id === owner.id && EvidenceReceiptSchema.safeParse(r).success)
+      .sort((x, y) => Date.parse(y.source_updated_at) - Date.parse(x.source_updated_at) || (x.id < y.id ? -1 : 1));
+    for (const r of receipts) {
+      if (seenUrls.has(r.source_url)) continue;
+      seenUrls.add(r.source_url);
+      pills.push({
+        receipt_id: r.id,
+        side,
+        label: r.repo_full_name ? `${SOURCE_LABELS[r.source_type]}: ${r.repo_full_name}` : SOURCE_LABELS[r.source_type],
+        url: r.source_url,
+        repo: r.repo_full_name,
+        source_type: r.source_type,
+        source_updated_at: r.source_updated_at,
+      });
+    }
+  }
+  return pills;
+}
+
+/**
+ * Whether pills can back a surfaced match: at least two distinct URLs, at least one per side.
+ * @param pills - The pair's pills.
+ * @returns True when the evidence gate holds.
+ */
+export function hasCrossEvidence(pills: readonly EvidencePill[]): boolean {
+  return pills.length >= 2 && pills.some((p) => p.side === 'a') && pills.some((p) => p.side === 'b');
+}
+
+/**
+ * Lists every http(s) URL in a text, without trailing punctuation.
+ * @param text - Free text.
+ * @returns The URLs, in order of appearance.
+ */
+export function extractUrls(text: string): string[] {
+  return (text.match(URL_PATTERN) ?? []).map((u) => u.replace(/[.,;:!?]+$/, ''));
+}
+
+/**
+ * Whether a text contains an email address.
+ * @param text - Free text.
+ * @returns True when an email-shaped string is present.
+ */
+export function containsEmail(text: string): boolean {
+  return EMAIL_PATTERN.test(text);
+}
