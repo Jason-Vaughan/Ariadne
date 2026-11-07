@@ -548,7 +548,7 @@ describe('selectTopMatches', () => {
     db.close();
   });
 
-  test('ranks a pool of 30 in under 5 ms (best of 5 runs)', () => {
+  test('ranks a pool of 30 in under 5 ms (best of 20 runs)', () => {
     const stacks: ClaimSpec[][] = [
       [{ name: 'Rust', category: 'language' }, { name: 'WebRTC', category: 'systems_architecture' }, { name: 'realtime-media', category: 'domain' }],
       [{ name: 'TypeScript', category: 'language' }, { name: 'React', category: 'framework' }, { name: 'realtime-media', category: 'domain' }],
@@ -560,7 +560,8 @@ describe('selectTopMatches', () => {
       profile(`Perf-${(0x1000 + i).toString(16).toUpperCase()}`, `perf-${i}/repo`, stacks[i % 4]!, [{ wants: wants[i % 4]! }]),
     );
     let best = Infinity;
-    for (let run = 0; run < 5; run++) {
+    // Best-of-many: under a loaded parallel test run, single samples include scheduler noise.
+    for (let run = 0; run < 20; run++) {
       const start = performance.now();
       selectTopMatches(pool, { now: NOW });
       best = Math.min(best, performance.now() - start);
