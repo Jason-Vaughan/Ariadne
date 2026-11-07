@@ -1,3 +1,5 @@
+import { avatarBadge } from './fingerprints.js';
+
 /** The five score components with their weights (MATCH_SCORING_SPEC.md) and stage labels. */
 export const SCORE_COMPONENTS = [
   ['capability_similarity', 'Capability similarity', 0.35],
@@ -71,12 +73,14 @@ function el(tag, className, text) {
 /**
  * One builder's side of the spotlight: label and cited evidence. Without stage consent the server
  * sends only evidence source types, so the card shows counts instead of titles.
- * @param {{label:string,is_seed:boolean,evidence:Array<{source_type:string,title:string|null}>}} side
+ * @param {{label:string,is_seed:boolean,avatar_url?:string|null,evidence:Array<{source_type:string,title:string|null}>}} side
  * @returns {HTMLElement}
  */
 function renderSide(side) {
   const card = el('section', `spot-side${side.is_seed ? ' spot-seed' : ''}`);
-  card.append(el('h2', 'spot-name', side.is_seed ? `🌱 ${side.label}` : side.label));
+  const name = el('h2', 'spot-name');
+  name.append(avatarBadge(side.avatar_url, 'avatar-lg'), document.createTextNode(side.is_seed ? `🌱 ${side.label}` : side.label));
+  card.append(name);
   card.append(el('p', 'spot-kind', side.is_seed ? 'Seeded AI Dev' : 'Live Scanner'));
   const list = el('ul', 'spot-evidence');
   const titled = side.evidence.filter((e) => e.title);
