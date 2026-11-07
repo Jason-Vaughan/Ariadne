@@ -5,6 +5,20 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Evidence-backed capability analysis and Builder Fingerprint agent (A-004, #4):**
+  - `src/intelligence/capability-agent.ts`, **Stage 1** (`analyzeStage1`): deterministic, no model, a few ms. Turns an A-003 snapshot into contract-valid `EvidenceReceipt`s and `CapabilityClaim`s:
+    - `OBSERVED_FACT` claims for primary languages, plus frameworks, tools, domains and architectures named in repository topics, descriptions or the README, each citing the receipts that show them. Proficiency comes from how many repositories show it.
+    - `SELF_REPORTED` claims (confidence 0.6, with an uncertainty note) for technologies stated only on the participant's own website.
+    - Each class has its own budget, so a busy GitHub profile can't erase website or model claims.
+    - Also returns the deterministic 6-axis fingerprint and up to 3 superpower phrases.
+  - **Stage 2** (`enrichStage2`, `analyzeProfile`): LLM enrichment through an injectable `LlmClient`. The default is Gemini `gemini-2.5-flash` via REST, using `ARIADNE_LLM_API_KEY` or `GEMINI_API_KEY` (optionally `ARIADNE_LLM_MODEL`), with the key sent in a header and never in the URL. It has a 4 s timeout and strict response validation, and it never takes the model's word for anything:
+    - **Citations:** receipt ids not in the snapshot are stripped, and a claim left with none is dropped.
+    - **Labels:** an `OBSERVED_FACT` whose name its cited evidence does not state is relabelled `AI_INFERENCE`. `AI_INFERENCE` confidence is capped below 0.85 and always carries an uncertainty note.
+    - **Fingerprint:** the model can refine an axis by at most ±25 from the deterministic baseline.
+    - **Superpowers:** phrases containing handles or URLs are dropped.
+    - **Fallback:** no key, a timeout, an error, an invalid answer, or only uncitable claims all return Stage 1 with a `fallback_reason`.
+  - `src/intelligence/prompts.ts`: a versioned system prompt. All participant text is wrapped in `<untrusted_github_evidence>` delimiters it cannot close early.
+  - `persistAnalysis()`: in one transaction, replaces the participant's evidence receipts and non-dismissed claims. Claims the participant dismissed are kept and never re-added. Then it publishes the contract's `profile.analysis.completed` (`display_alias`, `capability_count`), adding the public username and avatar only with stage display consent.
 - **Bounded GitHub + public website connector, multi-PAT pool, 24h snapshot cache and 6-axis Builder Fingerprint (A-003, #3):**
   - `src/github/connector.ts`: retrieves a participant's public profile, their own public non-fork repositories (top 10 by recent push) and the most-starred repository's README (≤ 3,500 chars) in **at most 3 GitHub API calls within 2,500 ms**. Organizations, forks, private repositories and any non-`github.com` URL are dropped. Failures map to the contract's `analysis.failed` reasons (`github_user_not_found`, `github_rate_limited`, `github_unavailable`).
   - **Multi-PAT pool:** tokens come from `ARIADNE_GITHUB_TOKENS` / `GITHUB_TOKEN_POOL` / `GITHUB_TOKENS` (comma-separated) and `ARIADNE_GITHUB_TOKEN` / `GITHUB_TOKEN`. The pool picks the token with the most remaining quota and rotates round-robin among equals. A token is rested on a 403/429 rate-limit response or when fewer than 50 requests remain. With no usable token it falls back to unauthenticated public access. Every response feeds `/api/health`'s `rateLimitRemaining`.
