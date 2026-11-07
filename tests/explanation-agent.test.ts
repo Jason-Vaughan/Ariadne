@@ -23,7 +23,8 @@ import {
   scoreLine,
 } from '../src/matching/explanation-agent.ts';
 import type { ExplanationLlm, StagedExplanation } from '../src/matching/explanation-agent.ts';
-import { extractUrls, formatEvidencePills, hasCrossEvidence } from '../src/matching/evidence-formatter.ts';
+import { findPrivateSpans, formatEvidencePills, hasCrossEvidence, scrubPrivateDetails } from '../src/matching/evidence-formatter.ts';
+import type { PrivacyContext } from '../src/matching/evidence-formatter.ts';
 import { scorePair, selectTopMatches } from '../src/matching/scorer.ts';
 import type { ParticipantProfile } from '../src/matching/scorer.ts';
 
@@ -269,8 +270,25 @@ describe('evidence pills', () => {
     assert.equal(hasCrossEvidence(pills.filter((p) => p.side === 'a')), false);
   });
 
-  test('extractUrls strips trailing punctuation', () => {
-    assert.deepEqual(extractUrls('see https://github.com/a/b. and (https://x.dev/y), done'), ['https://github.com/a/b', 'https://x.dev/y']);
+  test('the shared detector finds private details and foreign links, and leaves the pair own evidence intact', () => {
+    const ctx: PrivacyContext = {
+      allowedUrls: ['https://github.com/dev-a/rust-sfu', 'https://github.com/dev-a/rust-sfu/issues/1'],
+      allowedRepos: ['dev-a/rust-sfu', 'dev-b/site.io'],
+      aliases: ['Thread-0A01'],
+      contactCards: ['signal: thread-private'],
+      logins: ['dev-a', 'dev-b'],
+      capabilities: new Set(['rust', 'webrtc', 'node.js']),
+    };
+    const kinds = (text: string) => findPrivateSpans(text, ctx).map((sp) => [text.slice(sp.start, sp.end), sp.kind]);
+    assert.deepEqual(kinds('call +1 (555) 123-4567 or 555 123 4567'), [['+1 (555) 123-4567', 'private'], ['555 123 4567', 'private']]);
+    assert.deepEqual(kinds('see contact.md, evil.rs and run.py'), [['contact.md', 'link'], ['evil.rs', 'link'], ['run.py', 'link']]);
+    assert.deepEqual(kinds('Node.js and index.ts, Rust/WebRTC, and/or 76/100, score 0.67'), []);
+    assert.deepEqual(kinds('ask dev-b or signal: thread-private'), [['dev-b', 'private'], ['signal: thread-private', 'private']]);
+    assert.deepEqual(kinds('github.com/dev-a/rust-sfu-evil and github.com/dev-a/rust-sfu'), [['github.com/dev-a/rust-sfu-evil', 'link']]);
+    assert.deepEqual(kinds('dev-b/site.io and Thread-0A01'), []);
+    const own = 'see https://github.com/dev-a/rust-sfu/issues/1 now';
+    assert.equal(scrubPrivateDetails(own, ctx), own);
+    assert.equal(scrubPrivateDetails('mail x@y.org or https://evil.example/z', ctx), 'mail [redacted] or [link removed]');
   });
 });
 
@@ -498,12 +516,14 @@ describe('Stage 2', () => {
       ['private_detail', thesis(card, { collaboration_angle: `${a.participant.display_alias} and ${b.participant.display_alias}: ping @spool on chat after this.` })],
       ['private_detail', thesis(card, { collaboration_angle: `${a.participant.display_alias} and ${b.participant.display_alias}: ask "@spool" for access.` })],
       ['foreign_repo', thesis(card, { why_you_match: 'You could both learn from someone-else/media-kit first.' })],
-      ['foreign_repo', thesis(card, { why_you_match: 'Start from github.com/someone-else/media-kit together.' })],
+      ['foreign_url', thesis(card, { why_you_match: 'Start from github.com/someone-else/media-kit together.' })],
       ['foreign_repo', thesis(card, { why_you_match: 'Borrow the approach from Facebook/react first.' })],
       ['foreign_url', thesis(card, { why_you_match: 'The kit at gitlab.com/someone/kit is a good start.' })],
       ['foreign_url', thesis(card, { why_you_match: 'Read example.com/path before you meet.' })],
       ['foreign_url', thesis(card, { why_you_match: 'Book a room on example.com first.' })],
       ['foreign_url', thesis(card, { why_you_match: 'Visit evil.ru today.' })],
+      ['foreign_url', thesis(card, { why_you_match: 'Notes are at contact.md and evil.rs.' })],
+      ['private_detail', thesis(card, { collaboration_angle: `${a.participant.display_alias} and ${b.participant.display_alias}: call +1 555 123 4567 first.` })],
       ['foreign_url', thesis(card, { why_you_match: 'Both of you know Rust/gitlab.com/x well.' })],
       ['foreign_url', thesis(card, { why_you_match: 'see...gitlab.com/x for the kit' })],
       ['foreign_url', thesis(card, { why_you_match: 'their notes live on my_site.com/x' })],
@@ -552,6 +572,22 @@ describe('Stage 2', () => {
     assert.equal(result.source, 'llm', result.rejection);
   });
 
+  test('a correct mention of the pair own dotted repo name is accepted by the gate', async () => {
+    const [a0, b0] = pair();
+    const dotted = (p: ParticipantProfile): ParticipantProfile => ({
+      ...p,
+      evidence: p.evidence.map((r) => ({ ...r, repo_full_name: `${r.repo_full_name}.io` })),
+    });
+    const a = dotted(a0);
+    const b = dotted(b0);
+    const card = buildStage1Explanation(scorePair(a, b, { now: NOW }), a, b);
+    const repo = card.pills.find((p) => p.side === 'b')!.repo!;
+    assert.ok(repo.endsWith('.io'));
+    const llm = fakeLlm(thesis(card, { collaboration_angle: `${a.participant.display_alias} and ${b.participant.display_alias} open ${repo} for 15 minutes.` }));
+    const result = await enrichExplanation(card, a, b, { llm, now: NOW });
+    assert.equal(result.source, 'llm', result.rejection);
+  });
+
   test('a client error or a reply slower than the timeout falls back to Stage 1, and the request is aborted', async () => {
     const { a, b, card } = staged();
     const failing: ExplanationLlm = { complete: async () => Promise.reject(new Error('503')) };
@@ -576,7 +612,7 @@ describe('Stage 2', () => {
   test('capability pairs such as Rust/WebRTC and the phrase and/or are not mistaken for repos', async () => {
     const { a, b, card } = staged();
     const result = await enrichExplanation(card, a, b, {
-      llm: fakeLlm(thesis(card, { why_you_match: 'One of you lives in Rust/WebRTC and the other in TypeScript/WebAudio, and/or both, e.g. Node.js-style tooling and a main.py script.' })),
+      llm: fakeLlm(thesis(card, { why_you_match: 'One of you lives in Rust/WebRTC and the other in TypeScript/WebAudio, and/or both, e.g. Node.js-style tooling and an index.ts script.' })),
       now: NOW,
     });
     assert.equal(result.source, 'llm', result.rejection);

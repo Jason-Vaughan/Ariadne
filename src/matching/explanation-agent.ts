@@ -2,16 +2,8 @@ import type { DatabaseSync } from 'node:sqlite';
 import { MatchProposalSchema } from '../contracts/index.ts';
 import type { MatchProposal, ScoreBreakdown } from '../contracts/index.ts';
 import { publishEvent } from '../events/bus.ts';
-import {
-  containsEmail,
-  extractGithubPaths,
-  extractRepoTokens,
-  extractSchemelessLinks,
-  extractUrls,
-  formatEvidencePills,
-  hasCrossEvidence,
-} from './evidence-formatter.ts';
-import type { EvidencePill } from './evidence-formatter.ts';
+import { findPrivateSpans, formatEvidencePills, hasCrossEvidence, scrubPrivateDetails } from './evidence-formatter.ts';
+import type { EvidencePill, PrivacyContext } from './evidence-formatter.ts';
 import { normalizeCapability } from './scorer.ts';
 import type { PairScore, ParticipantProfile } from './scorer.ts';
 import type { Logger } from '../server.ts';
@@ -19,9 +11,6 @@ import type { Logger } from '../server.ts';
 export const ENRICHMENT_TIMEOUT_MS = 4_000;
 export const DEFAULT_GEMINI_MODEL = 'gemini-2.5-flash';
 const MAX_TEXT = 600;
-// Emails are caught separately; this finds an @handle in any surrounding (quotes, brackets, start of text).
-const HANDLE_PATTERN = /(^|[^A-Za-z0-9._%+-])@[A-Za-z0-9-]{1,39}\b/;
-const NON_REPO_TOKENS: ReadonlySet<string> = new Set(['and/or', 'either/or', 'n/a']);
 const WILLINGNESS_NOTE =
   'The score estimates collaboration potential from public work; it does not mean either of you has asked for help.';
 
@@ -148,69 +137,25 @@ function topCapabilities(profile: ParticipantProfile): string[] {
     .map((c) => c.name);
 }
 
-/** What the private-detail scrub may leave in place: the pair's own evidence and repos. */
-interface ScrubContext {
-  allowedUrls: ReadonlySet<string>;
-  allowedRepos: readonly string[];
-  contactCards: readonly string[];
-}
-
 /**
- * Builds the scrub context for a pair from its pills and both participants.
+ * The privacy context for a pair: its evidence, repos and aliases may appear; contact cards, logins
+ * outside its repos, and anything else private may not. Capability names are not mistaken for links.
  * @param pills - The pair's evidence pills.
  * @param a - Participant A's profile.
  * @param b - Participant B's profile.
- * @returns The context.
+ * @returns The context shared by the Stage 1 scrub and the Stage 2 gate.
  */
-function scrubContext(pills: readonly EvidencePill[], a: ParticipantProfile, b: ParticipantProfile): ScrubContext {
+export function privacyContext(pills: readonly EvidencePill[], a: ParticipantProfile, b: ParticipantProfile): PrivacyContext {
   return {
-    allowedUrls: new Set(pills.map((p) => p.url.toLowerCase())),
-    allowedRepos: [...new Set(pills.flatMap((p) => (p.repo ? [p.repo] : [])))].sort((x, y) => y.length - x.length),
+    allowedUrls: pills.map((p) => p.url),
+    allowedRepos: [...new Set(pills.flatMap((p) => (p.repo ? [p.repo] : [])))],
+    aliases: [a.participant.display_alias, b.participant.display_alias],
     contactCards: [a, b].map((p) => p.participant.contact_card).filter((v): v is string => !!v && v.trim().length > 0),
+    logins: [a.participant.github_username, b.participant.github_username],
+    capabilities: new Set(
+      [a, b].flatMap((p) => [...p.claims.map((c) => c.name), ...p.needs.flatMap((n) => n.desired_capabilities)]).map(normalizeCapability),
+    ),
   };
-}
-
-/**
- * Escapes a string for literal use inside a RegExp.
- * @param value - Text to escape.
- * @returns The escaped pattern.
- */
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-/**
- * Removes private details from text that reaches a match card or a model prompt: contact cards,
- * emails and @handles become `[redacted]`, and any link (with or without a scheme, or a github.com
- * path) that is not one of the pair's own evidence URLs becomes `[link removed]`. The pair's own
- * repo names are left intact. Participant-controlled text (need summaries, capability names, goals)
- * flows through here before it is stored or shown to the other participant.
- * @param text - Text to clean.
- * @param ctx - The pair's allowed evidence and contact cards.
- * @returns The cleaned text.
- */
-export function scrubPrivateDetails(text: string, ctx: ScrubContext): string {
-  let out = text;
-  for (const card of ctx.contactCards) out = out.replace(new RegExp(escapeRegExp(card), 'gi'), '[redacted]');
-  out = out.replace(/https?:\/\/[^\s)<>"'\]]+/gi, (url) => {
-    const trimmed = url.replace(/[.,;:!?]+$/, '');
-    return ctx.allowedUrls.has(trimmed.toLowerCase()) ? url : `[link removed]${url.slice(trimmed.length)}`;
-  });
-  out = out.replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[redacted]');
-  out = out.replace(/(^|[^A-Za-z0-9._%+-])@[A-Za-z0-9-]{1,39}\b/g, '$1[redacted]');
-  // Scrub schemeless links outside the pair's repo names (which may themselves contain dots).
-  const repoSplit = ctx.allowedRepos.length ? new RegExp(`(${ctx.allowedRepos.map(escapeRegExp).join('|')})`, 'gi') : null;
-  const parts = repoSplit ? out.split(repoSplit) : [out];
-  return parts
-    .map((part, i) => {
-      if (repoSplit && i % 2 === 1) return part;
-      let cleaned = part.replace(/(?:www\.)?github\.com\/[^\s)<>"']*/gi, '[link removed]');
-      for (const link of extractSchemelessLinks(cleaned)) {
-        cleaned = cleaned.replace(new RegExp(escapeRegExp(link), 'gi'), '[link removed]');
-      }
-      return cleaned;
-    })
-    .join('');
 }
 
 /**
@@ -253,7 +198,7 @@ export function buildStage1Explanation(pair: PairScore, a: ParticipantProfile, b
   ]
     .filter(Boolean)
     .join(' ');
-  const ctx = scrubContext(pills, a, b);
+  const ctx = privacyContext(pills, a, b);
   const pairingText = scrubPrivateDetails(pairing.join(' '), ctx);
   const context = scrubPrivateDetails(why, ctx);
   const summary = bound([scoreLine(pair.composite_score, pair.score_breakdown), pairingText, context].filter(Boolean).join(' '));
@@ -398,7 +343,7 @@ export function explainMatches(
  * @returns The prompt text.
  */
 export function buildEnrichmentPrompt(staged: StagedExplanation, a: ParticipantProfile, b: ParticipantProfile): string {
-  const ctx = scrubContext(staged.pills, a, b);
+  const ctx = privacyContext(staged.pills, a, b);
   const describe = (p: ParticipantProfile): string => {
     const caps = p.claims.filter((c) => !c.dismissed_by_user).map((c) => `${c.name} (${c.proficiency_signal})`).join(', ');
     const needs = p.needs.filter((n) => !n.dismissed_by_user).map((n) => n.summary).join('; ');
@@ -434,49 +379,10 @@ export function verifyThesis(thesis: LlmThesis, staged: StagedExplanation, a: Pa
   const sides = new Set(thesis.cited_receipt_ids.map((id) => pillById.get(id)!.side));
   if (!sides.has('a') || !sides.has('b')) return 'one_sided_citation';
   const text = `${thesis.why_you_match}\n${thesis.collaboration_angle}`;
-  const allowedUrls = new Set(staged.pills.map((p) => p.url));
-  if (!extractUrls(text).every((u) => allowedUrls.has(u))) return 'foreign_url';
-  const allowedRepos = new Set(staged.pills.flatMap((p) => (p.repo ? [p.repo.toLowerCase()] : [])));
-  const allowedPaths = new Set([
-    ...allowedRepos,
-    ...staged.pills.flatMap((p) => extractGithubPaths(p.url)),
-  ]);
-  if (!extractGithubPaths(text).every((path) => allowedPaths.has(path))) return 'foreign_repo';
-  let withoutUrls = text;
-  for (const url of extractUrls(text)) withoutUrls = withoutUrls.split(url).join(' ');
-  withoutUrls = withoutUrls.replace(/(?:www\.)?github\.com\/\S*/gi, ' ');
-  // A slash token is a repo unless it is one of the pair's, a stock phrase, or two capabilities the pair holds or needs.
-  const capabilities = new Set(
-    [a, b].flatMap((p) => [...p.claims.map((c) => c.name), ...p.needs.flatMap((n) => n.desired_capabilities)]).map(normalizeCapability),
-  );
-  const isCapabilityPair = (token: string): boolean => token.split('/').every((part) => capabilities.has(normalizeCapability(part)));
-  if (!extractRepoTokens(withoutUrls).every((t) => allowedRepos.has(t) || NON_REPO_TOKENS.has(t) || isCapabilityPair(t))) return 'foreign_repo';
-  // Links written without a scheme (gitlab.com/x, example.com) can arrive via participant-controlled text in the prompt.
-  const allowedHosts = new Set(staged.pills.map((p) => new URL(p.url).host.toLowerCase()));
-  const capabilityNames = new Set([...capabilities]);
-  for (const link of extractSchemelessLinks(withoutUrls)) {
-    const host = link.split('/')[0]!;
-    const isOwnEvidence = staged.pills.some((p) => p.url.toLowerCase().replace(/^https?:\/\//, '') === link);
-    if (!isOwnEvidence && !(allowedHosts.has(host) && link === host) && !capabilityNames.has(normalizeCapability(link))) return 'foreign_url';
-  }
-  // Repo names and their URLs legitimately contain owners' logins, so a login is only "leaked" outside them.
-  let outsideEvidence = text.toLowerCase();
-  // Display aliases are public by design, so an alias that happens to spell a login is not a leak.
-  for (const alias of [a.participant.display_alias, b.participant.display_alias]) outsideEvidence = outsideEvidence.split(alias.toLowerCase()).join(' ');
-  for (const p of staged.pills) {
-    outsideEvidence = outsideEvidence.split(p.url.toLowerCase()).join(' ');
-    if (p.repo) outsideEvidence = outsideEvidence.split(p.repo.toLowerCase()).join(' ');
-  }
-  const contactCards = [a, b].map((p) => p.participant.contact_card).filter((v): v is string => !!v);
-  const logins = [a, b].map((p) => p.participant.github_username);
-  if (
-    containsEmail(text) ||
-    HANDLE_PATTERN.test(text) ||
-    contactCards.some((card) => text.toLowerCase().includes(card.toLowerCase())) ||
-    logins.some((login) => new RegExp(`(^|[^a-z0-9-])${login}($|[^a-z0-9-])`).test(outsideEvidence))
-  ) {
-    return 'private_detail';
-  }
+  const spans = findPrivateSpans(text, privacyContext(staged.pills, a, b));
+  if (spans.some((sp) => sp.kind === 'private')) return 'private_detail';
+  if (spans.some((sp) => sp.kind === 'link')) return 'foreign_url';
+  if (spans.length) return 'foreign_repo';
   const angle = thesis.collaboration_angle;
   if (!thesis.why_you_match.trim()) return 'missing_element';
   if (!angle.includes(a.participant.display_alias) || !angle.includes(b.participant.display_alias)) return 'missing_element';
