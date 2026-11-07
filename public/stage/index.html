@@ -54,6 +54,7 @@
       </div>
     </section>
     <div class="hud-bar">
+      <button type="button" id="reset-toggle" class="reset-toggle" data-action="reset" disabled title="Presenter machine only">🧹 Reset</button>
       <button type="button" id="view-info" class="view-info" data-action="info">ℹ️ How View 1 works</button>
       <div id="hud" class="hud" aria-label="Operator status">Connecting…</div>
     </div>
@@ -118,6 +119,7 @@ const state = {
   spotAuto: true,
   spotTimer: null,
   infoTab: '1',
+  resetArmed: null,
 };
 
 /** Scale the fixed 1920x1080 stage to fit the window, letterboxed and centred. */
@@ -165,6 +167,7 @@ function renderSeedButton(snapshot) {
   button.firstChild.textContent = `🌱 Seed AI Devs: ${snapshot.seed_mode ? `ON (+${snapshot.kpis.seed_builders})` : 'OFF'}`;
   button.disabled = !snapshot.presenter || state.seedBusy;
   button.title = snapshot.presenter ? '' : 'Stage controls work only on the host machine (127.0.0.1:3420).';
+  $('reset-toggle').disabled = !snapshot.presenter;
 }
 
 /**
@@ -377,6 +380,36 @@ function toggleQr() {
   $('qr-toggle').setAttribute('aria-pressed', String(!modal.hidden));
 }
 
+/**
+ * Reset all room data, behind a two-click confirmation: the first click arms the button for 4 seconds.
+ * Presenter machine only; the server refuses it anywhere else.
+ */
+async function resetRoom() {
+  const button = $('reset-toggle');
+  if (!state.snapshot?.presenter) return;
+  if (!state.resetArmed) {
+    button.textContent = '⚠️ Confirm Reset';
+    button.classList.add('armed');
+    state.resetArmed = setTimeout(disarmReset, 4000);
+    return;
+  }
+  disarmReset();
+  const res = await fetch('/api/admin/reset', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
+  if (res.ok) {
+    state.positions = new Map();
+    state.goldenIds = null;
+  }
+  await refresh().catch(() => {});
+}
+
+/** Return the reset button to its unarmed state. */
+function disarmReset() {
+  clearTimeout(state.resetArmed);
+  state.resetArmed = null;
+  $('reset-toggle').textContent = '🧹 Reset';
+  $('reset-toggle').classList.remove('armed');
+}
+
 /** Show or hide the floating QR, which stays on screen across every view and auto-cycle. */
 function toggleFloatingQr() {
   const panel = $('qr-floating');
@@ -451,6 +484,7 @@ function dispatch(action) {
   else if (action === 'qr:floating') toggleFloatingQr();
   else if (action === 'info') setInfo($('info-modal').hidden ? state.view : null);
   else if (action === 'info:close') setInfo(null);
+  else if (action === 'reset') resetRoom();
   else if (action.startsWith('info:tab:')) setInfo(action.slice(9));
   else if (action === 'seed') toggleSeeds();
   else if (action === 'privacy') togglePrivacy();

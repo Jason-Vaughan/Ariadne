@@ -569,3 +569,15 @@ describe('stage explainer (I / ?)', () => {
     assert.ok(html.includes("if (event.target === $('info-modal')) setInfo(null);"), 'clicking the backdrop closes it');
   });
 });
+
+test('the stage Reset is presenter-only and needs a second click within 4 seconds', () => {
+  const html = readFileSync(join(REPO_ROOT, 'public', 'stage', 'index.html'), 'utf8');
+  assert.ok(html.includes('<button type="button" id="reset-toggle" class="reset-toggle" data-action="reset" disabled title="Presenter machine only">🧹 Reset</button>'));
+  assert.ok(html.includes("$('reset-toggle').disabled = !snapshot.presenter;"), 'enabled only on the presenter machine');
+  assert.ok(html.includes("else if (action === 'reset') resetRoom();"));
+  assert.ok(html.includes("button.textContent = '⚠️ Confirm Reset';"));
+  assert.ok(html.includes('state.resetArmed = setTimeout(disarmReset, 4000);'));
+  assert.ok(html.includes("fetch('/api/admin/reset', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' })"));
+  assert.ok(html.indexOf('id="reset-toggle"') > html.indexOf('</nav>') && !html.slice(html.indexOf('<div class="controls">'), html.indexOf('</header>')).includes('reset-toggle'),
+    'kept out of the header controls, away from toggles pressed during the demo');
+});

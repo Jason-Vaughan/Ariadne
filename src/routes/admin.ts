@@ -1,7 +1,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { DatabaseSync } from 'node:sqlite';
 import type { RouteDefinition } from '../server.ts';
-import { countActiveParticipants, getAdmissionPolicy, setAdmissionPolicy } from './onboarding.ts';
+import { countActiveParticipants, getAdmissionPolicy, resetRateLimits, setAdmissionPolicy } from './onboarding.ts';
 import { isPresenterRequest, SEED_ID_PREFIX, setSeedMode } from './stage-snapshot.ts';
 import { getWorkerSettings, GITHUB_FETCH_MODES, rematch, setWorkerSettings, WORKER_CONCURRENCY_LEVELS } from '../worker/job-runner.ts';
 import { hydrateSeedPersonas } from '../worker/seed-personas.ts';
@@ -87,6 +87,31 @@ export function capacityState(db: DatabaseSync): CapacityState {
     queue: { queued: counts.queued ?? 0, running: counts.running ?? 0, failed: counts.failed ?? 0 },
     presets: { maxRoomCapacity: ROOM_CAPACITY_PRESETS, workerConcurrency: WORKER_CONCURRENCY_LEVELS, githubFetchMode: GITHUB_FETCH_MODES },
   };
+}
+
+/**
+ * Clears every participant and everything derived from them, so the room can start over (e.g. between a
+ * rehearsal and the live demo): participants (their claims, evidence, needs and matches go with them),
+ * queued jobs, the public event log and registration rate limits. Cached GitHub snapshots are kept but
+ * un-linked first, because they belong to participants by ON DELETE CASCADE and are public data that
+ * makes a returning builder load instantly. Room capacity, intake lock and worker settings are untouched.
+ * @param db - Open database.
+ * @returns The capacity state after the reset.
+ */
+export function resetRoomData(db: DatabaseSync): CapacityState {
+  db.exec('BEGIN IMMEDIATE');
+  try {
+    db.exec('UPDATE github_snapshots SET participant_id = NULL WHERE participant_id IS NOT NULL');
+    db.exec('DELETE FROM participants');
+    db.exec('DELETE FROM async_jobs');
+    db.exec('DELETE FROM domain_events');
+    db.exec('COMMIT');
+  } catch (error) { // prawduct:allow prawduct/broad-except -- transaction boundary: any failure rolls back and rethrows
+    db.exec('ROLLBACK');
+    throw error;
+  }
+  resetRateLimits();
+  return capacityState(db);
 }
 
 /**
@@ -207,6 +232,10 @@ const PANEL_HTML = `<!doctype html>
   <p class="stat">Seeds in pool: <span id="seeds">–</span></p>
   <div class="row"><button id="seed" type="button"></button></div>
 </section>
+<section><h2>Reset room</h2>
+  <p>Deletes every participant, match, job and stage event. Capacity and worker settings are kept.</p>
+  <div class="row"><button id="reset" type="button">🧹 Reset all room data</button></div>
+</section>
 <script>
 const $ = (id) => document.getElementById(id);
 let state = null;
@@ -261,6 +290,24 @@ $('prewarm').onclick = async () => {
   $('prewarm-result').textContent = res.ok
     ? 'Warmed ' + body.warmed.length + ', already cached ' + body.alreadyCached.length + ', failed ' + body.failed.length + '.'
     : (body.detail || 'Pre-warm failed.');
+};
+let resetArmed = null;
+$('reset').onclick = async () => {
+  if (!resetArmed) {
+    $('reset').textContent = 'Click again to confirm full reset';
+    resetArmed = setTimeout(() => { resetArmed = null; $('reset').textContent = '🧹 Reset all room data'; }, 4000);
+    return;
+  }
+  clearTimeout(resetArmed);
+  resetArmed = null;
+  $('reset').textContent = '🧹 Reset all room data';
+  $('status').textContent = 'Resetting…';
+  const res = await fetch('/api/admin/reset', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' });
+  const body = await res.json();
+  if (!res.ok) { $('status').textContent = body.detail || 'Reset failed.'; return; }
+  state = body;
+  $('status').textContent = 'Room data reset.';
+  render();
 };
 load();
 setInterval(load, 5000);
@@ -415,6 +462,20 @@ export const routes: RouteDefinition[] = [
       const result = await prewarmVips(ctx.db, request);
       ctx.log.info('operator vip prewarm', { warmed: result.warmed.length, cached: result.alreadyCached.length, failed: result.failed.length });
       sendNoStoreJson(res, 200, result);
+    },
+  },
+  {
+    method: 'POST',
+    path: '/api/admin/reset',
+    /**
+     * `POST /api/admin/reset` `{}`: delete all room data (participants and everything derived, jobs, events)
+     * so the room can start over. Presenter machine only, same-origin JSON only.
+     */
+    handler(req, res, ctx) {
+      if (!presenterOnly(req, res) || !sameOriginJson(req, res)) return;
+      const state = resetRoomData(ctx.db);
+      ctx.log.info('room data reset', { activeParticipants: state.activeParticipants, seedCount: state.seedCount });
+      sendNoStoreJson(res, 200, state);
     },
   },
 ];
