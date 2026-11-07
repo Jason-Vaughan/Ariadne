@@ -144,17 +144,48 @@ test('renderRoadmapPage escapes issue titles and withholds excluded issues', () 
   assert.match(html, /Withheld from public view/);
 });
 
-test('loadReports marks published reports and reads their metrics', (t) => {
+test('loadReports publishes a report only when its release tag exists', (t) => {
   const dir = tempDir(t);
   fs.mkdirSync(path.join(dir, 'v0.1.0'));
   fs.writeFileSync(path.join(dir, 'v0.1.0', 'index.html'), metricsHtml('tc-canonical-metrics', sampleMetrics));
-  const reports = loadReports(roadmap, dir);
+  t.mock.method(console, 'info', () => {});
+  const reports = loadReports(roadmap, dir, new Set(['v0.1.0']));
   assert.deepEqual(reports.map((r) => r.slug), ['v0.1.0', 'v0.2.0', 'v0.1.0-v0.2.0-retrospective']);
   assert.equal(reports[0].published, true);
   assert.equal(reports[0].href, '/reports/v0.1.0/');
   assert.deepEqual(reports[0].metrics, sampleMetrics);
   assert.equal(reports[1].published, false);
   assert.equal(reports[2].retrospective, true);
+  assert.equal(reports[2].tag, 'v0.2.0');
+
+  const untagged = loadReports(roadmap, dir, new Set());
+  assert.equal(untagged[0].published, false, 'a report file without its release tag is a draft');
+  assert.equal(untagged[0].metrics, null);
+});
+
+test('loadReports rejects a report whose metrics name a different release or none', (t) => {
+  const dir = tempDir(t);
+  fs.mkdirSync(path.join(dir, 'v0.1.0'));
+  fs.writeFileSync(path.join(dir, 'v0.1.0', 'index.html'), metricsHtml('tc-canonical-metrics', { ...sampleMetrics, release_tag: 'v0.2.0' }));
+  fs.mkdirSync(path.join(dir, 'v0.2.0'));
+  fs.writeFileSync(path.join(dir, 'v0.2.0', 'index.html'), '<html>no metrics</html>');
+  t.mock.method(console, 'info', () => {});
+  const reports = loadReports(roadmap, dir, new Set(['v0.1.0', 'v0.2.0']));
+  assert.equal(reports[0].published, false);
+  assert.equal(reports[1].published, false);
+});
+
+test('the pre-event illustrative v0.1.0 report is not published before its release tag exists', (t) => {
+  const root = path.resolve(import.meta.dirname, '..');
+  const realRoadmap = JSON.parse(fs.readFileSync(path.join(root, 'roadmap-board', 'roadmap2-data.json'), 'utf8'));
+  const reportsDir = path.join(root, 'sprint-reports');
+  assert.ok(fs.existsSync(path.join(reportsDir, 'v0.1.0', 'index.html')), 'fixture: the illustrative report is present');
+  t.mock.method(console, 'info', () => {});
+  const reports = loadReports(realRoadmap, reportsDir, new Set());
+  assert.deepEqual(reports.filter((r) => r.published), []);
+  const html = renderReportsPage(reports, { generatedAt: 'T' });
+  assert.doesNotMatch(html, /class="pill pill-published"/);
+  assert.match(html, /No release reports are published yet/);
 });
 
 test('reportFigures summarises metrics and tolerates a missing block', () => {
@@ -183,14 +214,8 @@ test('renderReportsPage lists the retrospective first, compares published trains
   assert.match(html, /Pending — published at the train boundary/);
 });
 
-test('renderReportsPage explains an empty comparison and a report without metrics', () => {
-  const empty = renderReportsPage([], { generatedAt: 'T' });
-  assert.match(empty, /No release reports are published yet/);
-  const noMetrics = renderReportsPage(
-    [{ slug: 'v0.1.0', title: 'F', href: '/reports/v0.1.0/', published: true, metrics: null, retrospective: false }],
-    { generatedAt: 'T' },
-  );
-  assert.match(noMetrics, /no readable metrics block/);
+test('renderReportsPage explains an empty comparison', () => {
+  assert.match(renderReportsPage([], { generatedAt: 'T' }), /No release reports are published yet/);
 });
 
 test('parseArgs reads --name value pairs and rejects malformed input', () => {
@@ -216,6 +241,7 @@ test('main writes both pages from file inputs without touching GitHub', (t) => {
     '--reports-dir', reportsDir,
     '--out-dir', path.join(dir, 'public'),
     '--generated-at', '2026-11-07T19:00:00Z',
+    '--released-tags', 'v0.1.0',
   ]);
 
   const roadmapHtml = fs.readFileSync(out.roadmapPath, 'utf8');

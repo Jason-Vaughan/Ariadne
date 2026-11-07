@@ -120,39 +120,59 @@ export function extractMetrics(html) {
 
 /**
  * List the report slugs the hub shows: one per roadmap release, plus the cumulative retrospective.
+ * Each slot names the release tag that must exist before its report counts as published.
  * @param {{releases:Array<{version:string,name:string}>}} roadmap
- * @returns {Array<{slug:string,title:string,retrospective:boolean}>}
+ * @returns {Array<{slug:string,title:string,retrospective:boolean,tag:string}>}
  */
 export function reportSlots(roadmap) {
   const versions = roadmap.releases.map((r) => `v${r.version}`);
-  const slots = roadmap.releases.map((r) => ({ slug: `v${r.version}`, title: r.name, retrospective: false }));
+  const slots = roadmap.releases.map((r) => ({ slug: `v${r.version}`, title: r.name, retrospective: false, tag: `v${r.version}` }));
   if (versions.length > 1) {
+    const last = versions[versions.length - 1];
     slots.push({
-      slug: `${versions[0]}-${versions[versions.length - 1]}-retrospective`,
-      title: `${versions[0]} – ${versions[versions.length - 1]} Hackathon Train Retrospective`,
+      slug: `${versions[0]}-${last}-retrospective`,
+      title: `${versions[0]} – ${last} Hackathon Train Retrospective`,
       retrospective: true,
+      tag: last,
     });
   }
   return slots;
 }
 
 /**
- * Find which report slots have a published report on disk, and read each one's metrics.
+ * Find which report slots have a published report, and read each one's metrics.
+ * A report file on disk is not enough: pre-event drafts sit in the same directory. A report
+ * counts as published only when its metrics name the slot's release tag and that tag exists.
  * @param {{releases:Array<{version:string,name:string}>}} roadmap
  * @param {string} reportsDir directory holding `<slug>/index.html` reports
- * @returns {Array<{slug:string,title:string,retrospective:boolean,href:string,published:boolean,metrics:object|null}>}
+ * @param {Set<string>} releasedTags release tags that exist on the repository
+ * @returns {Array<{slug:string,title:string,retrospective:boolean,tag:string,href:string,published:boolean,metrics:object|null}>}
  */
-export function loadReports(roadmap, reportsDir) {
+export function loadReports(roadmap, reportsDir, releasedTags) {
   return reportSlots(roadmap).map((slot) => {
     const file = path.join(reportsDir, slot.slug, 'index.html');
-    const published = fs.existsSync(file);
-    return {
-      ...slot,
-      href: `/reports/${slot.slug}/`,
-      published,
-      metrics: published ? extractMetrics(fs.readFileSync(file, 'utf8')) : null,
-    };
+    const metrics = fs.existsSync(file) ? extractMetrics(fs.readFileSync(file, 'utf8')) : null;
+    const published = metrics !== null && metrics.release_tag === slot.tag && releasedTags.has(slot.tag);
+    if (fs.existsSync(file) && !published) {
+      console.info(`[build-sprint-report] ${slot.slug}: report on disk is not backed by release tag ${slot.tag}; shown as pending`);
+    }
+    return { ...slot, href: `/reports/${slot.slug}/`, published, metrics: published ? metrics : null };
   });
+}
+
+/**
+ * List the release tags that exist on the origin remote.
+ * @param {string} cwd repository checkout to query
+ * @returns {Set<string>}
+ */
+export function fetchReleasedTags(cwd = REPO_ROOT) {
+  const out = execFileSync('git', ['ls-remote', '--tags', '--refs', 'origin'], { cwd, encoding: 'utf8' });
+  return new Set(
+    out
+      .split('\n')
+      .map((line) => line.split('refs/tags/')[1])
+      .filter(Boolean),
+  );
 }
 
 /**
@@ -401,9 +421,7 @@ function renderReportCard(report) {
     return `<article class="card report"><h2>${escapeHtml(report.slug)}</h2><p>${escapeHtml(report.title)}</p><span class="pill pill-pending">Pending — published at the train boundary</span></article>`;
   }
   const f = reportFigures(report.metrics);
-  const figures = report.metrics
-    ? `<dl><dt>Engineering window</dt><dd>${escapeHtml(f.window)}</dd><dt>Issues closed</dt><dd>${escapeHtml(f.issues)}</dd><dt>PRs merged</dt><dd>${escapeHtml(f.prs)}</dd><dt>Lines</dt><dd>${escapeHtml(f.lines)}</dd></dl>`
-    : '<p class="muted">This report has no readable metrics block.</p>';
+  const figures = `<dl><dt>Engineering window</dt><dd>${escapeHtml(f.window)}</dd><dt>Issues closed</dt><dd>${escapeHtml(f.issues)}</dd><dt>PRs merged</dt><dd>${escapeHtml(f.prs)}</dd><dt>Lines</dt><dd>${escapeHtml(f.lines)}</dd></dl>`;
   return `<article class="card report${report.retrospective ? ' highlight' : ''}"><h2><a href="${escapeHtml(report.href)}">${escapeHtml(report.slug)}</a></h2><p>${escapeHtml(report.metrics?.milestone_title ?? report.title)}</p><span class="pill pill-published">Published</span>${figures}</article>`;
 }
 
@@ -477,7 +495,8 @@ export function parseArgs(argv) {
 /**
  * Build both pages and write them under the output directory.
  * Options: --roadmap <json>, --issues <json from gh issue list> (otherwise fetched live),
- * --reports-dir <dir>, --out-dir <dir>, --generated-at <timestamp>.
+ * --reports-dir <dir>, --out-dir <dir>, --generated-at <timestamp>,
+ * --released-tags <comma-separated tags> (otherwise read from `git ls-remote --tags origin`).
  * @param {string[]} argv
  * @returns {{roadmapPath:string,reportsPath:string}}
  */
@@ -491,7 +510,11 @@ export function main(argv = process.argv.slice(2)) {
   const roadmap = JSON.parse(fs.readFileSync(roadmapFile, 'utf8'));
   const ghIssues = opts.issues ? JSON.parse(fs.readFileSync(opts.issues, 'utf8')) : fetchGithubIssues();
   const issues = normalizeIssues(ghIssues);
-  const reports = loadReports(roadmap, reportsDir);
+  const releasedTags =
+    opts['released-tags'] !== undefined
+      ? new Set(opts['released-tags'].split(',').map((t) => t.trim()).filter(Boolean))
+      : fetchReleasedTags();
+  const reports = loadReports(roadmap, reportsDir, releasedTags);
   const publishedReports = reports.filter((r) => r.published && !r.retrospective).map((r) => r.slug);
 
   const roadmapPath = path.join(outDir, 'roadmap', 'index.html');
