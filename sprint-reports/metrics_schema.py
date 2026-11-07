@@ -53,7 +53,7 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
         "schema_version": SCHEMA_VERSION,
         "slug": "v0.1.0",
         "milestone_number": 1,
-        "milestone_title": "v0.1.0 — Spine, Contracts, Event Stream & Public Reports Hub",
+        "milestone_title": "Train 0 — Foundation, Contracts, Server & Live Event Bus (v0.1.0)",
         "standing_auth": "ARIADNE-HACK-2026-W1",
         "prev_tag": "v0.0.0-init",
         "prev_sha": "d965715",
@@ -74,8 +74,8 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
             "t6_pst": "11:51:30 PST (Annotated tag v0.1.0 published @ 101d16c)",
             "t7_live_deploy_completed": "2026-11-07T19:52:00Z",
             "t7_pst": "11:52:00 PST (Live :3420 /api/health 200 OK & 183/183 tests green)",
-            "t8_observer_certification_completed": "2026-11-07T19:55:00Z",
-            "t8_pst": "11:55:00 PST (Ariadne-Obsr O-Gate certification)",
+            "t8_observer_certification_completed": "2026-11-07T20:17:50Z",
+            "t8_pst": "12:17:50 PST (Ariadne-Obsr O-Gate PASS comment #6712507249 on PR #25)",
         },
         "durations": {
             "full_engineering_window_hrs": 0.66,
@@ -110,8 +110,8 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
             "prs_merged": [18, 19, 20, 21],
             "feature_prs": [18, 19, 20, 21],
             "release_prs": [],
-            "true_merge_count": 4,
-            "squash_or_rebase_count": 0,
+            "true_merge_count": 0,
+            "squash_or_rebase_count": 4,
             "net_repo_files": 24,
             "net_repo_insertions": 5132,
             "net_repo_deletions": 49,
@@ -155,7 +155,7 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
         "schema_version": SCHEMA_VERSION,
         "slug": "v0.2.0",
         "milestone_number": 2,
-        "milestone_title": "v0.2.0 — Train 1: Zero-OAuth Onboarding, GitHub Signal Ingestion, 5-Component Scorer & 16:9 Stage Graph",
+        "milestone_title": "Train 1 — QR Onboarding, GitHub Connector, Scorer & Stage Shell (v0.2.0)",
         "standing_auth": "ARIADNE-HACK-2026-W2",
         "prev_tag": "v0.1.0",
         "prev_sha": "101d16c",
@@ -176,8 +176,8 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
             "t6_pst": "12:14:29 PST (Annotated tag v0.2.0 published @ 3f14b9e)",
             "t7_live_deploy_completed": "2026-11-07T20:15:00Z",
             "t7_pst": "12:15:00 PST (Live :3420 /api/health 200 OK & 342/342 tests green)",
-            "t8_observer_certification_completed": "2026-11-07T20:20:00Z",
-            "t8_pst": "12:20:00 PST (Ariadne-Obsr O-Gate certification)",
+            "t8_observer_certification_completed": "2026-11-07T20:40:59Z",
+            "t8_pst": "12:40:59 PST (Ariadne-Obsr O-Gate PASS comment #6712751862 on PR #30; final head PASS 20:50:46Z)",
         },
         "durations": {
             "full_engineering_window_hrs": 0.40,
@@ -212,8 +212,8 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
             "prs_merged": [23, 22, 24, 26],
             "feature_prs": [23, 22, 24, 26],
             "release_prs": [],
-            "true_merge_count": 4,
-            "squash_or_rebase_count": 0,
+            "true_merge_count": 0,
+            "squash_or_rebase_count": 4,
             "net_repo_files": 18,
             "net_repo_insertions": 6682,
             "net_repo_deletions": 0,
@@ -253,6 +253,111 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
             "legacy_ade_v1_addressed": 10.35,
         },
     },
+    "v0.3.0": {
+        "schema_version": SCHEMA_VERSION,
+        "slug": "v0.3.0",
+        "milestone_number": 3,
+        "milestone_title": "Train 2 — Capability Agent, Match Explanations, Mobile UI & Stage Views (v0.3.0)",
+        "standing_auth": "ARIADNE-HACK-2026-W3",
+        "prev_tag": "v0.2.0",
+        "prev_sha": "3f14b9e",
+        "release_tag": "v0.3.0",
+        "release_sha": "1a7c8be",
+        "timestamps": {
+            "t1_first_activity": "2026-11-07T20:02:30Z",
+            "t1_pst": "12:02:30 PST (Wave 3 Charter Dispatch — Car 03-B on Ariadne-Lane-B)",
+            "t2_first_branch_commit": "2026-11-07T20:10:01Z",
+            "t2_pst": "12:10:01 PST (First Wave 3 branch commit @ e49ed45 — Car 03-B / A-004)",
+            "t3_first_pr_opened": "2026-11-07T20:10:46Z",
+            "t3_pst": "12:10:46 PST (PR #27 opened — Car 03-B / A-004)",
+            "t4_final_feature_pr_merged": "2026-11-07T20:41:57Z",
+            "t4_pst": "12:41:57 PST (PR #32 merged @ 1a7c8be — Car 03-C / A-007)",
+            "t5_release_pr_merged": "2026-11-07T20:41:57Z",
+            "t5_pst": "12:41:57 PST (Wave 3 final merge @ 1a7c8be)",
+            "t6_release_tag_published": "2026-11-07T20:42:23Z",
+            "t6_pst": "12:42:23 PST (Annotated tag v0.3.0 published @ 1a7c8be)",
+            "t7_live_deploy_completed": "2026-11-07T20:42:45Z",
+            "t7_pst": "12:42:45 PST (Live :3420 /api/health 200 OK & 442/442 tests green)",
+            "t8_observer_certification_completed": "2026-11-07T21:03:59Z",
+            "t8_pst": "13:03:59 PST (Ariadne-Obsr O-Gate PASS comment #6712992075 on PR #37; updated head PASS 21:13:55Z)",
+        },
+        "durations": {
+            "full_engineering_window_hrs": 0.55,
+            "full_engineering_window_human": "32m 44s (0.55h · t2 12:10:01 → t7 12:42:45 PST; t1→t7 wall-clock 40m 15s / 0.67h)",
+            "inter_release_deploy_cadence_hrs": 0.46,
+            "inter_release_deploy_cadence_human": "27m 45s (0.46h · v0.2.0 live t7 12:15:00 → v0.3.0 live t7 12:42:45 PST)",
+            "pipeline_overlap_hrs": 0.08,
+            "pipeline_overlap_pct": 15.2,
+            "pipeline_overlap_human": "4m 59s (0.08h / 15.2% · t2 12:10:01 → prior t7 12:15:00 PST; t1 dispatch overlap 12m 30s)",
+        },
+        "completion": {
+            "chartered_total_issues": 4,
+            "chartered_active_issues": 4,
+            "state_a_implemented_issues": 4,
+            "state_b_integrated_issues": 4,
+            "state_c_verified_closed_issues": 4,
+            "state_c_issue_ids": [8, 4, 7, 11],
+            "state_d_externally_accepted_issues": 0,
+            "partial_slice_re_milestoned_issues": 0,
+            "partial_slice_issue_ids": [],
+            "partial_slice_ruling": "0 partial slices — all 4 Wave 3 cars (#8 A-008, #4 A-004, #7 A-007, #11 A-011) closed cleanly in v0.3.0.",
+            "deferred_to_future_milestone_issues": 0,
+            "deferred_issue_ids": [],
+            "deferred_label": "Deferred to Milestone #4 (<code>v0.4.0</code>)",
+            "deferred_ruling": "0 deferred issues in Wave 3.",
+            "pre_closed_milestone_issues": 0,
+            "pre_closed_issue_ids": [],
+            "milestone_closed_total": 4,
+            "milestone_open_total": 0,
+        },
+        "diff": {
+            "prs_merged": [25, 27, 29, 28, 33, 35, 32],
+            "feature_prs": [27, 29, 28, 33, 35, 32],
+            "release_prs": [25],
+            "true_merge_count": 1,
+            "squash_or_rebase_count": 6,
+            "net_repo_files": 35,
+            "net_repo_insertions": 9361,
+            "net_repo_deletions": 1082,
+            "feature_pr_files_sum": 30,
+            "feature_pr_insertions": 5477,
+            "feature_pr_deletions": 75,
+            "release_pr_files": 11,
+            "release_pr_insertions": 2908,
+            "release_pr_deletions": 1011,
+            "per_pr": [
+                {"pr": 25, "issue": "#14 (v0.1.0 O-Gate)", "lane": "Ariadne-Obsr", "files": 11, "ins": 2908, "del": 1011, "sha": "0d9a0a6"},
+                {"pr": 27, "issue": "#4 (A-004)", "lane": "Ariadne-Lane-B", "files": 4, "ins": 1132, "del": 0, "sha": "e0f2fd0"},
+                {"pr": 29, "issue": "#11 (A-011)", "lane": "Ariadne-Lane-D", "files": 10, "ins": 1530, "del": 50, "sha": "fb7c1a1"},
+                {"pr": 28, "issue": "#8 (A-008)", "lane": "Ariadne-Lane-A", "files": 6, "ins": 1259, "del": 0, "sha": "d2ada3a"},
+                {"pr": 33, "issue": "#6 (A-006 perf)", "lane": "Ariadne-Lane-C", "files": 3, "ins": 52, "del": 21, "sha": "2998fd6"},
+                {"pr": 35, "issue": "#4 (A-004 guard)", "lane": "Ariadne-Lane-B", "files": 3, "ins": 25, "del": 4, "sha": "7a9baed"},
+                {"pr": 32, "issue": "#7 (A-007)", "lane": "Ariadne-Lane-C", "files": 4, "ins": 1479, "del": 0, "sha": "1a7c8be"},
+            ],
+        },
+        "economics": {
+            "tier1_measured_marginal_api_usd": 0.00,
+            "tier1_measured_marginal_electricity_usd": 0.01,
+            "tier1_evidence_class": "measured",
+            "tier2_allocated_subscription_usd": 1.34,
+            "tier2_hourly_rate_usd": 2.46,
+            "tier2_calendar_hour_subscription_usd": 0.33,
+            "tier2_calendar_hourly_rate_usd": 0.611,
+            "tier2_evidence_class": "allocated_estimate",
+            "tier3_hypothetical_api_shadow_usd": 32.80,
+            "est_tokens_m": 4.2,
+            "tier3_evidence_class": "hypothetical_estimate",
+        },
+        "efficiency": {
+            "throughput_closed_per_eng_hr": 7.33,
+            "throughput_addressed_per_eng_hr": 7.33,
+            "unit_allocated_cost_per_closed_issue_usd": 0.34,
+            "unit_allocated_cost_per_addressed_issue_usd": 0.34,
+            "unit_allocated_cost_per_kloc_usd": 0.14,
+            "legacy_ade_v1_closed": 5.46,
+            "legacy_ade_v1_addressed": 5.46,
+        },
+    },
 }
 
 # ---------------------------------------------------------------------------
@@ -261,6 +366,7 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
 CANONICAL_METRICS: Dict[str, Tuple[float, int, int]] = {
     "v0.1.0": (0.6625, 4, 5132),
     "v0.2.0": (1427.0 / 3600.0, 4, 6682),
+    "v0.3.0": (1964.0 / 3600.0, 4, 9361),
 }
 
 
@@ -356,6 +462,15 @@ def render_ade_kpi_and_banner(slug: str, hrs: float = None, issues: int = None, 
     shad = m["api_shadow_cost"]
     mult = m["savings_mult"]
 
+    if m["detailed"] is not None:
+        d_diff = m["detailed"]["diff"]
+        tm_cnt = d_diff["true_merge_count"]
+        sq_cnt = d_diff["squash_or_rebase_count"]
+        tot_cnt = len(d_diff["prs_merged"])
+        quality_summary = f"{tot_cnt}/{tot_cnt} PRs Integrated ({tm_cnt} merge-commit, {sq_cnt} squash), 0 Post-Merge Defects"
+    else:
+        quality_summary = "100% Clean Integration, 0 Post-Merge Defects"
+
     if w_a != w_c:
         sub_line = (
             f"Throughput: <code>{tp_c:.2f} closed/hr</code> (<code>{tp_a:.2f} addressed/hr</code> on <code>T_eng={t_e:.2f}h</code>) · "
@@ -368,7 +483,7 @@ def render_ade_kpi_and_banner(slug: str, hrs: float = None, issues: int = None, 
             f"(<code>{w_a} / {t_e:.2f}h = {tp_a:.2f} addressed issues/hr</code> including {w_a - w_c} Slice 2 issues re-milestoned) · "
             f"<strong>Unit Allocated Cost</strong> = <code>C_alloc / W_closed = ${c_a:.2f} / {w_c} = <strong>${u_c:.2f}/closed issue</strong></code> "
             f"(<code>${u_a:.2f}/addressed issue</code>; <code>${kloc:.2f}/kLOC</code> across <code>+{loc_val:,}</code> net insertions) · "
-            f"<strong>Quality</strong> = <code>100% True Merges, 0 Post-Merge Defects</code>.<br/>\n"
+            f"<strong>Quality</strong> = <code>{quality_summary}</code>.<br/>\n"
             f"          <strong>2. Disclosed Legacy Composite Index (<code>ADE_v1</code>):</strong> "
             f"<code>ADE_v1 = W / (T_eng × C_alloc) = {w_c} / ({t_e:.2f}h × ${c_a:.2f}) = <strong>{ade_c:.2f}</strong></code> (verified closed) "
             f"or <code>{w_a} / ({t_e:.2f}h × ${c_a:.2f}) = <strong>{ade_a:.2f}</strong></code> (all chartered addressed). "
@@ -386,7 +501,7 @@ def render_ade_kpi_and_banner(slug: str, hrs: float = None, issues: int = None, 
             f"<strong>Throughput</strong> = <code>W_closed / T_eng = {w_c} / {t_e:.2f}h = <strong>{tp_c:.2f} closed issues/hr</strong></code> · "
             f"<strong>Unit Allocated Cost</strong> = <code>C_alloc / W_closed = ${c_a:.2f} / {w_c} = <strong>${u_c:.2f}/closed issue</strong></code> "
             f"(<code>${kloc:.2f}/kLOC</code> across <code>+{loc_val:,}</code> insertions) · "
-            f"<strong>Quality</strong> = <code>100% True Merges, 0 Post-Merge Defects</code>.<br/>\n"
+            f"<strong>Quality</strong> = <code>{quality_summary}</code>.<br/>\n"
             f"          <strong>2. Disclosed Legacy Composite Index (<code>ADE_v1</code>):</strong> "
             f"<code>ADE_v1 = W_closed / (T_eng × C_alloc) = {w_c} / ({t_e:.2f}h × ${c_a:.2f}) = <strong>{ade_c:.2f}</strong></code>. "
             f"<em>Dimensional Note:</em> Because <code>C_alloc = $2.46/hr × T_eng</code>, <code>ADE_v1 = W / (2.46 × T_eng²)</code> scales as <code>1/T²</code> (units: <code>issues · hr⁻² · $⁻¹</code>); "
@@ -493,9 +608,9 @@ def render_canonical_governance_and_metrics_cards(slug: str) -> str:
                     <td>All {comp["chartered_active_issues"]} active chartered issues implemented with unit tests</td>
                   </tr>
                   <tr>
-                    <td><strong>State B — Integrated (<code>--merge</code> on <code>main</code>)</strong></td>
+                    <td><strong>State B — Integrated (Merged on <code>main</code>)</strong></td>
                     <td><code>{comp["state_b_integrated_issues"]}</code></td>
-                    <td>Merged across {len(diff["prs_merged"])} true-merge PRs (<code>{", ".join("#" + str(p) for p in diff["prs_merged"])}</code>; net diff <code>+{diff["net_repo_insertions"]:,} / -{diff["net_repo_deletions"]}</code> LOC across <code>{diff["net_repo_files"]}</code> files)</td>
+                    <td>Merged across {len(diff["prs_merged"])} PRs (<code>{", ".join("#" + str(p) for p in diff["prs_merged"])}</code>; <code>{diff["true_merge_count"]}</code> merge-commit / <code>{diff["squash_or_rebase_count"]}</code> squash; net diff <code>+{diff["net_repo_insertions"]:,} / -{diff["net_repo_deletions"]}</code> LOC across <code>{diff["net_repo_files"]}</code> files)</td>
                   </tr>
                   <tr>
                     <td><strong>State C — Verified &amp; Closed in Milestone (<code>W_closed</code>)</strong></td>

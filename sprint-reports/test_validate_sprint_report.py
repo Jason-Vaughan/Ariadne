@@ -69,7 +69,8 @@ class TestValidateSprintReport(unittest.TestCase):
 
     def test_03_rejects_pr_count_mismatch(self):
         bad = copy.deepcopy(self.v010_json)
-        bad["diff"]["true_merge_count"] = len(bad["diff"]["prs_merged"]) - 1
+        bad["diff"]["true_merge_count"] = 0
+        bad["diff"]["squash_or_rebase_count"] = len(bad["diff"]["prs_merged"]) - 1
         mut_html = replace_embedded_json(self.v010_html, bad)
         errs = validator.validate_report_content(mut_html, "v0.1.0", enforce_registry_match=False)
         self.assertTrue(any("PR count mismatch" in e for e in errs), f"Expected PR count mismatch error, got {errs}")
