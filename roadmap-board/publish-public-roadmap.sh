@@ -36,6 +36,7 @@ if git ls-remote --exit-code --heads "$REMOTE" "$BRANCH" >/dev/null 2>&1; then
 else
     mkdir "$tmp_dir/site"
     git -C "$tmp_dir/site" init --quiet
+    git -C "$tmp_dir/site" config http.postBuffer 524288000
     git -C "$tmp_dir/site" checkout --quiet --orphan "$BRANCH"
     git -C "$tmp_dir/site" remote add origin "$REMOTE"
 fi

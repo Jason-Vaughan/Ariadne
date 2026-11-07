@@ -4,6 +4,11 @@ All notable changes to Ariadne-PM are documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **Bootstrapped Public GitHub Repository (`Jason-Vaughan/Ariadne`), 4 Milestones, All 17 Planned Issues (`#1`–`#17`), and Published Public Roadmap (`gh-pages`):**
+  - Created `https://github.com/Jason-Vaughan/Ariadne`, labels, 4 Release Train milestones (`v0.1.0`..`v1.0.0`), all 15 active MVP issues (`#1`–`#15`), and the 2 deferred V2 holding issues (`#16` `A-013`, `#17` `A-017`, closed as `not_planned`).
+  - Linked every card on the prepared Public Roadmap (`Ariadne-Public-Roadmap-preview.html` and `index.html`) directly to its live GitHub issue (`https://github.com/Jason-Vaughan/Ariadne/issues/1`..`17`) and published to GitHub Pages (`https://jason-vaughan.github.io/Ariadne/`) and PortHub `:3422`.
+
 ### Changed
 - **Configured All 4 Ariadne Builder Lanes (`#151..#154`) to Run `claude-opus-5-5` (`--effort high`) & Added 1-Line Fleet Batch Launcher (`FLEET_PROVISIONING_PACK.md`):**
   - Updated `~/.tangleclaw/engines/claude-fable-sprint.json` (the engine bound to `Ariadne-Lane-A..D`, `#151..#154`) to launch `claude --model claude-opus-5-5 --effort high` and added Step 5 (`POST /api/sessions/<name>` with `launchMode: "bypassPermissions"`) to `FLEET_PROVISIONING_PACK.md` so all 8 lanes (`#150..#157`) launch sequentially without navigating the dashboard tab away.

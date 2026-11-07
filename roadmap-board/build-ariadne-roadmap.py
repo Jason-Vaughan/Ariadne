@@ -453,11 +453,34 @@ def _prerequisite_badges(numbers, issues):
     return " ".join(badges)
 
 
+GITHUB_ISSUE_MAP = {
+    1: 1,
+    2: 2,
+    3: 3,
+    4: 4,
+    5: 5,
+    6: 6,
+    7: 7,
+    8: 8,
+    9: 9,
+    10: 10,
+    11: 11,
+    12: 12,
+    13: 16,
+    14: 13,
+    15: 14,
+    16: 15,
+    17: 17,
+}
+
 def _issue_table(numbers, issues, public=False, sequence=False, waits_on=None):
     waits_on = waits_on or {}
     rows = []
     for pos, n in enumerate(numbers, 1):
         it = issues[n]
+        gh_num = GITHUB_ISSUE_MAP.get(n, n)
+        gh_url = f"https://github.com/Jason-Vaughan/Ariadne/issues/{gh_num}"
+        spec_url = it["url"] if not public else gh_url
         state = it["state"]
         state_text = STATE_TEXT[state]
         seq_cell = (
@@ -469,7 +492,7 @@ def _issue_table(numbers, issues, public=False, sequence=False, waits_on=None):
             if sequence else ""
         )
         env_detail = (
-            f'<span class="progress-detail">Exclusive file envelope: <code>{html.escape(it["envelope"])}</code></span>'
+            f'<span class="progress-detail">Exclusive file envelope: <code>{html.escape(it["envelope"])}</code> · <a href="{html.escape(gh_url, quote=True)}" target="_blank" rel="noopener">GitHub #{gh_num}</a></span>'
             if not public and it.get("envelope") else ""
         )
         exec_cls, exec_lbl = EXEC_MODES.get(n, ("autonomous", "⚡ Fully autonomous"))
@@ -477,7 +500,7 @@ def _issue_table(numbers, issues, public=False, sequence=False, waits_on=None):
         rows.append(
             f'<tr class="issue-row row-state-{state}" data-issue="{n}">'
             f"{seq_cell}"
-            f'<td><a href="{html.escape(it["url"], quote=True)}">#{n} ({html.escape(it["code"])})</a></td>'
+            f'<td><a href="{html.escape(spec_url, quote=True)}">#{gh_num} ({html.escape(it["code"])})</a></td>'
             f'<td><span class="state state-{state}">{html.escape(state_text)}</span> {exec_badge}{env_detail}</td>'
             f"{prereq_cell}"
             f'<td><span class="issue-type">{html.escape(it["type"])}</span> '
@@ -635,8 +658,8 @@ def build_page(public: bool, generated: str) -> str:
         '<a href="/docs/DEMO_RUNBOOK.md">🎬 Demo Runbook</a></p>'
     )
     notice = (
-        '<div class="notice"><strong>Pre-Event Preparation View (Zero Application Code Before Saturday Nov 7 @ 09:30 AM PST GO).</strong>'
-        'All 15 MVP issues (#1–#12, #14–#16) are sorted and staged for parallel execution. Clicking any issue opens its full specification.</div>'
+        '<div class="notice"><strong>Live H-Day Hackathon Sprint Active — Public Roadmap &amp; 17 Filed GitHub Issues (#1–#17 on Jason-Vaughan/Ariadne).</strong>'
+        'All 15 active MVP issues (#1–#15) and 2 V2 holding issues (#16–#17) are filed on <a href="https://github.com/Jason-Vaughan/Ariadne/issues">github.com/Jason-Vaughan/Ariadne/issues</a> and sorted across 4 persistent parallel Trains with 0 shared files.</div>'
     )
     body = (
         legend
