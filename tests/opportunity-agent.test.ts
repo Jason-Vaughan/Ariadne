@@ -126,6 +126,9 @@ describe('stage 1 (deterministic)', () => {
       assert.ok(OpportunityNeedSchema.safeParse(need).success, need.summary);
       assert.ok(repos.has(need.project_repo), need.project_repo);
       assert.ok(need.evidence_receipt_ids.length >= 1 && need.evidence_receipt_ids.every((id) => receiptIds.has(id)), need.summary);
+      const cited = need.evidence_receipt_ids.map((id) => inp.capabilities.receipts.find((r) => r.id === id));
+      assert.ok(cited.some((r) => r?.repo_full_name === need.project_repo), `${need.summary} cites its own project`);
+      assert.ok(cited.every((r) => r?.repo_full_name === null || r?.repo_full_name === need.project_repo), `${need.summary} cites no other repo`);
       assert.ok(need.uncertainty_note.length > 0);
     }
   });
@@ -222,6 +225,23 @@ describe('stage 2 (LLM enrichment)', () => {
     assert.ok(!result.needs.some((n) => n.project_repo === 'someone/else'), 'repos outside the snapshot are rejected');
     assert.equal(result.llm.rejected_needs, 2);
     assert.ok(stage1.needs.every((n) => result.needs.some((m) => m.id === n.id)), 'Stage 1 needs survive');
+  });
+
+  test('a need must cite a receipt for the repository it names; other repos\' receipts are stripped', async () => {
+    const inp = input();
+    const stage1 = discoverStage1(inp, { now: NOW });
+    const runtime = repoReceipt(inp.capabilities.receipts, 'octo/agent-runtime');
+    const cli = repoReceipt(inp.capabilities.receipts, 'octo/cli');
+    const profile = inp.capabilities.receipts.find((r) => r.source_type === 'user_profile')?.id ?? '';
+    const need = (summary: string, ids: string[]) => ({ opportunity_type: 'architecture_scaling', project_repo: 'octo/cli', summary, desired_capabilities: ['Go'], confidence: 0.6, uncertainty_note: 'n', evidence_receipt_ids: ids });
+    const { client } = fakeLlm(() =>
+      JSON.stringify({ needs: [need('Borrowed evidence from another repo', [runtime]), need('Profile-only evidence', [profile]), need('Properly cited CLI need', [cli, runtime, profile])] }),
+    );
+    const result = await enrichOpportunities(stage1, inp, { client, now: NOW });
+    assert.ok(!result.needs.some((n) => n.summary === 'Borrowed evidence from another repo'));
+    assert.ok(!result.needs.some((n) => n.summary === 'Profile-only evidence'));
+    assert.deepEqual(result.needs.find((n) => n.summary === 'Properly cited CLI need')?.evidence_receipt_ids, [cli, profile]);
+    assert.equal(result.llm.rejected_needs, 2);
   });
 
   test('a model need on a stale repo gets the age caveat too', async () => {
@@ -326,6 +346,20 @@ describe('persistOpportunities', () => {
     const stranger = discoverStage1(strangerInput, { now: NOW });
     assert.throws(() => persistOpportunities(db, stranger, inp.capabilities.receipts), /does not exist/);
     db.close();
+  });
+
+  test('a withdrawn participant gets nothing written or published, even with stage consent still set', () => {
+    for (const update of ["consent_status = 'withdrawn'", "analysis_state = 'withdrawn'"]) {
+      const db = dbWithParticipant(true);
+      db.prepare(`UPDATE participants SET ${update} WHERE id = ?`).run(PARTICIPANT);
+      const inp = input(snapshot(), 'need a frontend partner');
+      const result = persistOpportunities(db, discoverStage1(inp, { now: NOW }), inp.capabilities.receipts);
+      assert.deepEqual(result, { needs: 0, events: [], skipped: 'consent_withdrawn' }, update);
+      assert.equal((db.prepare('SELECT COUNT(*) AS n FROM opportunity_needs').get() as { n: number }).n, 0);
+      assert.equal((db.prepare('SELECT COUNT(*) AS n FROM evidence_receipts').get() as { n: number }).n, 0);
+      assert.equal(readEventsAfter(db, 0).length, 0);
+      db.close();
+    }
   });
 
   test('discoverOpportunities runs both stages end to end', async () => {

@@ -259,7 +259,7 @@ export function discoverStage1(input: OpportunityInput, options: { now?: Date; n
           desired_capabilities: [claim.name],
           confidence: 0.5,
           uncertainty_note: `Inferred from ${claim.name} work in public repositories; shared interest is not the same as a stated need.`,
-          evidence_receipt_ids: repoIds.slice(0, 3),
+          evidence_receipt_ids: repoIds.filter((id) => receipts.find((r) => r.id === id)?.repo_full_name === project).slice(0, 3),
         },
         repoByName.get(project),
         now,
@@ -372,13 +372,21 @@ export async function enrichOpportunities(
   let rejected = 0;
   for (const proposal of parsed.data.needs) {
     const repo = repoByName.get(proposal.project_repo);
-    const ids = [...new Set(proposal.evidence_receipt_ids)].filter((id) => receiptById.has(id)).slice(0, 5);
+    // A receipt about another repository cannot substantiate this project's need: keep receipts for the named repo,
+    // plus repo-less context (profile, website), and require at least one tied to the named repo.
+    const ids = [...new Set(proposal.evidence_receipt_ids)]
+      .filter((id) => {
+        const receipt = receiptById.get(id);
+        return receipt !== undefined && (receipt.repo_full_name === null || receipt.repo_full_name === proposal.project_repo);
+      })
+      .slice(0, 5);
+    const citesProject = ids.some((id) => receiptById.get(id)?.repo_full_name === proposal.project_repo);
     const summary = sanitizeText(proposal.summary, 240);
     const skills = proposal.desired_capabilities
       .map((s) => sanitizeText(s, 80))
       .filter((s) => s && !/https?:|@|www\./i.test(s))
       .slice(0, 5);
-    if (!repo || ids.length === 0 || !summary || /https?:|www\./i.test(summary)) {
+    if (!repo || !citesProject || !summary || /https?:|www\./i.test(summary)) {
       rejected += 1;
       continue;
     }
@@ -438,6 +446,8 @@ export async function discoverOpportunities(
 export interface PersistOpportunitiesResult {
   needs: number;
   events: PublishResult[];
+  /** Set when nothing was written because the participant no longer consents. */
+  skipped: 'consent_withdrawn' | null;
 }
 
 /**
@@ -450,7 +460,8 @@ export interface PersistOpportunitiesResult {
  * @param analysis - Result of `discoverStage1` / `enrichOpportunities` / `discoverOpportunities`.
  * @param receipts - The A-004 receipts the needs cite.
  * @param options - `publish` (default true) and event time.
- * @returns How many needs were stored and the events published.
+ * @returns How many needs were stored and the events published; `skipped: 'consent_withdrawn'` (nothing written or
+ *   published) when the participant has withdrawn consent.
  * @throws If the participant does not exist (nothing is written).
  */
 export function persistOpportunities(
@@ -460,11 +471,15 @@ export function persistOpportunities(
   options: { publish?: boolean; now?: Date } = {},
 ): PersistOpportunitiesResult {
   const participant = db
-    .prepare('SELECT display_alias, github_username, avatar_url, stage_display_consent FROM participants WHERE id = ?')
+    .prepare('SELECT display_alias, github_username, avatar_url, stage_display_consent, consent_status, analysis_state FROM participants WHERE id = ?')
     .get(analysis.participant_id) as
-    | { display_alias: string; github_username: string; avatar_url: string | null; stage_display_consent: number }
+    | { display_alias: string; github_username: string; avatar_url: string | null; stage_display_consent: number; consent_status: string; analysis_state: string }
     | undefined;
   if (!participant) throw new Error(`Participant ${analysis.participant_id} does not exist`);
+  // A queued analysis can finish after the participant withdrew: fail closed before any write or event.
+  if (participant.consent_status !== 'granted' || participant.analysis_state === 'withdrawn') {
+    return { needs: 0, events: [], skipped: 'consent_withdrawn' };
+  }
 
   const stored: OpportunityNeed[] = [];
   db.exec('BEGIN IMMEDIATE');
@@ -516,5 +531,5 @@ export function persistOpportunities(
       );
     }
   }
-  return { needs: stored.length, events };
+  return { needs: stored.length, events, skipped: null };
 }
