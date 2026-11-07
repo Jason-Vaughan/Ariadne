@@ -521,7 +521,7 @@ describe('intro room page behaviour', () => {
     for (const id of IDS) elements[id] = new FakeNode('div');
     const requests: Array<{ url: string; method: string; body: unknown }> = [];
     const page = { redirectedTo: null as string | null };
-    let interval: ReturnType<typeof setInterval> | undefined;
+    const intervals: Array<() => void> = [];
     runInNewContext(script, {
       document: { getElementById: (id: string) => elements[id], createElement: (tag: string) => new FakeNode(tag) },
       window: { location: { pathname: '/me/matches/m1', assign: (to: string) => { page.redirectedTo = to; } } },
@@ -531,12 +531,11 @@ describe('intro room page behaviour', () => {
         const [status, body] = answer(url, init);
         return { ok: status >= 200 && status < 300, status, json: async () => body };
       },
-      setInterval: (fn: () => void, ms: number) => (interval = setInterval(fn, ms)),
+      setInterval: (fn: () => void) => intervals.push(fn),
       decodeURIComponent, encodeURIComponent, JSON, Object,
     });
     for (let i = 0; i < 6; i += 1) await new Promise((done) => setImmediate(done));
-    clearInterval(interval);
-    return { elements, requests, page };
+    return { elements, requests, page, intervals };
   }
 
   it('shows the locked state until both have tapped Interested', async () => {
@@ -544,6 +543,24 @@ describe('intro room page behaviour', () => {
     assert.equal(elements.locked!.hidden, false);
     assert.equal(elements.room!.hidden, true);
     assert.match(elements['locked-message']!.textContent, /both tap Interested/);
+  });
+
+  it('unlocks on its own when the counterpart taps Interested (issue #44)', async () => {
+    let locked = true;
+    const { elements, intervals } = await loadRoom(() => (locked ? [403, { error: 'room_locked' }] : [200, unlockedRoom]));
+    assert.equal(elements.locked!.hidden, false);
+    locked = false;
+    intervals[0]!();
+    for (let i = 0; i < 6; i += 1) await new Promise((done) => setImmediate(done));
+    assert.equal(elements.room!.hidden, false);
+    assert.match(elements.title!.textContent, /@hubot/);
+  });
+
+  it('stops polling a room that belongs to someone else', async () => {
+    const { requests, intervals } = await loadRoom(() => [403, { error: 'not_your_match' }]);
+    intervals[0]!();
+    for (let i = 0; i < 6; i += 1) await new Promise((done) => setImmediate(done));
+    assert.equal(requests.length, 1);
   });
 
   it('sends a signed-out visitor to /join', async () => {

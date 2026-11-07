@@ -1,9 +1,12 @@
 // Ariadne private intro room (/me/matches/:id). All values are written as text; links only for https URLs.
 (() => {
-  const POLL_MS = 3000;
+  // Polled even while locked, so the room opens on its own when the counterpart taps Interested.
+  const POLL_MS = 2500;
   const matchId = decodeURIComponent(window.location.pathname.split('/').filter(Boolean).pop() || '');
   const api = `/api/matches/${encodeURIComponent(matchId)}`;
   let room = null;
+  let lastRendered = null;
+  let keepPolling = true;
   let contactPrefilled = false;
   let pollTimer = null;
 
@@ -106,14 +109,27 @@
     }
     if (res.status === 403) {
       const body = await res.json().catch(() => ({}));
-      showLocked(body.error === 'room_locked' ? 'This room opens once you both tap Interested.' : 'This intro room belongs to someone else.');
+      if (body.error === 'room_locked') {
+        showLocked('This room opens once you both tap Interested.');
+      } else if (body.error === 'participant_withdrawn') {
+        showLocked('Your match has left Ariadne, so this room is closed.');
+      } else {
+        keepPolling = false;
+        showLocked('This intro room belongs to someone else.');
+      }
+      lastRendered = null;
       return;
     }
     if (!res.ok) {
+      keepPolling = false;
       showLocked('This intro room could not be found.');
       return;
     }
-    render(await res.json());
+    const data = await res.json();
+    const key = JSON.stringify(data);
+    if (key === lastRendered) return;
+    lastRendered = key;
+    render(data);
   }
 
   /**
@@ -188,6 +204,6 @@
 
   load().catch(() => showLocked('Network trouble — please refresh.'));
   pollTimer = setInterval(() => {
-    if (room) load().catch(() => {});
+    if (keepPolling) load().catch(() => {});
   }, POLL_MS);
 })();
