@@ -298,7 +298,12 @@ describe('scorePair', () => {
     assert.equal(discounted.score_breakdown.freshness, 0.1);
     assert.ok(discounted.limitations.some((l) => l.includes('no activity for over 120 days')));
     assert.ok(!undiscounted.limitations.some((l) => l.includes('no activity for over 120 days')));
-    // A single-need vector keeps its direction when scaled, so the penalty shows only once a second need competes.
+    assert.equal(
+      discounted.score_breakdown.need_offer_fit,
+      Math.round(undiscounted.score_breakdown.need_offer_fit * 0.2 * 10_000) / 10_000,
+    );
+    assert.ok(discounted.composite_score < undiscounted.composite_score);
+    // With a fresh need competing, only the stale share is discounted.
     const mixed = (age: number) =>
       profile('Dusty-0D03', 'old-org/graphql-api', [{ name: 'APIs', category: 'domain' }], [
         { wants: ['GraphQL'], issueAgeDays: age },
@@ -307,6 +312,20 @@ describe('scorePair', () => {
     const penalized = scorePair(mixed(900), helper, { now: NOW }).score_breakdown.need_offer_fit;
     const unpenalized = scorePair(mixed(3), helper, { now: NOW }).score_breakdown.need_offer_fit;
     assert.ok(penalized < unpenalized, `${penalized} < ${unpenalized}`);
+  });
+
+  test('a need with an old issue but also fresh non-issue evidence is not treated as stale', () => {
+    const helper = profile('Graph-0D04', 'qlhelp/graphql-kit', [{ name: 'GraphQL', category: 'systems_architecture' }]);
+    const owner = profile('Dusty-0D05', 'old-org/graphql-api', [{ name: 'APIs', category: 'domain' }], [
+      { wants: ['GraphQL'], issueAgeDays: 900 },
+    ]);
+    const freshRepoReceipt = owner.evidence.find((r) => r.source_type === 'repo_metadata')!;
+    const backed = { ...owner, needs: owner.needs.map((n) => ({ ...n, evidence_receipt_ids: [...n.evidence_receipt_ids, freshRepoReceipt.id] })) };
+    const staleOnly = scorePair(owner, helper, { now: NOW });
+    const withFresh = scorePair(backed, helper, { now: NOW });
+    assert.ok(staleOnly.limitations.some((l) => l.includes('no activity for over 120 days')));
+    assert.ok(!withFresh.limitations.some((l) => l.includes('no activity for over 120 days')));
+    assert.ok(withFresh.score_breakdown.need_offer_fit > staleOnly.score_breakdown.need_offer_fit);
   });
 
   test('TC-SCORE-04: a dismissed inferred need is excluded and the score recomputes without it', () => {
@@ -353,6 +372,14 @@ describe('scorePair', () => {
       assert.equal(pair.surfaceable, false, mode);
       assert.deepEqual(pair.rejections, ['insufficient_evidence'], mode);
     }
+  });
+
+  test('a receipt that fails EvidenceReceiptSchema (GitHub evidence off github.com) is not counted', () => {
+    const [a, b] = highSynergyPair();
+    const offsite = { ...b, evidence: b.evidence.map((r) => ({ ...r, source_url: 'https://example.com/fake' })) };
+    const pair = scorePair(a, offsite, { now: NOW });
+    assert.ok(!pair.evidence_receipt_ids.some((id) => b.evidence.some((r) => r.id === id)));
+    assert.deepEqual(pair.rejections, ['insufficient_evidence']);
   });
 
   test('refuses to score a participant against themselves', () => {

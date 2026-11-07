@@ -172,21 +172,28 @@ function isStaleNeed(need: OpportunityNeed, side: Side, now: Date): boolean {
 
 /**
  * Need vector `n`: each desired capability weighted by the need's confidence, ×0.2 for a stale-issue need.
+ * Cosine ignores scale, so the discount also yields `retained`: the share of need weight left after
+ * discounting, which scales this side's fit (all needs stale → ×0.2; none stale → ×1).
  * @param side - The participant's working view.
  * @param now - Reference time.
- * @returns The vector and the needs that were discounted as stale.
+ * @returns The vector, the retained weight share, and the needs that were discounted as stale.
  */
-function needVector(side: Side, now: Date): { vector: Map<string, number>; stale: OpportunityNeed[] } {
+function needVector(side: Side, now: Date): { vector: Map<string, number>; retained: number; stale: OpportunityNeed[] } {
   const vector = new Map<string, number>();
   const stale: OpportunityNeed[] = [];
+  let full = 0;
+  let kept = 0;
   for (const need of side.needs) {
     const isStale = isStaleNeed(need, side, now);
     if (isStale) stale.push(need);
+    const factor = isStale ? STALE_NEED_FACTOR : 1;
     for (const capability of need.desired_capabilities) {
-      add(vector, normalizeCapability(capability), need.confidence * (isStale ? STALE_NEED_FACTOR : 1));
+      add(vector, normalizeCapability(capability), need.confidence * factor);
+      full += need.confidence;
+      kept += need.confidence * factor;
     }
   }
-  return { vector, stale };
+  return { vector, retained: full === 0 ? 1 : kept / full, stale };
 }
 
 /**
@@ -289,6 +296,8 @@ export interface PreparedProfile {
   capabilities: Map<string, number>;
   offers: Map<string, number>;
   needVector: Map<string, number>;
+  /** Share of need weight kept after stale-issue discounting; scales this side's need/offer fit. */
+  needRetained: number;
   staleNeeds: OpportunityNeed[];
   names: Set<string>;
   cited: EvidenceReceipt[];
@@ -310,6 +319,7 @@ export function prepareProfile(profile: ParticipantProfile, options: ScoreOption
     capabilities: capabilityVector(side.claims),
     offers: offerVector(side.claims),
     needVector: needs.vector,
+    needRetained: needs.retained,
     staleNeeds: needs.stale,
     names: new Set(side.claims.map((c) => normalizeCapability(c.name))),
     cited: citedEvidence(side),
@@ -345,7 +355,9 @@ export function scorePrepared(first: PreparedProfile, second: PreparedProfile, o
 
   const breakdown: ScoreBreakdown = {
     capability_similarity: round4(cosine(a.capabilities, b.capabilities)),
-    need_offer_fit: round4(Math.max(cosine(a.needVector, b.offers), cosine(b.needVector, a.offers))),
+    need_offer_fit: round4(
+      Math.max(cosine(a.needVector, b.offers) * a.needRetained, cosine(b.needVector, a.offers) * b.needRetained),
+    ),
     complementarity: complementarity(a.claims, b.claims),
     novelty: round4(novelty(a.names, b.names)),
     freshness: freshness([...a.cited, ...b.cited], options.now),

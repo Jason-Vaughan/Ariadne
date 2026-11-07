@@ -40,9 +40,7 @@ export function surfacingRejections(input: SurfacingInput): SurfacingRejection[]
   const rejections: SurfacingRejection[] = [];
   if (input.compositeScore < MATCH_SURFACE_THRESHOLD) rejections.push('below_threshold');
   if (isCloneLike(input.breakdown)) rejections.push('clone_like');
-  const total = input.evidenceA.length + input.evidenceB.length;
-  if (total < MINIMUM_CITED_EVIDENCE || input.evidenceA.length === 0 || input.evidenceB.length === 0) {
-    rejections.push('insufficient_evidence');
-  }
+  // At least one receipt per side is what makes MINIMUM_CITED_EVIDENCE (2) hold.
+  if (input.evidenceA.length === 0 || input.evidenceB.length === 0) rejections.push('insufficient_evidence');
   return rejections;
 }
