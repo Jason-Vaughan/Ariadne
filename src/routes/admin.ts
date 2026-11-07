@@ -184,6 +184,7 @@ const PANEL_HTML = `<!doctype html>
 </style>
 </head>
 <body>
+<img src="/ariadne-logo.png" alt="Ariadne" width="900" height="299" style="display:block;width:240px;height:auto;margin-bottom:12px">
 <h1>Ariadne operator panel</h1>
 <p id="status" role="status"></p>
 <section><h2>Room</h2>
@@ -359,7 +360,7 @@ export const routes: RouteDefinition[] = [
         'content-type': 'text/html; charset=utf-8',
         'cache-control': 'no-store',
         'x-content-type-options': 'nosniff',
-        'content-security-policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'",
+        'content-security-policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self'; img-src 'self'",
       });
       res.end(PANEL_HTML);
     },
