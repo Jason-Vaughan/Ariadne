@@ -556,6 +556,14 @@ export async function processJob(db: DatabaseSync, job: AsyncJob, deps: WorkerDe
     finishJob(db, job.id, 'succeeded', SKIPPED_CONSENT, clock());
     return { status: 'skipped' };
   }
+  // The connector keeps only https://avatars.githubusercontent.com URLs; a snapshot without one leaves any prior value.
+  if (snapshot.avatar_url) {
+    db.prepare("UPDATE participants SET avatar_url = ?, updated_at = ? WHERE id = ? AND consent_status = 'granted'").run(
+      snapshot.avatar_url,
+      clock().toISOString(),
+      row.id,
+    );
+  }
   setAnalysisState(db, row.id, 'analyzing_profile', clock());
   const capabilities = analyzeStage1(snapshot, row.id);
   const persisted = persistAnalysis(db, capabilities, { now: clock() });

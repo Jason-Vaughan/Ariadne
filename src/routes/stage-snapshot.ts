@@ -212,6 +212,27 @@ interface MatchRow {
   intro_state: string;
 }
 
+const AVATAR_HOST = 'avatars.githubusercontent.com';
+
+/**
+ * The avatar a builder shown on stage gets: their stored GitHub avatar when it is an https URL on
+ * GitHub's avatar host, else GitHub's per-login avatar. Anything else is dropped rather than projected.
+ * @param stored - `participants.avatar_url`.
+ * @param githubUsername - Normalized GitHub login (already constrained to GitHub's login characters).
+ * @returns An https avatar URL on avatars.githubusercontent.com.
+ */
+export function stageAvatarUrl(stored: string | null, githubUsername: string): string {
+  if (stored) {
+    try {
+      const url = new URL(stored);
+      if (url.protocol === 'https:' && url.hostname === AVATAR_HOST) return url.href;
+    } catch {
+      // Fall through to the per-login avatar.
+    }
+  }
+  return `https://${AVATAR_HOST}/${encodeURIComponent(githubUsername)}?s=128`;
+}
+
 export interface SnapshotOptions {
   privacyMode?: boolean;
   presenter?: boolean;
@@ -239,7 +260,9 @@ export function buildStageSnapshot(db: DatabaseSync, options: SnapshotOptions = 
   const nodes: StageNode[] = participants.map((p) => {
     aliasById.set(p.id, p.display_alias);
     const display =
-      p.stage_display_consent === 1 && !privacyMode ? { github_username: p.github_username, avatar_url: p.avatar_url } : null;
+      p.stage_display_consent === 1 && !privacyMode && !isSeedId(p.id)
+        ? { github_username: p.github_username, avatar_url: stageAvatarUrl(p.avatar_url, p.github_username) }
+        : null;
     return {
       alias: p.display_alias,
       label: display ? `@${display.github_username}` : p.display_alias,
@@ -377,6 +400,8 @@ export interface FingerprintCard {
   alias: string;
   label: string;
   is_seed: boolean;
+  /** Present only for a builder shown on stage. */
+  avatar_url: string | null;
   analysis_state: string;
   /** 0–100 per axis, or null until the crawl has produced a snapshot. */
   fingerprint: FingerprintVector | null;
@@ -470,6 +495,7 @@ function buildFingerprintCards(db: DatabaseSync, participants: ParticipantRow[],
       alias: node.alias,
       label: node.label,
       is_seed: node.is_seed,
+      avatar_url: node.display?.avatar_url ?? null,
       analysis_state: node.analysis_state,
       fingerprint: parseFingerprint(row?.fp ?? null),
       evidence_count: receipts.length,
@@ -483,6 +509,8 @@ export interface SpotlightSide {
   alias: string;
   label: string;
   is_seed: boolean;
+  /** Present only for a builder shown on stage. */
+  avatar_url: string | null;
   evidence: EvidencePill[];
 }
 
@@ -573,6 +601,7 @@ function buildSpotlight(db: DatabaseSync, aliasById: Map<string, string>, nodes:
       alias: node.alias,
       label: node.label,
       is_seed: node.is_seed,
+      avatar_url: node.display?.avatar_url ?? null,
       evidence: (evidence.get(participantId) ?? [])
         .filter((r) => cited.includes(r.id))
         .slice(0, EVIDENCE_PILLS)

@@ -109,9 +109,16 @@ main { position: relative; overflow: hidden; }
 .edge-golden { stroke: var(--gold); stroke-width: 7; filter: drop-shadow(0 0 8px var(--gold)) drop-shadow(0 0 18px rgba(250, 204, 21, 0.6)); }
 .ripple { fill: none; stroke: var(--gold); stroke-width: 4; animation: ripple 1.8s ease-out 3; transform-box: fill-box; transform-origin: center; opacity: 0; }
 
-.node circle { fill: #1e3a5f; stroke: var(--cyan); stroke-width: 2.5; }
-.node-ready circle { fill: #0e4a5c; }
-.node-seed circle { fill: #1f3311; stroke: var(--seed); }
+.node circle.dot { fill: #1e3a5f; stroke: var(--cyan); stroke-width: 2.5; }
+.node-ready circle.dot { fill: #0e4a5c; }
+.node-seed circle.dot { fill: #1f3311; stroke: var(--seed); }
+.avatar-ring { fill: none; stroke: var(--green); stroke-width: 3; filter: drop-shadow(0 0 6px rgba(74, 222, 128, 0.8)); }
+
+/* Avatar badges on fingerprint cards and the spotlight */
+.avatar-badge { display: inline-grid; place-items: center; width: 28px; height: 28px; flex: none; vertical-align: middle; margin-right: 8px; }
+.avatar-badge.avatar-lg { width: 52px; height: 52px; margin-right: 14px; }
+.avatar-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 2px var(--green), 0 0 10px rgba(74, 222, 128, 0.6); }
+.avatar-dot { width: 40%; height: 40%; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px rgba(74, 222, 128, 0.7); }
 .node text { fill: var(--fg); font-size: 17px; font-weight: 600; paint-order: stroke; stroke: var(--bg); stroke-width: 4px; }
 .node-seed text { fill: #d9f99d; font-size: 14px; font-weight: 500; }
 
@@ -164,7 +171,8 @@ main { position: relative; overflow: hidden; }
 .gallery-empty, .spot-empty { grid-column: 1 / -1; height: 100%; display: grid; place-items: center; color: var(--muted); font-size: 30px; }
 .fp-card { background: rgba(15, 23, 42, 0.88); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; min-width: 0; }
 .fp-seed { border-color: #3f5a1f; }
-.fp-head { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.fp-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0 6px; }
+.fp-head .fp-badge { flex-basis: 100%; padding-left: 42px; margin-top: -2px; }
 .fp-label { font-size: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fp-badge { font-size: 12px; color: var(--muted); white-space: nowrap; }
 .radar { width: 100%; height: 200px; }
@@ -182,7 +190,7 @@ main { position: relative; overflow: hidden; }
 .spot-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr) minmax(0, 1fr); gap: 24px; flex: 1; min-height: 0; }
 .spot-side, .spot-score, .spot-thesis { background: rgba(15, 23, 42, 0.88); border: 1px solid var(--line); border-radius: 16px; padding: 22px 26px; }
 .spot-seed { border-color: #3f5a1f; }
-.spot-name { margin: 0; font-size: 40px; }
+.spot-name { margin: 0; font-size: 40px; display: flex; align-items: center; }
 .spot-kind { margin: 4px 0 18px; color: var(--muted); font-size: 18px; }
 .spot-evidence { list-style: none; padding: 0; margin: 0; flex-direction: column; }
 .spot-evidence li { font-size: 19px; padding: 10px 12px; background: var(--panel-hi); border-radius: 8px; }

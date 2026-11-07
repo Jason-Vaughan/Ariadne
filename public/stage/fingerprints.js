@@ -77,6 +77,32 @@ function svgEl(tag, attrs) {
 }
 
 /**
+ * A round GitHub avatar, or the green dot when there is none or it fails to load. The server sends
+ * an avatar only for builders shown on stage, so pseudonymous builders always get the dot.
+ * @param {string|null|undefined} url
+ * @param {string} [className] extra class, e.g. a size modifier
+ * @returns {HTMLElement}
+ */
+export function avatarBadge(url, className = '') {
+  const badge = document.createElement('span');
+  badge.className = `avatar-badge ${className}`.trim();
+  const dot = document.createElement('span');
+  dot.className = 'avatar-dot';
+  if (!url) {
+    badge.append(dot);
+    return badge;
+  }
+  const img = document.createElement('img');
+  img.className = 'avatar-img';
+  img.src = url;
+  img.alt = '';
+  img.referrerPolicy = 'no-referrer';
+  img.addEventListener('error', () => img.replaceWith(dot));
+  badge.append(img);
+  return badge;
+}
+
+/**
  * Create an element with a class and optional text.
  * @param {string} tag
  * @param {string} className
@@ -117,7 +143,7 @@ function radar(vector) {
  * Render View 2: a grid of 6-axis fingerprint cards with evidence badges. Titles and links appear
  * only when the server sent them, which it does only for builders shown on stage.
  * @param {HTMLElement} container
- * @param {Array<{alias:string,label:string,is_seed:boolean,fingerprint:Record<string,number>|null,evidence_count:number,claim_count:number,evidence:Array<{source_type:string,title:string|null}>}>} cards
+ * @param {Array<{alias:string,label:string,is_seed:boolean,avatar_url?:string|null,fingerprint:Record<string,number>|null,evidence_count:number,claim_count:number,evidence:Array<{source_type:string,title:string|null}>}>} cards
  */
 export function renderFingerprintGallery(container, cards) {
   if (!cards.length) {
@@ -127,7 +153,7 @@ export function renderFingerprintGallery(container, cards) {
   const items = galleryOrder(cards).map((card) => {
     const item = el('article', `fp-card${card.is_seed ? ' fp-seed' : ''}`);
     const head = el('header', 'fp-head');
-    head.append(el('strong', 'fp-label', card.is_seed ? `🌱 ${card.label}` : card.label));
+    head.append(avatarBadge(card.avatar_url), el('strong', 'fp-label', card.is_seed ? `🌱 ${card.label}` : card.label));
     head.append(el('span', 'fp-badge', card.is_seed ? 'Seeded AI Dev' : 'Live Scanner'));
     item.append(head, radar(card.fingerprint));
     item.append(el('p', 'fp-lead', card.fingerprint ? `Strongest: ${strongestAxis(card.fingerprint)}` : 'Fingerprint pending…'));

@@ -1,4 +1,6 @@
 const SVG_NS = 'http://www.w3.org/2000/svg';
+/** Radius of a GitHub avatar drawn over a live node's dot. */
+export const AVATAR_RADIUS = 17;
 
 /** CSS class for each edge state on the Web of Connections. */
 export const EDGE_CLASSES = {
@@ -197,6 +199,7 @@ function svgEl(tag, attrs) {
  */
 export function renderGraph(svg, snapshot, positions, rippleIds = new Set()) {
   svg.replaceChildren();
+  const defs = svgEl('defs', {});
   const edgeLayer = svgEl('g', { class: 'edges' });
   const nodeLayer = svgEl('g', { class: 'nodes' });
   for (const edge of snapshot.edges) {
@@ -214,18 +217,42 @@ export function renderGraph(svg, snapshot, positions, rippleIds = new Set()) {
       }
     }
   }
-  for (const node of snapshot.nodes) {
+  snapshot.nodes.forEach((node, i) => {
     const p = positions.get(node.alias);
-    if (!p) continue;
+    if (!p) return;
     const g = svgEl('g', {
       class: `node${node.is_seed ? ' node-seed' : ' node-live'}${node.analysis_state === 'ready' ? ' node-ready' : ''}`,
       transform: `translate(${p.x.toFixed(1)} ${p.y.toFixed(1)})`,
     });
-    g.append(svgEl('circle', { r: node.is_seed ? 9 : 13 }));
+    g.append(svgEl('circle', { r: node.is_seed ? 9 : 13, class: 'dot' }));
+    const avatar = node.display?.avatar_url;
+    if (avatar) {
+      const clipId = `avatar-clip-${i}`;
+      const clip = svgEl('clipPath', { id: clipId });
+      clip.append(svgEl('circle', { r: AVATAR_RADIUS }));
+      defs.append(clip);
+      const image = svgEl('image', {
+        href: avatar,
+        x: -AVATAR_RADIUS,
+        y: -AVATAR_RADIUS,
+        width: AVATAR_RADIUS * 2,
+        height: AVATAR_RADIUS * 2,
+        'clip-path': `url(#${clipId})`,
+        class: 'avatar',
+        preserveAspectRatio: 'xMidYMid slice',
+      });
+      const ring = svgEl('circle', { r: AVATAR_RADIUS + 1.5, class: 'avatar-ring' });
+      // A broken or blocked avatar must leave the plain dot, never an empty ring.
+      image.addEventListener('error', () => {
+        image.remove();
+        ring.remove();
+      });
+      g.append(image, ring);
+    }
     const text = svgEl('text', { y: node.is_seed ? 24 : 30, 'text-anchor': 'middle' });
     text.textContent = node.is_seed ? `🌱 ${node.label}` : node.label;
     g.append(text);
     nodeLayer.append(g);
-  }
-  svg.append(edgeLayer, nodeLayer);
+  });
+  svg.append(defs, edgeLayer, nodeLayer);
 }
