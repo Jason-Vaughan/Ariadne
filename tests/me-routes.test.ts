@@ -360,6 +360,7 @@ describe('/me page behaviour', () => {
     for (const id of STATIC_IDS) elements[id] = new FakeNode('div');
     const requests: Array<{ url: string; method: string }> = [];
     const page = { redirectedTo: null as string | null, source: null as null | { onmessage?: (m: { data: string }) => void; url: string } };
+    const intervals: Array<() => void> = [];
     runInNewContext(script, {
       document: { getElementById: (id: string) => elements[id], createElement: (tag: string) => new FakeNode(tag) },
       window: { location: { assign: (to: string) => { page.redirectedTo = to; } } },
@@ -378,10 +379,13 @@ describe('/me page behaviour', () => {
         }
         close() {}
       },
-      setTimeout, clearTimeout, setInterval, clearInterval, encodeURIComponent, JSON, Math, Object, String, Number, Boolean,
+      setTimeout, clearTimeout,
+      setInterval: (fn: () => void) => intervals.push(fn),
+      clearInterval: () => {},
+      encodeURIComponent, JSON, Math, Object, String, Number, Boolean,
     });
     await settle();
-    return { elements, requests, page };
+    return { elements, requests, page, intervals };
   }
 
   /** Lets pending promise callbacks run. */
@@ -482,6 +486,48 @@ describe('/me page behaviour', () => {
   it('shows the incoming-interest banner', async () => {
     const { elements } = await loadPage(answerSample);
     assert.match(elements.matches!.children[2]!.textContent, /⚡ Loom-0003 wants to connect with you! Tap Interested to unlock your Intro Room/);
+  });
+
+  it('keeps refreshing on a timer when SSE stays open but silent (tunnel buffering, issue #44)', async () => {
+    let current: Record<string, any> = { ...sample, fingerprint: null, matches: [] };
+    const { elements, requests, page, intervals } = await loadPage((url) => (url === '/api/me' ? [200, current] : [404, {}]));
+    assert.ok(page.source, 'SSE was opened');
+    assert.match(elements.fingerprint!.textContent, /Reading your public GitHub/);
+    assert.equal(intervals.length, 1, 'one safety refresh timer, whatever SSE is doing');
+
+    current = sample;
+    intervals[0]!();
+    await settle();
+    assert.equal(elements.fingerprint!.all().filter((n) => n.className === 'bar-row').length, 6);
+    assert.equal(elements.matches!.children.length, 3);
+    assert.equal(requests.filter((r) => r.url === '/api/me').length, 2);
+  });
+
+  it('does not re-render an unchanged dashboard, so in-card messages survive the timer', async () => {
+    const { elements, intervals } = await loadPage((url) =>
+      url === '/api/matches/m1/decision' ? [409, { error: 'not_allowed', message: 'This introduction can no longer change that way.' }] : answerSample(url),
+    );
+    const card = elements.matches!.children[0]!;
+    const pass = card.all().find((n) => n.tagName === 'BUTTON' && n.textContent === 'Pass')!;
+    await pass.listeners.click!();
+    await settle();
+    intervals[0]!();
+    await settle();
+    assert.equal(elements.matches!.children[0], card, 'same card node');
+    assert.match(card.textContent, /can no longer change/);
+  });
+
+  it('starts the safety refresh even when the first load fails', async () => {
+    let fail = true;
+    const { elements, intervals } = await loadPage((url) => {
+      if (url === '/api/me' && fail) throw new Error('tunnel hiccup');
+      return answerSample(url);
+    });
+    assert.equal(intervals.length >= 1, true);
+    fail = false;
+    for (const tick of intervals) tick();
+    await settle();
+    assert.equal(elements.matches!.children.length, 3);
   });
 
   it('withdraws only after a second tap', async () => {

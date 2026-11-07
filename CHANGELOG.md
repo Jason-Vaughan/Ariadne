@@ -4,6 +4,9 @@ All notable changes to Ariadne-PM are documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- **`/me` and the intro room stuck behind a buffering tunnel (Issue #44):** a Cloudflare tunnel can hold the SSE response open while buffering its frames, so `onerror` never fired and `/me` stayed on "Reading your public GitHub…" until a manual refresh. `/me` now re-fetches `/api/me` every 2 s whatever the stream is doing (also after a failed first load), and the intro room polls every 2.5 s even while locked, so it opens by itself when the counterpart taps Interested. Both pages skip re-rendering unchanged data, so the timer neither flickers nor wipes in-card messages; the room stops polling rooms that will never open.
+
 ### Security
 - **Stage seed toggle refuses cross-site requests (`src/routes/stage-snapshot.ts`, follow-up to A-010 #10):** `POST /api/stage/seed-toggle` already rejected requests through the public tunnel, but any web page open in the presenter's browser could send a no-preflight `text/plain` POST to `127.0.0.1:3420` and flip the seed pool. It now requires `application/json` (415 otherwise) and rejects a foreign or opaque `Origin` and any `Sec-Fetch-Site` other than `same-origin`/`none` (403 `cross_site_request`). The presenter guard also requires a loopback `Host` (`localhost`, `127.0.0.1` or `[::1]`), because a DNS-rebinding page arrives on a loopback socket with matching `Origin`/`Host` and would otherwise pass every same-origin check. The stage page already sends JSON. Reported by Ariadne-Lane-C.
 

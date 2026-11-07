@@ -2,6 +2,9 @@
 // Every value is written with textContent (never innerHTML), and links are only created for https URLs.
 (() => {
   const POLL_MS = 4000;
+  // A tunnel can hold an SSE response open while buffering its frames, so onerror never fires;
+  // the dashboard therefore re-fetches on a timer no matter what the stream is doing.
+  const SAFETY_REFRESH_MS = 2000;
   const REFRESH_DEBOUNCE_MS = 250;
   const SCORE_LABELS = {
     capability_similarity: 'Capability',
@@ -16,6 +19,8 @@
   let refreshTimer = null;
   let pollTimer = null;
   let withdrawArmed = false;
+  let lastRendered = null;
+  let safetyTimer = null;
 
   /**
    * Creates an element with text and attributes.
@@ -185,7 +190,7 @@
   }
 
   /**
-   * Fetches and renders `/api/me`; a signed-out visitor goes to `/join`.
+   * Fetches `/api/me` and re-renders only when the dashboard changed; a signed-out visitor goes to `/join`.
    * @returns {Promise<void>}
    */
   async function load() {
@@ -194,7 +199,18 @@
       window.location.assign('/join');
       return;
     }
-    render(await res.json());
+    const data = await res.json();
+    cursor = Math.max(cursor, data.latest_seq_id || 0);
+    const key = JSON.stringify({ ...data, latest_seq_id: 0 });
+    if (key === lastRendered) return;
+    lastRendered = key;
+    render(data);
+  }
+
+  /** Re-fetches `/api/me` every SAFETY_REFRESH_MS, whatever the live stream is doing. */
+  function startSafetyRefresh() {
+    if (safetyTimer) return;
+    safetyTimer = setInterval(() => load().catch(() => {}), SAFETY_REFRESH_MS);
   }
 
   /** Re-fetches the dashboard shortly, coalescing bursts of events. */
@@ -335,4 +351,5 @@
 
   document.getElementById('withdraw').addEventListener('click', withdraw);
   load().then(startLive, startPolling);
+  startSafetyRefresh();
 })();
