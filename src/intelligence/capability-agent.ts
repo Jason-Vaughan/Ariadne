@@ -521,6 +521,8 @@ export interface PersistResult {
   receipts: number;
   claims: number;
   event: PublishResult | null;
+  /** Set when nothing was written because the participant no longer consents. */
+  skipped: 'consent_withdrawn' | null;
 }
 
 /**
@@ -531,16 +533,21 @@ export interface PersistResult {
  * @param db - Open database with the A-001 schema (the participant row must exist).
  * @param analysis - Result of `analyzeStage1` / `enrichStage2` / `analyzeProfile`.
  * @param options - `publish` (default true) and event time.
- * @returns Counts written and the published event, if any.
+ * @returns Counts written and the published event, if any; `skipped: 'consent_withdrawn'` (nothing written or
+ *   published) when the participant has withdrawn consent.
  * @throws If the participant does not exist (nothing is written).
  */
 export function persistAnalysis(db: DatabaseSync, analysis: CapabilityAnalysis, options: { publish?: boolean; now?: Date } = {}): PersistResult {
   const participant = db
-    .prepare('SELECT display_alias, github_username, avatar_url, stage_display_consent FROM participants WHERE id = ?')
+    .prepare('SELECT display_alias, github_username, avatar_url, stage_display_consent, consent_status, analysis_state FROM participants WHERE id = ?')
     .get(analysis.participant_id) as
-    | { display_alias: string; github_username: string; avatar_url: string | null; stage_display_consent: number }
+    | { display_alias: string; github_username: string; avatar_url: string | null; stage_display_consent: number; consent_status: string; analysis_state: string }
     | undefined;
   if (!participant) throw new Error(`Participant ${analysis.participant_id} does not exist`);
+  // A queued analysis can finish after the participant withdrew: fail closed before any write or event.
+  if (participant.consent_status !== 'granted' || participant.analysis_state === 'withdrawn') {
+    return { receipts: 0, claims: 0, event: null, skipped: 'consent_withdrawn' };
+  }
 
   let claimsWritten = 0;
   db.exec('BEGIN IMMEDIATE');
@@ -587,5 +594,5 @@ export function persistAnalysis(db: DatabaseSync, analysis: CapabilityAnalysis, 
       { occurredAt: options.now },
     );
   }
-  return { receipts: analysis.receipts.length, claims: claimsWritten, event };
+  return { receipts: analysis.receipts.length, claims: claimsWritten, event, skipped: null };
 }
