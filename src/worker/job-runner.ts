@@ -549,6 +549,13 @@ export async function processJob(db: DatabaseSync, job: AsyncJob, deps: WorkerDe
     return { status: 'failed' };
   }
 
+  // The fetch is async: the participant may have withdrawn meanwhile, and the cache has already stored a snapshot
+  // linked to them. Fail closed: remove it and stop.
+  if (!consents(participantRow(db, row.id))) {
+    db.prepare('DELETE FROM github_snapshots WHERE participant_id = ?').run(row.id);
+    finishJob(db, job.id, 'succeeded', SKIPPED_CONSENT, clock());
+    return { status: 'skipped' };
+  }
   setAnalysisState(db, row.id, 'analyzing_profile', clock());
   const capabilities = analyzeStage1(snapshot, row.id);
   const persisted = persistAnalysis(db, capabilities, { now: clock() });

@@ -443,6 +443,7 @@ describe('two-stage timing and fallback', () => {
     assert.equal(job(db, id).last_error, SKIPPED_CONSENT);
     assert.equal((db.prepare('SELECT COUNT(*) AS n FROM capability_claims WHERE participant_id = ?').get(p.id) as { n: number }).n, 0);
     assert.equal((db.prepare('SELECT COUNT(*) AS n FROM matches WHERE participant_a_id = ? OR participant_b_id = ?').get(p.id, p.id) as { n: number }).n, 0);
+    assert.equal((db.prepare('SELECT COUNT(*) AS n FROM github_snapshots WHERE participant_id = ? OR github_username = ?').get(p.id, p.login) as { n: number }).n, 0, 'no snapshot linked to a withdrawn participant');
     db.close();
   });
 
