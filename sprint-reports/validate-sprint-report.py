@@ -257,11 +257,17 @@ def validate_canonical_metrics_payload(version: str, content: str, enforce_regis
     feature_prs = diff.get("feature_prs", [])
     release_prs = diff.get("release_prs", [])
     true_merge_count = int(diff.get("true_merge_count", 0))
+    squash_or_rebase_count = int(diff.get("squash_or_rebase_count", 0))
     per_pr = diff.get("per_pr", [])
 
-    if len(prs_merged) != true_merge_count:
+    if len(prs_merged) != true_merge_count + squash_or_rebase_count:
         errors.append(
-            f"[{version}] PR count mismatch: len(prs_merged) ({len(prs_merged)}) != true_merge_count ({true_merge_count})."
+            f"[{version}] PR count mismatch: len(prs_merged) ({len(prs_merged)}) != "
+            f"true_merge_count ({true_merge_count}) + squash_or_rebase_count ({squash_or_rebase_count})."
+        )
+    if squash_or_rebase_count > 0 and re.search(rf"{len(prs_merged)}\s+true-merge\s+PRs|100%\s+True\s+Merges", content, re.I):
+        errors.append(
+            f"[{version}] Report prose claims all {len(prs_merged)} PRs are true-merge commits while squash_or_rebase_count is {squash_or_rebase_count}."
         )
     if len(feature_prs) + len(release_prs) != len(prs_merged):
         errors.append(

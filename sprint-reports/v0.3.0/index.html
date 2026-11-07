@@ -765,7 +765,7 @@
           <span class="badge badge-green" style="font-size:0.78rem;">Throughput = 7.33 Issues/Hr · Allocated = $0.34/Issue ($0.14/kLOC) · Legacy ADE_v1 = 5.46</span>
         </div>
         <div style="font-size:0.90rem;color:#e2e8f0;line-height:1.56;">
-          <strong>1. Orthogonal Efficiency Metrics (Primary Standard):</strong> <strong>Throughput</strong> = <code>W_closed / T_eng = 4 / 0.55h = <strong>7.33 closed issues/hr</strong></code> · <strong>Unit Allocated Cost</strong> = <code>C_alloc / W_closed = $1.34 / 4 = <strong>$0.34/closed issue</strong></code> (<code>$0.14/kLOC</code> across <code>+9,361</code> insertions) · <strong>Quality</strong> = <code>100% True Merges, 0 Post-Merge Defects</code>.<br/>
+          <strong>1. Orthogonal Efficiency Metrics (Primary Standard):</strong> <strong>Throughput</strong> = <code>W_closed / T_eng = 4 / 0.55h = <strong>7.33 closed issues/hr</strong></code> · <strong>Unit Allocated Cost</strong> = <code>C_alloc / W_closed = $1.34 / 4 = <strong>$0.34/closed issue</strong></code> (<code>$0.14/kLOC</code> across <code>+9,361</code> insertions) · <strong>Quality</strong> = <code>7/7 PRs Integrated (1 merge-commit, 6 squash), 0 Post-Merge Defects</code>.<br/>
           <strong>2. Disclosed Legacy Composite Index (<code>ADE_v1</code>):</strong> <code>ADE_v1 = W_closed / (T_eng × C_alloc) = 4 / (0.55h × $1.34) = <strong>5.46</strong></code>. <em>Dimensional Note:</em> Because <code>C_alloc = $2.46/hr × T_eng</code>, <code>ADE_v1 = W / (2.46 × T_eng²)</code> scales as <code>1/T²</code> (units: <code>issues · hr⁻² · $⁻¹</code>); therefore <code>ADE_v1</code> is always evaluated on the full engineering window (<code>T_eng = 0.55h</code>, never a pipelined merge tail) alongside scale-invariant Throughput (<code>7.33 issues/hr</code>).<br/>
           <strong>3. 3-Tier Operating Cost Basis:</strong> <strong>Tier 1 (Measured Marginal Cash):</strong> <code>$0.00</code> per-run API fee + <code>~$0.01</code> M3 Ultra wall power · <strong>Tier 2 (Allocated Subscription Pool):</strong> <code>$1.34</code> pro-rata allocation (<code>$440/mo ÷ 178.8 active hrs = $2.46/hr × 0.55h</code>; calendar-hour reference <code>$0.34</code> @ <code>$0.611/hr</code>) · <strong>Tier 3 (Hypothetical API Shadow Estimate):</strong> <code>~$33</code> (unmetered estimate across <code>~4.2M</code> tokens → <code>24.5×</code> subscription compression).
         </div>
@@ -826,9 +826,9 @@
                     <td>All 4 active chartered issues implemented with unit tests</td>
                   </tr>
                   <tr>
-                    <td><strong>State B — Integrated (<code>--merge</code> on <code>main</code>)</strong></td>
+                    <td><strong>State B — Integrated (Merged on <code>main</code>)</strong></td>
                     <td><code>4</code></td>
-                    <td>Merged across 7 true-merge PRs (<code>#25, #27, #29, #28, #33, #35, #32</code>; net diff <code>+9,361 / -1082</code> LOC across <code>35</code> files)</td>
+                    <td>Merged across 7 PRs (<code>#25, #27, #29, #28, #33, #35, #32</code>; <code>1</code> merge-commit / <code>6</code> squash; net diff <code>+9,361 / -1082</code> LOC across <code>35</code> files)</td>
                   </tr>
                   <tr>
                     <td><strong>State C — Verified &amp; Closed in Milestone (<code>W_closed</code>)</strong></td>
@@ -888,7 +888,7 @@
   "schema_version": "2.0.0",
   "slug": "v0.3.0",
   "milestone_number": 3,
-  "milestone_title": "v0.3.0 \u2014 Train 2: Two-Stage Capability & Match Explanation Agents, Mobile /me Dashboard & 4-View Stage",
+  "milestone_title": "Train 2 \u2014 Capability Agent, Match Explanations, Mobile UI & Stage Views (v0.3.0)",
   "standing_auth": "ARIADNE-HACK-2026-W3",
   "prev_tag": "v0.2.0",
   "prev_sha": "3f14b9e",
@@ -967,8 +967,8 @@
     "release_prs": [
       25
     ],
-    "true_merge_count": 7,
-    "squash_or_rebase_count": 0,
+    "true_merge_count": 1,
+    "squash_or_rebase_count": 6,
     "net_repo_files": 35,
     "net_repo_insertions": 9361,
     "net_repo_deletions": 1082,

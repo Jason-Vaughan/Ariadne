@@ -53,7 +53,7 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
         "schema_version": SCHEMA_VERSION,
         "slug": "v0.1.0",
         "milestone_number": 1,
-        "milestone_title": "v0.1.0 — Spine, Contracts, Event Stream & Public Reports Hub",
+        "milestone_title": "Train 0 — Foundation, Contracts, Server & Live Event Bus (v0.1.0)",
         "standing_auth": "ARIADNE-HACK-2026-W1",
         "prev_tag": "v0.0.0-init",
         "prev_sha": "d965715",
@@ -110,8 +110,8 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
             "prs_merged": [18, 19, 20, 21],
             "feature_prs": [18, 19, 20, 21],
             "release_prs": [],
-            "true_merge_count": 4,
-            "squash_or_rebase_count": 0,
+            "true_merge_count": 0,
+            "squash_or_rebase_count": 4,
             "net_repo_files": 24,
             "net_repo_insertions": 5132,
             "net_repo_deletions": 49,
@@ -155,7 +155,7 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
         "schema_version": SCHEMA_VERSION,
         "slug": "v0.2.0",
         "milestone_number": 2,
-        "milestone_title": "v0.2.0 — Train 1: Zero-OAuth Onboarding, GitHub Signal Ingestion, 5-Component Scorer & 16:9 Stage Graph",
+        "milestone_title": "Train 1 — QR Onboarding, GitHub Connector, Scorer & Stage Shell (v0.2.0)",
         "standing_auth": "ARIADNE-HACK-2026-W2",
         "prev_tag": "v0.1.0",
         "prev_sha": "101d16c",
@@ -212,8 +212,8 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
             "prs_merged": [23, 22, 24, 26],
             "feature_prs": [23, 22, 24, 26],
             "release_prs": [],
-            "true_merge_count": 4,
-            "squash_or_rebase_count": 0,
+            "true_merge_count": 0,
+            "squash_or_rebase_count": 4,
             "net_repo_files": 18,
             "net_repo_insertions": 6682,
             "net_repo_deletions": 0,
@@ -257,7 +257,7 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
         "schema_version": SCHEMA_VERSION,
         "slug": "v0.3.0",
         "milestone_number": 3,
-        "milestone_title": "v0.3.0 — Train 2: Two-Stage Capability & Match Explanation Agents, Mobile /me Dashboard & 4-View Stage",
+        "milestone_title": "Train 2 — Capability Agent, Match Explanations, Mobile UI & Stage Views (v0.3.0)",
         "standing_auth": "ARIADNE-HACK-2026-W3",
         "prev_tag": "v0.2.0",
         "prev_sha": "3f14b9e",
@@ -314,8 +314,8 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
             "prs_merged": [25, 27, 29, 28, 33, 35, 32],
             "feature_prs": [27, 29, 28, 33, 35, 32],
             "release_prs": [25],
-            "true_merge_count": 7,
-            "squash_or_rebase_count": 0,
+            "true_merge_count": 1,
+            "squash_or_rebase_count": 6,
             "net_repo_files": 35,
             "net_repo_insertions": 9361,
             "net_repo_deletions": 1082,
@@ -462,6 +462,15 @@ def render_ade_kpi_and_banner(slug: str, hrs: float = None, issues: int = None, 
     shad = m["api_shadow_cost"]
     mult = m["savings_mult"]
 
+    if m["detailed"] is not None:
+        d_diff = m["detailed"]["diff"]
+        tm_cnt = d_diff["true_merge_count"]
+        sq_cnt = d_diff["squash_or_rebase_count"]
+        tot_cnt = len(d_diff["prs_merged"])
+        quality_summary = f"{tot_cnt}/{tot_cnt} PRs Integrated ({tm_cnt} merge-commit, {sq_cnt} squash), 0 Post-Merge Defects"
+    else:
+        quality_summary = "100% Clean Integration, 0 Post-Merge Defects"
+
     if w_a != w_c:
         sub_line = (
             f"Throughput: <code>{tp_c:.2f} closed/hr</code> (<code>{tp_a:.2f} addressed/hr</code> on <code>T_eng={t_e:.2f}h</code>) · "
@@ -474,7 +483,7 @@ def render_ade_kpi_and_banner(slug: str, hrs: float = None, issues: int = None, 
             f"(<code>{w_a} / {t_e:.2f}h = {tp_a:.2f} addressed issues/hr</code> including {w_a - w_c} Slice 2 issues re-milestoned) · "
             f"<strong>Unit Allocated Cost</strong> = <code>C_alloc / W_closed = ${c_a:.2f} / {w_c} = <strong>${u_c:.2f}/closed issue</strong></code> "
             f"(<code>${u_a:.2f}/addressed issue</code>; <code>${kloc:.2f}/kLOC</code> across <code>+{loc_val:,}</code> net insertions) · "
-            f"<strong>Quality</strong> = <code>100% True Merges, 0 Post-Merge Defects</code>.<br/>\n"
+            f"<strong>Quality</strong> = <code>{quality_summary}</code>.<br/>\n"
             f"          <strong>2. Disclosed Legacy Composite Index (<code>ADE_v1</code>):</strong> "
             f"<code>ADE_v1 = W / (T_eng × C_alloc) = {w_c} / ({t_e:.2f}h × ${c_a:.2f}) = <strong>{ade_c:.2f}</strong></code> (verified closed) "
             f"or <code>{w_a} / ({t_e:.2f}h × ${c_a:.2f}) = <strong>{ade_a:.2f}</strong></code> (all chartered addressed). "
@@ -492,7 +501,7 @@ def render_ade_kpi_and_banner(slug: str, hrs: float = None, issues: int = None, 
             f"<strong>Throughput</strong> = <code>W_closed / T_eng = {w_c} / {t_e:.2f}h = <strong>{tp_c:.2f} closed issues/hr</strong></code> · "
             f"<strong>Unit Allocated Cost</strong> = <code>C_alloc / W_closed = ${c_a:.2f} / {w_c} = <strong>${u_c:.2f}/closed issue</strong></code> "
             f"(<code>${kloc:.2f}/kLOC</code> across <code>+{loc_val:,}</code> insertions) · "
-            f"<strong>Quality</strong> = <code>100% True Merges, 0 Post-Merge Defects</code>.<br/>\n"
+            f"<strong>Quality</strong> = <code>{quality_summary}</code>.<br/>\n"
             f"          <strong>2. Disclosed Legacy Composite Index (<code>ADE_v1</code>):</strong> "
             f"<code>ADE_v1 = W_closed / (T_eng × C_alloc) = {w_c} / ({t_e:.2f}h × ${c_a:.2f}) = <strong>{ade_c:.2f}</strong></code>. "
             f"<em>Dimensional Note:</em> Because <code>C_alloc = $2.46/hr × T_eng</code>, <code>ADE_v1 = W / (2.46 × T_eng²)</code> scales as <code>1/T²</code> (units: <code>issues · hr⁻² · $⁻¹</code>); "
@@ -599,9 +608,9 @@ def render_canonical_governance_and_metrics_cards(slug: str) -> str:
                     <td>All {comp["chartered_active_issues"]} active chartered issues implemented with unit tests</td>
                   </tr>
                   <tr>
-                    <td><strong>State B — Integrated (<code>--merge</code> on <code>main</code>)</strong></td>
+                    <td><strong>State B — Integrated (Merged on <code>main</code>)</strong></td>
                     <td><code>{comp["state_b_integrated_issues"]}</code></td>
-                    <td>Merged across {len(diff["prs_merged"])} true-merge PRs (<code>{", ".join("#" + str(p) for p in diff["prs_merged"])}</code>; net diff <code>+{diff["net_repo_insertions"]:,} / -{diff["net_repo_deletions"]}</code> LOC across <code>{diff["net_repo_files"]}</code> files)</td>
+                    <td>Merged across {len(diff["prs_merged"])} PRs (<code>{", ".join("#" + str(p) for p in diff["prs_merged"])}</code>; <code>{diff["true_merge_count"]}</code> merge-commit / <code>{diff["squash_or_rebase_count"]}</code> squash; net diff <code>+{diff["net_repo_insertions"]:,} / -{diff["net_repo_deletions"]}</code> LOC across <code>{diff["net_repo_files"]}</code> files)</td>
                   </tr>
                   <tr>
                     <td><strong>State C — Verified &amp; Closed in Milestone (<code>W_closed</code>)</strong></td>
