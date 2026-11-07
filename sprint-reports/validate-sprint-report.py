@@ -147,25 +147,51 @@ def validate_canonical_metrics_payload(version: str, content: str, enforce_regis
                     f"[{version}] Timestamp chronology violation: {earlier} ({ts[earlier]}) > {later} ({ts[later]})."
                 )
 
-        # Verify full_engineering_window_hrs matches t7 - min(t1, t2) within 0.08h
+        # Verify full_engineering_window_hrs matches T_eng = t7 - t2 per SPRINT_REPORT_CONTRACT.md section 3.1
         dur = rec["durations"]
-        t_start = min(parsed_ts["t1_first_activity"], parsed_ts["t2_first_branch_commit"])
-        computed_eng_hrs = (parsed_ts["t7_live_deploy_completed"] - t_start).total_seconds() / 3600.0
+        t_start = parsed_ts["t2_first_branch_commit"]
+        eng_seconds = (parsed_ts["t7_live_deploy_completed"] - t_start).total_seconds()
+        computed_eng_hrs = eng_seconds / 3600.0
         declared_eng_hrs = float(dur.get("full_engineering_window_hrs", 0.0))
-        if abs(computed_eng_hrs - declared_eng_hrs) > 0.08:
+        if abs(computed_eng_hrs - declared_eng_hrs) > 0.02:
             errors.append(
                 f"[{version}] full_engineering_window_hrs ({declared_eng_hrs:.2f}h) does not match "
-                f"(t7 - start) = {computed_eng_hrs:.2f}h. Substituting a pipelined merge/deploy tail "
-                f"for the full engineering window is prohibited."
+                f"contract T_eng = (t7 - t2) = {computed_eng_hrs:.2f}h ({int(eng_seconds // 60)}m {int(eng_seconds % 60):02d}s). "
+                f"Substituting a pipelined merge/deploy tail for the full engineering window is prohibited."
             )
 
         cadence_hrs = float(dur.get("inter_release_deploy_cadence_hrs", 0.0))
         overlap_hrs = float(dur.get("pipeline_overlap_hrs", 0.0))
+        overlap_pct = float(dur.get("pipeline_overlap_pct", 0.0))
         if overlap_hrs > 0.05 and declared_eng_hrs <= cadence_hrs + 0.05:
             errors.append(
                 f"[{version}] Pipelined sprint (pipeline_overlap_hrs={overlap_hrs:.2f}h) declared "
                 f"full_engineering_window_hrs ({declared_eng_hrs:.2f}h) <= inter_release_deploy_cadence_hrs ({cadence_hrs:.2f}h)."
             )
+
+        prev_tag = rec.get("prev_tag")
+        if prev_tag and prev_tag in DETAILED_SPRINT_RECORDS:
+            prev_t7 = parse_iso_utc(DETAILED_SPRINT_RECORDS[prev_tag]["timestamps"]["t7_live_deploy_completed"])
+            expected_cadence_secs = (parsed_ts["t7_live_deploy_completed"] - prev_t7).total_seconds()
+            expected_cadence_hrs = expected_cadence_secs / 3600.0
+            expected_overlap_secs = max(0.0, (prev_t7 - parsed_ts["t2_first_branch_commit"]).total_seconds())
+            expected_overlap_hrs = expected_overlap_secs / 3600.0
+            expected_overlap_pct = (expected_overlap_secs / eng_seconds * 100.0) if eng_seconds > 0 else 0.0
+            if abs(cadence_hrs - expected_cadence_hrs) > 0.02:
+                errors.append(
+                    f"[{version}] inter_release_deploy_cadence_hrs ({cadence_hrs:.2f}h) does not match "
+                    f"(t7_curr - t7_prev) = {expected_cadence_hrs:.2f}h."
+                )
+            if abs(overlap_hrs - expected_overlap_hrs) > 0.02:
+                errors.append(
+                    f"[{version}] pipeline_overlap_hrs ({overlap_hrs:.2f}h) does not match "
+                    f"max(0, t7_prev - t2_curr) = {expected_overlap_hrs:.2f}h ({int(expected_overlap_secs)}s)."
+                )
+            if abs(overlap_pct - expected_overlap_pct) > 0.5:
+                errors.append(
+                    f"[{version}] pipeline_overlap_pct ({overlap_pct:.1f}%) does not match "
+                    f"(overlap / T_eng) = {expected_overlap_pct:.1f}%."
+                )
 
     # 2. 4-State Work-Completion Accounting & Milestone Reconciliation
     comp = rec["completion"]
@@ -274,36 +300,41 @@ def validate_canonical_metrics_payload(version: str, content: str, enforce_regis
             f"declared ({diff.get('release_pr_insertions')}/{diff.get('release_pr_deletions')})."
         )
 
-    # 4. 3-Tier Cost & Efficiency Mathematical Consistency
+    # 4. 3-Tier Cost & Efficiency Mathematical Consistency (evaluated on exact timestamp seconds, rounded only for display)
     econ = rec["economics"]
     eff = rec["efficiency"]
-    t_eng = float(rec["durations"]["full_engineering_window_hrs"])
+    t_eng_display = float(rec["durations"]["full_engineering_window_hrs"])
+    if "t2_first_branch_commit" in parsed_ts and "t7_live_deploy_completed" in parsed_ts:
+        t_eng_exact = (parsed_ts["t7_live_deploy_completed"] - parsed_ts["t2_first_branch_commit"]).total_seconds() / 3600.0
+    else:
+        t_eng_exact = t_eng_display
     c_alloc = float(econ.get("tier2_allocated_subscription_usd", 0.0))
-    expected_c_alloc = round(t_eng * SUBSCRIPTION_HOURLY_RATE, 2)
-    if abs(c_alloc - expected_c_alloc) > 0.03:
+    c_alloc_exact = t_eng_exact * SUBSCRIPTION_HOURLY_RATE
+    expected_c_alloc = round(c_alloc_exact, 2)
+    if abs(c_alloc - expected_c_alloc) > 0.01:
         errors.append(
-            f"[{version}] Tier 2 allocated cost ({c_alloc:.2f}) != round(T_eng * $2.46, 2) ({expected_c_alloc:.2f})."
+            f"[{version}] Tier 2 allocated cost ({c_alloc:.2f}) != round(T_eng_exact * $2.46, 2) ({expected_c_alloc:.2f})."
         )
 
     tp_closed = float(eff.get("throughput_closed_per_eng_hr", 0.0))
-    expected_tp_closed = round(state_c / t_eng, 2) if t_eng > 0 else 0.0
-    if abs(tp_closed - expected_tp_closed) > 0.03:
+    expected_tp_closed = round(state_c / t_eng_exact, 2) if t_eng_exact > 0 else 0.0
+    if abs(tp_closed - expected_tp_closed) > 0.01:
         errors.append(
-            f"[{version}] throughput_closed_per_eng_hr ({tp_closed:.2f}) != round(state_c / T_eng, 2) ({expected_tp_closed:.2f})."
+            f"[{version}] throughput_closed_per_eng_hr ({tp_closed:.2f}) != round(state_c / T_eng_exact, 2) ({expected_tp_closed:.2f})."
         )
 
     u_closed = float(eff.get("unit_allocated_cost_per_closed_issue_usd", 0.0))
-    expected_u_closed = round(c_alloc / state_c, 2) if state_c > 0 else 0.0
-    if abs(u_closed - expected_u_closed) > 0.03:
+    expected_u_closed = round(c_alloc_exact / state_c, 2) if state_c > 0 else 0.0
+    if abs(u_closed - expected_u_closed) > 0.01:
         errors.append(
-            f"[{version}] unit_allocated_cost_per_closed_issue_usd ({u_closed:.2f}) != round(C_alloc / state_c, 2) ({expected_u_closed:.2f})."
+            f"[{version}] unit_allocated_cost_per_closed_issue_usd ({u_closed:.2f}) != round(C_alloc_exact / state_c, 2) ({expected_u_closed:.2f})."
         )
 
     ade_closed = float(eff.get("legacy_ade_v1_closed", 0.0))
-    expected_ade_closed = round(state_c / (t_eng * c_alloc), 2) if (t_eng * c_alloc) > 0 else 0.0
-    if abs(ade_closed - expected_ade_closed) > 0.03:
+    expected_ade_closed = round(state_c / (t_eng_exact * c_alloc_exact), 2) if (t_eng_exact * c_alloc_exact) > 0 else 0.0
+    if abs(ade_closed - expected_ade_closed) > 0.01:
         errors.append(
-            f"[{version}] legacy_ade_v1_closed ({ade_closed:.2f}) != round(state_c / (T_eng * C_alloc), 2) ({expected_ade_closed:.2f})."
+            f"[{version}] legacy_ade_v1_closed ({ade_closed:.2f}) != round(state_c / (T_eng_exact * C_alloc_exact), 2) ({expected_ade_closed:.2f})."
         )
 
     # 5. Verify DOM #ade-efficiency-card text matches the canonical JSON numbers
@@ -314,7 +345,7 @@ def validate_canonical_metrics_payload(version: str, content: str, enforce_regis
     )
     if ade_banner_match:
         banner_html = ade_banner_match.group(1)
-        for token in [f"{tp_closed:.2f}", f"${c_alloc:.2f}", f"{ade_closed:.2f}", f"{t_eng:.2f}h"]:
+        for token in [f"{tp_closed:.2f}", f"${c_alloc:.2f}", f"{ade_closed:.2f}", f"{t_eng_display:.2f}h"]:
             if token not in banner_html:
                 errors.append(
                     f"[{version}] Rendered #ade-efficiency-card banner text does not match canonical JSON token '{token}'."
