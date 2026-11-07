@@ -208,6 +208,20 @@ describe('join page behaviour', () => {
     assert.equal(elements['join-form']!.hidden, true);
   });
 
+  it('sends the stage display choice explicitly: true when left checked, false when unchecked', async () => {
+    for (const checked of [true, false]) {
+      const { elements, requests } = await loadPage((url) =>
+        url.endsWith('/admission') ? [200, { open: true, active: 0, max: 30, locked: false, message: null }] : [201, { participant: {}, redirect: '/me' }],
+      );
+      elements.github!.value = 'octocat';
+      elements.consent_processing!.checked = true;
+      elements.stage_display_consent!.checked = checked;
+      await submitForm(elements);
+      const post = requests.find((r) => r.url === '/api/participants');
+      assert.equal((post?.body as { stage_display_consent: boolean }).stage_display_consent, checked);
+    }
+  });
+
   it('lets a pre-registered judge enter their handle and join while the room is full', async () => {
     const { elements, requests, page } = await loadPage((url) =>
       url.endsWith('/admission') ? [200, fullRoom] : [201, { participant: {}, redirect: '/me' }],
@@ -315,7 +329,8 @@ describe('onboarding API', () => {
     assert.match(res.headers.get('content-type') ?? '', /text\/html/);
     const html = await res.text();
     assert.match(html, /⚡ REQUIRES GITHUB PROFILE/);
-    assert.match(html, /Display my @github handle on the 16:9 stage visualizer/);
+    assert.match(html, /Display my @github handle on the 16:9 stage visualizer \(uncheck for anonymous alias\)/);
+    assert.match(html, /<input type="checkbox" id="stage_display_consent" name="stage_display_consent" checked>/, 'stage display is pre-checked');
     assert.match(html, /must be publicly accessible with no login required/);
     assert.match(html, /id="prewarm-entry"/);
   });
@@ -351,6 +366,14 @@ describe('onboarding API', () => {
       website_url: 'https://jasonvaughan.com',
       goal: 'Looking for a WebRTC co-hacker',
     });
+  });
+
+  it('never opts a client into stage display when the field is omitted', async () => {
+    await register({ github: 'octocat' });
+    const row = db.prepare('SELECT stage_display_consent FROM participants').get();
+    assert.deepEqual({ ...row }, { stage_display_consent: 0 });
+    const payload = JSON.parse((db.prepare('SELECT payload_json FROM domain_events').get() as { payload_json: string }).payload_json);
+    assert.equal(payload.display, undefined);
   });
 
   it('puts the handle on the stage event only with stage display consent', async () => {

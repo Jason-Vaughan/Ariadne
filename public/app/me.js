@@ -180,8 +180,8 @@
   function render(data) {
     myAlias = data.participant.display_alias;
     cursor = Math.max(cursor, data.latest_seq_id || 0);
-    document.getElementById('alias').textContent = data.participant.display_alias;
-    document.getElementById('handle').textContent = `@${data.participant.github_username}`;
+    document.getElementById('alias').textContent = `@${data.participant.github_username}`;
+    document.getElementById('handle').textContent = data.participant.display_alias;
     renderProgress(data.progress);
     renderFingerprint(data.fingerprint);
     renderPills('offers', data.offers, 'claims', (o) => o.name);

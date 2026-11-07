@@ -409,7 +409,8 @@ describe('/me page behaviour', () => {
 
   it('renders the stepper, six fingerprint axes, offers and three match cards', async () => {
     const { elements } = await loadPage(answerSample);
-    assert.equal(elements.alias!.textContent, 'Thread-7C4E');
+    assert.equal(elements.alias!.textContent, '@octocat', 'the real GitHub handle leads the page');
+    assert.equal(elements.handle!.textContent, 'Thread-7C4E');
     assert.equal(elements.progress!.children.length, 3);
     assert.equal(elements.fingerprint!.all().filter((n) => n.className === 'bar-row').length, 6);
     const cards = elements.matches!.children;
