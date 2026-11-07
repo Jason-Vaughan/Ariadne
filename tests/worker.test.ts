@@ -4,6 +4,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { DatabaseSync } from 'node:sqlite';
+import { request as httpRequest } from 'node:http';
 import { openDatabase } from '../src/db/client.ts';
 import { readEventsAfter } from '../src/events/bus.ts';
 import { GithubFetchError } from '../src/github/connector.ts';
@@ -678,6 +679,26 @@ describe('/admin capacity controller', () => {
       assert.equal(getAdmissionPolicy().intakeLocked, false, 'no forged request changed anything');
       const same = await fetch(`${running.url}/api/admin/capacity`, { method: 'POST', headers: { ...JSON_HEADERS, origin: running.url }, body: JSON.stringify({}) });
       assert.equal(same.status, 200);
+    });
+
+    test('refuses DNS-rebound requests whose Host is not a loopback name', async () => {
+      const { port } = new URL(running.url);
+      const send = (method: string, path: string): Promise<number> =>
+        new Promise((resolve, reject) => {
+          const req = httpRequest(
+            { host: '127.0.0.1', port, method, path, headers: { host: `evil.example:${port}`, origin: `http://evil.example:${port}`, 'content-type': 'application/json' } },
+            (res) => {
+              res.resume();
+              resolve(res.statusCode ?? 0);
+            },
+          );
+          req.on('error', reject);
+          req.end(method === 'POST' ? JSON.stringify({ intakeLocked: true }) : undefined);
+        });
+      for (const [method, path] of [['GET', '/admin'], ['GET', '/api/admin/capacity'], ['POST', '/api/admin/capacity'], ['POST', '/api/admin/prewarm']] as const) {
+        assert.equal(await send(method, path), 403, `${method} ${path}`);
+      }
+      assert.equal(getAdmissionPolicy().intakeLocked, false);
     });
 
     test('the panel script splits VIP handles on whitespace', async () => {

@@ -324,13 +324,26 @@ export function prewarmVips(db: DatabaseSync, request: { handles: string[]; webs
 }
 
 /**
- * Refuses a request that does not come straight from this machine's loopback.
+ * Whether the request was addressed to a loopback name. A loopback socket alone is not enough: under
+ * DNS rebinding, a page on an attacker's domain that resolves to 127.0.0.1 reaches us from the
+ * presenter's own browser with its own domain in Host (and a matching Origin).
+ * @param req - The request.
+ * @returns True for `localhost`, `127.0.0.1` or `[::1]`, with any port.
+ */
+export function hasLoopbackHost(req: IncomingMessage): boolean {
+  const host = String(req.headers.host ?? '').toLowerCase();
+  const name = host.startsWith('[') ? host.slice(0, host.indexOf(']') + 1) : host.split(':')[0]!;
+  return name === 'localhost' || name === '127.0.0.1' || name === '[::1]';
+}
+
+/**
+ * Refuses a request that does not come straight from this machine's loopback, addressed to a loopback name.
  * @param req - The request.
  * @param res - The response (written on refusal).
  * @returns True when the request may proceed.
  */
 function presenterOnly(req: IncomingMessage, res: ServerResponse): boolean {
-  if (isPresenterRequest(req)) return true;
+  if (isPresenterRequest(req) && hasLoopbackHost(req)) return true;
   sendNoStoreJson(res, 403, { error: 'presenter_only', detail: 'Operator controls are only available on the presenter machine.' });
   return false;
 }

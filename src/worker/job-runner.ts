@@ -589,7 +589,9 @@ export async function processJob(db: DatabaseSync, job: AsyncJob, deps: WorkerDe
  */
 export function hydratePendingSeeds(db: DatabaseSync, now: Date, log?: Logger): number {
   const pending = db
-    .prepare('SELECT COUNT(*) AS n FROM participants p WHERE p.id LIKE ? AND NOT EXISTS (SELECT 1 FROM github_snapshots s WHERE s.participant_id = p.id)')
+    .prepare(
+      "SELECT COUNT(*) AS n FROM participants p WHERE p.id LIKE ? AND p.consent_status = 'granted' AND NOT EXISTS (SELECT 1 FROM github_snapshots s WHERE s.participant_id = p.id)",
+    )
     .get(`${SEED_ID_PREFIX}%`) as { n: number };
   if (!Number(pending.n)) return 0;
   const result = hydrateSeedPersonas(db, { now });

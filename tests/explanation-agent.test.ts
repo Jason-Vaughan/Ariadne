@@ -371,6 +371,17 @@ describe('Stage 1', () => {
     assert.ok(!card.proposal.complementary_summary.includes('[link removed]'));
   });
 
+  test('a generic need is explained with the concrete skill that meets it, as the scorer credits it', () => {
+    const needer = profile('Front-7A01', 'web-app', [{ name: 'TypeScript', category: 'language' }, { name: 'React', category: 'framework' }], ['Backend services']);
+    const goDev = profile('Back-7A02', 'go-svc', [{ name: 'TypeScript', category: 'language' }, { name: 'Go', category: 'language' }]);
+    const [a, b] = needer.participant.id < goDev.participant.id ? [needer, goDev] : [goDev, needer];
+    const scored = scorePair(a, b, { now: NOW });
+    assert.ok(scored.score_breakdown.need_offer_fit > 0);
+    // Text generation only: force the gate open so the card can be built for this two-person fixture.
+    const card = buildStage1Explanation({ ...scored, surfaceable: true, rejections: [] }, a, b);
+    assert.match(card.proposal.complementary_summary, /Back-7A02 brings Go/);
+  });
+
   test('refuses pairs that are not surfaceable or profiles in the wrong order', () => {
     const { a, b } = staged();
     const scored = scorePair(a, b, { now: NOW });
