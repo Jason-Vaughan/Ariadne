@@ -376,6 +376,44 @@ describe('introductions API', () => {
     assert.deepEqual({ ...row }, { contact_card: null });
   });
 
+  it('refuses decisions with a withdrawn participant and never publishes their stale stage identity', async () => {
+    db.prepare("UPDATE participants SET consent_status = 'withdrawn' WHERE id = ?").run(people.b.id);
+    const res = await decide('a', 'interested');
+    assert.equal(res.status, 409);
+    assert.equal(((await res.json()) as { error: string }).error, 'participant_withdrawn');
+    assert.deepEqual(introEvents(), []);
+    assert.equal(stored().intro_state, 'candidate');
+    assert.equal((await decide('b', 'interested')).status, 401, 'a withdrawn participant counts as signed out');
+  });
+
+  it('locks a completed room and vCard once the counterpart withdraws consent', async () => {
+    await decide('a', 'interested');
+    await decide('b', 'interested');
+    db.prepare("UPDATE participants SET consent_status = 'withdrawn' WHERE id = ?").run(people.b.id);
+    for (const path of ['room', 'vcard']) {
+      const res = await get('a', path);
+      assert.equal(res.status, 403);
+      const text = await res.text();
+      assert.match(text, /participant_withdrawn/);
+      assert.doesNotMatch(text, /Signal|hubot\.dev/);
+    }
+    assert.equal((await postRoom('a', { message: 'still there?' })).status, 403);
+    assert.equal((await get('b', 'room')).status, 401);
+    assert.equal((await putCard('b', 'x')).status, 401);
+    const me = (await (await fetch(`${base}/api/me`, { headers: { cookie: people.a.cookie } })).json()) as { matches: Array<{ id: string }> };
+    assert.deepEqual(me.matches.map((m) => m.id), [MATCH_AC], 'the match with the withdrawn participant disappears from /me');
+  });
+
+  it('removes the room and scrubs stage identity when a participant deletes their data', async () => {
+    await decide('a', 'interested');
+    await decide('b', 'interested');
+    const del = await fetch(`${base}/api/participants/me`, { method: 'DELETE', headers: { cookie: people.b.cookie } });
+    assert.equal(del.status, 204);
+    assert.equal((await get('a', 'room')).status, 404);
+    assert.equal((await get('a', 'vcard')).status, 404);
+    assert.doesNotMatch(JSON.stringify(introEvents()), /hubot/);
+  });
+
   it('declines on Pass with only the public counter, and refuses later interest', async () => {
     const res = await decide('c', 'pass', MATCH_AC);
     assert.equal(res.status, 200);

@@ -49,11 +49,13 @@ interface PersonRow {
 }
 
 type Access =
-  | { ok: true; viewer: Viewer; match: MatchRow; side: Side }
+  | { ok: true; viewer: Viewer; match: MatchRow; side: Side; counterpartActive: boolean }
   | { ok: false; status: number; error: string };
 
 /**
- * Authenticates the caller and authorizes them for one match: only its two participants pass.
+ * Authenticates the caller and authorizes them for one match: only its two participants pass, and a
+ * participant whose consent is withdrawn counts as signed out. Reports whether the counterpart's
+ * consent is still granted, since a withdrawn counterpart locks the room.
  * @param req - Incoming request.
  * @param db - Database handle.
  * @param matchId - Match id from the path.
@@ -62,7 +64,7 @@ type Access =
 function authorize(req: IncomingMessage, db: DatabaseSync, matchId: string): Access {
   const viewerId = readSession(req);
   const viewer = viewerId
-    ? (db.prepare('SELECT id, ownership_verified FROM participants WHERE id = ?').get(viewerId) as Viewer | undefined)
+    ? (db.prepare("SELECT id, ownership_verified FROM participants WHERE id = ? AND consent_status = 'granted'").get(viewerId) as Viewer | undefined)
     : undefined;
   if (!viewer) return { ok: false, status: 401, error: 'not_signed_in' };
   const match = db
@@ -73,9 +75,13 @@ function authorize(req: IncomingMessage, db: DatabaseSync, matchId: string): Acc
     )
     .get(matchId) as MatchRow | undefined;
   if (!match) return { ok: false, status: 404, error: 'not_found' };
-  if (match.participant_a_id === viewer.id) return { ok: true, viewer, match, side: 'a' };
-  if (match.participant_b_id === viewer.id) return { ok: true, viewer, match, side: 'b' };
-  return { ok: false, status: 403, error: 'not_your_match' };
+  const side: Side | null = match.participant_a_id === viewer.id ? 'a' : match.participant_b_id === viewer.id ? 'b' : null;
+  if (!side) return { ok: false, status: 403, error: 'not_your_match' };
+  const counterpartId = side === 'a' ? match.participant_b_id : match.participant_a_id;
+  const counterpartActive = Boolean(
+    db.prepare("SELECT 1 FROM participants WHERE id = ? AND consent_status = 'granted'").get(counterpartId),
+  );
+  return { ok: true, viewer, match, side, counterpartActive };
 }
 
 /**
@@ -263,6 +269,7 @@ async function decide(req: IncomingMessage, res: ServerResponse, db: DatabaseSyn
   const result = inTransaction(db, () => {
     const access = authorize(req, db, matchId);
     if (!access.ok) return access;
+    if (!access.counterpartActive) return { ok: false as const, status: 409, error: 'participant_withdrawn' };
     const verified = requiresVerifiedOwnership() ? access.viewer.ownership_verified === 1 : true;
     return { ok: true as const, side: access.side, ...applyDecision(db, access.match, access.side, decision as Decision, verified) };
   });
@@ -309,6 +316,7 @@ async function postToRoom(req: IncomingMessage, res: ServerResponse, db: Databas
   const result = inTransaction(db, () => {
     const access = authorize(req, db, matchId);
     if (!access.ok) return access;
+    if (!access.counterpartActive) return { ok: false as const, status: 403, error: 'participant_withdrawn' };
     if (!unlocked(access.match)) return { ok: false as const, status: 403, error: 'room_locked' };
     const notes = storedNotes(access.match.shared_intro_notes);
     if (notes.length >= MAX_ROOM_NOTES) return { ok: false as const, status: 429, error: 'room_full' };
@@ -340,7 +348,7 @@ async function postToRoom(req: IncomingMessage, res: ServerResponse, db: Databas
  */
 async function saveContactCard(req: IncomingMessage, res: ServerResponse, db: DatabaseSync): Promise<void> {
   const viewerId = readSession(req);
-  const exists = viewerId ? db.prepare('SELECT 1 FROM participants WHERE id = ?').get(viewerId) : undefined;
+  const exists = viewerId ? db.prepare("SELECT 1 FROM participants WHERE id = ? AND consent_status = 'granted'").get(viewerId) : undefined;
   if (!viewerId || !exists) return sendJson(res, 401, { error: 'not_signed_in' });
   const body = await readJson(req);
   const raw = body?.contact_card;
@@ -367,6 +375,7 @@ export const routes: RouteDefinition[] = [
     handler(req, res, ctx) {
       const access = authorize(req, ctx.db, ctx.params.id ?? '');
       if (!access.ok) return deny(res, access);
+      if (!access.counterpartActive) return sendJson(res, 403, { error: 'participant_withdrawn' });
       if (!unlocked(access.match)) return sendJson(res, 403, { error: 'room_locked', state: access.match.intro_state });
       sendJson(res, 200, roomView(ctx.db, access.match, access.side));
     },
@@ -384,6 +393,7 @@ export const routes: RouteDefinition[] = [
     handler(req, res, ctx) {
       const access = authorize(req, ctx.db, ctx.params.id ?? '');
       if (!access.ok) return deny(res, access);
+      if (!access.counterpartActive) return sendJson(res, 403, { error: 'participant_withdrawn' });
       if (!unlocked(access.match)) return sendJson(res, 403, { error: 'room_locked' });
       const otherId = access.side === 'a' ? access.match.participant_b_id : access.match.participant_a_id;
       const person = ctx.db

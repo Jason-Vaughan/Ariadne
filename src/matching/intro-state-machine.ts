@@ -79,20 +79,26 @@ interface PairIdentity {
   github_username: string;
   avatar_url: string | null;
   stage_display_consent: number;
+  consent_status: string;
 }
 
 /**
- * Public pair payload for introduction events: aliases always, identity only with stage consent.
+ * Public pair payload for introduction events: aliases always, identity only with stage consent from a
+ * participant whose overall consent is still granted.
  * @param db - Database handle.
  * @param match - The match.
  * @returns Payload fields shared by proposed/accepted/completed events.
  */
 function pairPayload(db: DatabaseSync, match: MatchSides) {
-  const lookup = db.prepare('SELECT display_alias, github_username, avatar_url, stage_display_consent FROM participants WHERE id = ?');
+  const lookup = db.prepare(
+    'SELECT display_alias, github_username, avatar_url, stage_display_consent, consent_status FROM participants WHERE id = ?',
+  );
   const a = lookup.get(match.participant_a_id) as unknown as PairIdentity;
   const b = lookup.get(match.participant_b_id) as unknown as PairIdentity;
   const display = (p: PairIdentity): PublicDisplay | undefined =>
-    p.stage_display_consent === 1 ? { stage_display_consent: true, github_username: p.github_username, avatar_url: p.avatar_url } : undefined;
+    p.stage_display_consent === 1 && p.consent_status === 'granted'
+      ? { stage_display_consent: true, github_username: p.github_username, avatar_url: p.avatar_url }
+      : undefined;
   const displayA = display(a);
   const displayB = display(b);
   return {

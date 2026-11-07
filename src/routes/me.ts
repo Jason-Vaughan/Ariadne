@@ -67,7 +67,9 @@ function sessionParticipant(req: IncomingMessage, db: DatabaseSync): Participant
   const id = readSession(req);
   if (!id) return undefined;
   return db
-    .prepare('SELECT id, display_alias, github_username, website_url, stage_display_consent, analysis_state FROM participants WHERE id = ?')
+    .prepare(
+      "SELECT id, display_alias, github_username, website_url, stage_display_consent, analysis_state FROM participants WHERE id = ? AND consent_status = 'granted'",
+    )
     .get(id) as ParticipantRow | undefined;
 }
 
@@ -206,7 +208,8 @@ function needsFor(db: DatabaseSync, participantId: string) {
 }
 
 /**
- * The participant's top surfaced matches, viewed from their side. A counterpart's GitHub identity
+ * The participant's top surfaced matches with participants who still consent, viewed from their side.
+ * A counterpart's GitHub identity
  * appears only with their stage-display consent or after a completed bilateral introduction;
  * contact cards are never included here (they belong to the A-012 introduction room).
  * @param db - Database handle.
@@ -221,6 +224,7 @@ function matchesFor(db: DatabaseSync, participantId: string) {
               intro_state, approval_a, approval_b
        FROM matches
        WHERE (participant_a_id = ? OR participant_b_id = ?) AND composite_score >= ? AND intro_state <> 'declined'
+         AND NOT EXISTS (SELECT 1 FROM participants p WHERE p.id IN (participant_a_id, participant_b_id) AND p.consent_status <> 'granted')
        ORDER BY composite_score DESC, id LIMIT ?`,
     )
     .all(participantId, participantId, MATCH_SURFACE_THRESHOLD, TOP_MATCHES) as unknown as MatchRow[];
