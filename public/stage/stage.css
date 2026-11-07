@@ -147,6 +147,8 @@ main { position: relative; overflow: hidden; }
 /* Operator HUD and the per-view explainer pill */
 .hud-bar { position: absolute; right: 32px; bottom: 24px; z-index: 4; display: flex; gap: 8px; align-items: center; }
 .hud { display: flex; gap: 8px; font-size: 16px; }
+.reset-toggle { font-size: 15px; padding: 6px 12px; border-radius: 999px; color: var(--muted); background: rgba(6, 10, 20, 0.85); }
+.reset-toggle.armed { color: #111; background: var(--amber); border-color: var(--amber); font-weight: 800; }
 .view-info { font-size: 16px; padding: 6px 14px; border-radius: 999px; border-color: var(--cyan); color: var(--cyan); background: rgba(6, 10, 20, 0.85); }
 .info-badge { position: absolute; top: 16px; right: 14px; padding: 0 6px; font-size: 16px; line-height: 1.4; border-radius: 999px; background: transparent; border-color: var(--line); }
 .pipe-title { padding-right: 34px; }
