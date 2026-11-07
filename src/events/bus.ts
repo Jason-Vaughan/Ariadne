@@ -28,7 +28,10 @@ export interface PublicEventEnvelope {
 }
 
 export interface PublishOptions {
-  /** The subject participant's `public_display_consent`; unlocks `github_username` and `avatar_url` only. */
+  /**
+   * The subject participant's `public_display_consent`. Unlocks `github_username` and `avatar_url` only,
+   * and only on single-participant event types; two-participant events never carry them.
+   */
   publicDisplayConsent?: boolean;
   /** Event time; defaults to now. */
   occurredAt?: Date;
@@ -44,15 +47,57 @@ export const EVENT_SCHEMA = `CREATE TABLE IF NOT EXISTS domain_events (
 );`;
 
 const EVENT_TYPE_SET: ReadonlySet<string> = new Set(EVENT_TYPES);
-const CONSENT_GATED_KEYS: ReadonlySet<string> = new Set(['github_username', 'avatar_url']);
-const ALWAYS_PRIVATE_KEYS: ReadonlySet<string> = new Set([
-  'contact_card',
-  'shared_intro_notes',
-  'github_user_id',
-  'real_name',
-  'full_name',
+
+/**
+ * The only keys the public stream may carry, at any depth. Fail closed: a key not listed here is dropped,
+ * so a producer adding a field cannot leak identity by accident. Free text and `owner/repo` names are
+ * deliberately absent because they can embed a GitHub login.
+ */
+export const PUBLIC_PAYLOAD_KEYS: ReadonlySet<string> = new Set([
+  'participant_id',
+  'pseudonym',
+  'display_alias',
+  'cluster',
+  'cluster_badge',
+  'analysis_state',
+  'stage',
+  'progress',
+  'match_id',
+  'participant_a_id',
+  'participant_b_id',
+  'pseudonym_a',
+  'pseudonym_b',
+  'channel',
+  'intro_state',
+  'composite_score',
+  'score_breakdown',
+  'complementary_skills',
+  'project_relevance',
+  'evidence_strength',
+  'recency',
+  'opportunity_id',
+  'opportunity_type',
+  'category',
+  'capabilities',
+  'label',
+  'confidence',
+  'count',
+  'evidence_count',
+  'error_code',
+  'duration_ms',
+  'attempt',
 ]);
-const ALWAYS_PRIVATE_PATTERN = /email|phone|contact|token|secret|password|cookie|session/i;
+
+// Shown only with the subject's public_display_consent, and only on events about exactly one participant.
+const CONSENT_GATED_KEYS: ReadonlySet<string> = new Set(['github_username', 'avatar_url']);
+const SINGLE_SUBJECT_TYPES: ReadonlySet<EventType> = new Set([
+  'participant.registered',
+  'github.fetch.started',
+  'github.fetch.completed',
+  'profile.analysis.completed',
+  'opportunity.identified',
+  'analysis.failed',
+]);
 // The public stream counts declines; it must not reveal who declined whom.
 const AGGREGATE_ONLY_TYPES: ReadonlySet<EventType> = new Set(['introduction.declined']);
 
@@ -79,12 +124,12 @@ export function isEventType(value: string): value is EventType {
 }
 
 /**
- * Removes every field the public stream must never carry, at any depth.
- * Contact details and secrets are always removed; `github_username` and `avatar_url`
- * survive only with display consent; aggregate-only types lose their whole payload.
+ * Keeps only allowlisted fields, at any depth, so the public stream stays pseudonymous.
+ * `github_username` / `avatar_url` survive only with display consent on a single-participant
+ * event type; aggregate-only types lose their whole payload.
  * @param type - The event type being published.
  * @param payload - The raw payload from the publisher.
- * @param publicDisplayConsent - Whether the subject participant consented to public display.
+ * @param publicDisplayConsent - Whether the event's single subject consented to public display.
  * @returns A new, sanitized payload; the input is not modified.
  */
 export function sanitizePublicPayload(
@@ -93,24 +138,23 @@ export function sanitizePublicPayload(
   publicDisplayConsent = false,
 ): Record<string, unknown> {
   if (AGGREGATE_ONLY_TYPES.has(type)) return {};
-  return sanitizeValue(payload, publicDisplayConsent) as Record<string, unknown>;
+  const allowIdentity = publicDisplayConsent && SINGLE_SUBJECT_TYPES.has(type);
+  return sanitizeValue(payload, allowIdentity) as Record<string, unknown>;
 }
 
 /**
- * Recursively copies a JSON-like value, dropping private keys.
+ * Recursively copies a JSON-like value, keeping only allowlisted keys.
  * @param value - Value to copy.
- * @param consent - Whether consent-gated keys may be kept.
+ * @param allowIdentity - Whether consent-gated identity keys may be kept.
  * @returns The sanitized copy.
  */
-function sanitizeValue(value: unknown, consent: boolean): unknown {
-  if (Array.isArray(value)) return value.map((item) => sanitizeValue(item, consent));
+function sanitizeValue(value: unknown, allowIdentity: boolean): unknown {
+  if (Array.isArray(value)) return value.map((item) => sanitizeValue(item, allowIdentity));
   if (value === null || typeof value !== 'object') return value;
   const out: Record<string, unknown> = {};
   for (const [key, child] of Object.entries(value)) {
-    const normalized = key.toLowerCase();
-    if (ALWAYS_PRIVATE_KEYS.has(normalized) || ALWAYS_PRIVATE_PATTERN.test(normalized)) continue;
-    if (CONSENT_GATED_KEYS.has(normalized) && !consent) continue;
-    out[key] = sanitizeValue(child, consent);
+    const allowed = PUBLIC_PAYLOAD_KEYS.has(key) || (allowIdentity && CONSENT_GATED_KEYS.has(key));
+    if (allowed) out[key] = sanitizeValue(child, allowIdentity);
   }
   return out;
 }

@@ -97,18 +97,31 @@ export function createEventRoutes(options: EventRouteOptions = {}): RouteDefinit
         res.flushHeaders();
         res.write(`retry: ${RETRY_MS}\n\n`);
 
-        let lastSent = cursor ?? latestSeqId(ctx.db);
+        const head = latestSeqId(ctx.db);
+        // A cursor past the head means the store was reset (e.g. a fresh demo DB): replay it from the start.
+        let lastSent = cursor === undefined ? head : cursor > head ? 0 : cursor;
         let closed = false;
+        let waitingForDrain = false;
 
-        /** Sends every stored event after the last one this client received; a failure ends only this stream. */
+        /**
+         * Sends stored events after the last one this client received, pausing while the socket buffer is full.
+         * A failure ends only this stream.
+         */
         const flush = (): void => {
-          if (closed) return;
+          if (closed || waitingForDrain) return;
           try {
             for (;;) {
               const batch = readEventsAfter(ctx.db, lastSent, MAX_BATCH);
               for (const event of batch) {
-                res.write(formatSseFrame(event));
                 lastSent = event.seq_id;
+                if (!res.write(formatSseFrame(event))) {
+                  waitingForDrain = true;
+                  res.once('drain', () => {
+                    waitingForDrain = false;
+                    flush();
+                  });
+                  return;
+                }
               }
               if (batch.length < MAX_BATCH) return;
             }

@@ -130,7 +130,9 @@ function openSse(url: string, headers: Record<string, string> = {}): Promise<Sse
         text: () => buffer,
         events: () =>
           buffer
-            .split('\n')
+            .split('\n\n')
+            .slice(0, -1)
+            .flatMap((frame) => frame.split('\n'))
             .filter((line) => line.startsWith('data: '))
             .map((line) => JSON.parse(line.slice('data: '.length)) as PublicEventEnvelope),
         waitFor(predicate, timeoutMs = 3000) {
@@ -200,14 +202,14 @@ describe('event bus', () => {
       pseudonym: 'Thread-7C4E',
       github_username: 'octocat',
       avatar_url: 'https://avatars.example/1',
-      nested: { github_username: 'octocat', Avatar_URL: 'x', cluster: 'infra' },
-      list: [{ avatar_url: 'y', pseudonym: 'Thread-1' }],
+      score_breakdown: { github_username: 'octocat', avatar_url: 'x', recency: 9 },
+      capabilities: [{ avatar_url: 'y', category: 'language' }],
     };
     assert.deepEqual(sanitizePublicPayload('participant.registered', payload), {
       participant_id: 'p1',
       pseudonym: 'Thread-7C4E',
-      nested: { cluster: 'infra' },
-      list: [{ pseudonym: 'Thread-1' }],
+      score_breakdown: { recency: 9 },
+      capabilities: [{ category: 'language' }],
     });
   });
 
@@ -239,6 +241,36 @@ describe('event bus', () => {
       true,
     );
     assert.deepEqual(out, { match_id: 'm1', pseudonym_a: 'Thread-A', pseudonym_b: 'Thread-B', channel: 'web' });
+  });
+
+  test('drops any key not on the public allowlist, including identity-bearing aliases', () => {
+    const out = sanitizePublicPayload(
+      'profile.analysis.completed',
+      {
+        participant_id: 'p1',
+        cluster: 'infra',
+        login: 'octocat',
+        html_url: 'https://github.com/octocat',
+        profile_url: 'https://github.com/octocat',
+        project_repo: 'octocat/hello',
+        relevant_projects: ['octocat/hello'],
+        summary: 'octocat builds compilers',
+        score_breakdown: { recency: 8, repo: 'octocat/x' },
+      },
+      true,
+    );
+    assert.deepEqual(out, { participant_id: 'p1', cluster: 'infra', score_breakdown: { recency: 8 } });
+  });
+
+  test('display consent never reveals identity on two-participant events', () => {
+    for (const type of ['match.candidate.generated', 'match.evaluated', 'introduction.proposed', 'introduction.accepted', 'introduction.completed'] as const) {
+      const out = sanitizePublicPayload(
+        type,
+        { match_id: 'm1', pseudonym_a: 'A', pseudonym_b: 'B', github_username: 'octocat', avatar_url: 'x' },
+        true,
+      );
+      assert.deepEqual(out, { match_id: 'm1', pseudonym_a: 'A', pseudonym_b: 'B' }, type);
+    }
   });
 
   test('introduction.declined carries no identifying payload on the public stream', () => {
@@ -387,6 +419,36 @@ describe('GET /api/events/stream', () => {
       const live = publishEvent(h.db, 'match.evaluated', { old: false });
       await client.waitFor(() => client.events().length >= 1);
       assert.deepEqual(client.events(), [live]);
+    } finally {
+      client.close();
+      await h.close();
+    }
+  });
+
+  test('a cursor beyond the head (store was reset) replays from the start instead of going silent', async () => {
+    const h = await startHarness();
+    const all = [1, 2].map((n) => publishEvent(h.db, 'match.evaluated', { count: n }));
+    const client = await openSse(`${h.base}/api/events/stream`, { 'Last-Event-ID': '9999' });
+    try {
+      await client.waitFor(() => client.events().length === 2);
+      assert.deepEqual(client.events(), all);
+    } finally {
+      client.close();
+      await h.close();
+    }
+  });
+
+  test('replays a backlog larger than one batch completely and in order', async () => {
+    const h = await startHarness();
+    const total = 1200;
+    h.db.exec('BEGIN');
+    for (let n = 0; n < total; n++) publishEvent(h.db, 'match.evaluated', { count: n });
+    h.db.exec('COMMIT');
+    const client = await openSse(`${h.base}/api/events/stream?after=0`);
+    try {
+      await client.waitFor(() => client.events().length === total, 10_000);
+      const ids = client.events().map((e) => e.seq_id);
+      assert.deepEqual(ids, Array.from({ length: total }, (_, i) => i + 1));
     } finally {
       client.close();
       await h.close();
