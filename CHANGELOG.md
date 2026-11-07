@@ -5,6 +5,9 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Changed
+- **Configured All 4 Ariadne Builder Lanes (`#151..#154`) to Run `claude-opus-4-8` (`--effort high`) & Added Optional Public Website / Portfolio Crawl (`A-002`, `A-003`, `VISUALIZER_SPEC.md`, `roadmap-board/`):**
+  - Updated `~/.tangleclaw/engines/claude-fable-sprint.json` (the engine bound to `Ariadne-Lane-A..D`, `#151..#154`) to launch `claude --model claude-opus-4-8 --effort high` instead of the high-burn `claude-fable-5-1` model.
+  - Updated `A-002` (`/join`), `A-003` (`src/github/connector.ts`), `VISUALIZER_SPEC.md`, and the Roadmap Board so participants enter their required GitHub `@username` plus an **optional public personal website / portfolio URL** (e.g., `https://jasonvaughan.com` — must be open to the world with no login wall). The connector crawls the public website in parallel (`3s` timeout, `100 KB` limit, SSRF guard, auto-skipping login walls) to enrich the 6-Axis Builder Fingerprint and evidence pills.
 - **Reverted All 4 Ariadne Builder Lanes (`#151..#154`) to High-Efficiency `claude-sonnet-reviewer` (`claude-sonnet-5`) Instead of High-Burn Fable/Astra:**
   - Updated `FLEET_PROVISIONING_PACK.md` and `PROJECT_DOCUMENTS.md` / `MASTER_SSOT.md` so `Ariadne-Lane-A..D` (`#151..#154`) run `claude-sonnet-reviewer` (`claude-sonnet-5`), avoiding high-burn flagship models while keeping fast, reliable Builder throughput.
 - **Upgraded All 4 Ariadne Builder Lanes (`#151..#154`) to Flagship `claude-fable-sprint` (`claude-fable-5-1 --effort high`):**

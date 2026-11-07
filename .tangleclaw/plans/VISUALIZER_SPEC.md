@@ -65,11 +65,12 @@ Designed specifically so the presenter can **stand on stage, point to the screen
 1. **Stage Narrator Pacing Control (`[🎬 Pacing: Stage Narrator (3s/step) | Live Fast]` + `[⏸ Pause]` + `[🔄 Replay Last Scan]`):**
    - **Dual-Speed Architecture (Fast on Phone, Narratable on Stage):** Even when the backend finishes Stage 1 (`< 500ms`) and Stage 2 (`2–4s`) almost immediately for the attendee's mobile phone (`/me`), **View 1 on `/stage`** defaults to **`Stage Narrator Pacing (`~2.5s–3.5s` dwell per column)`** so cards don't flash past in a blur before you can point to them!
    - You also have **`[⏸ Pause Pipeline]`** (freezes the assembly line mid-flight so you can walk up to the screen and point at a specific card) and **`[🔄 Replay Walkthrough]`** (re-runs the most recent scanner—or a featured builder—step-by-step across all 4 columns on demand).
-2. **Column 1 — `1. GitHub Public Crawl & Repo Harvest` (`A-003`):**
-   - Visibly ticks through what is being fetched so you can point and say *"Right here it's pulling their public repos, languages, and READMEs"*:
+2. **Column 1 — `1. GitHub + Public Website Crawl` (`A-003`):**
+   - Visibly ticks through what is being fetched so you can point and say *"Right here it's pulling their public GitHub repos, languages, READMEs, and—if they entered one—their personal website like `jasonvaughan.com`"*:
      - Repo count & top 3 repository names (`e.g., mcp-router, agent-eval, sqlite-vec`)
+     - Optional public portfolio/website pill (`🌐 Site: jasonvaughan.com (Crawled 14 KB bio & projects)`)
      - Language distribution bar (`TypeScript 62% · Rust 24% · Python 14%`)
-     - Cache badge (`⚡ 24h SQLite Cache Hit (4ms)` or `🌐 Live GitHub GraphQL (180ms)`).
+     - Cache badge (`⚡ 24h SQLite Cache Hit (4ms)` or `🌐 Live GitHub + Site Crawl (180ms)`).
 3. **Column 2 — `2. Parallel Gemini Flash Agent Fan-Out` (`A-004` + `A-005`):**
    - Shows the **two parallel Gemini Flash sub-agents** (`🤖 Capability Agent` + `🔍 Bottleneck Agent`) running concurrently with worker slot badges (`Gemini Worker #1..#16`):
      - **`Offers (Verified Superpower):`** Shows the extracted skill + exact repo citation pill.
