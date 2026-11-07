@@ -392,22 +392,57 @@ describe('stage routes', () => {
       const tunnelled = await call(port, 'GET', '/api/stage/snapshot', { headers: { 'x-forwarded-for': '203.0.113.9' } });
       assert.equal(JSON.parse(tunnelled.body).presenter, false);
 
-      const denied = await call(port, 'POST', '/api/stage/seed-toggle', { headers: { 'x-forwarded-for': '203.0.113.9' }, body: '{}' });
+      const json = { 'content-type': 'application/json' };
+      const denied = await call(port, 'POST', '/api/stage/seed-toggle', { headers: { ...json, 'x-forwarded-for': '203.0.113.9' }, body: '{}' });
       assert.equal(denied.status, 403);
       assert.equal(buildStageSnapshot(db).kpis.seed_builders, 0, 'a tunnelled request changes nothing');
 
-      const flipOn = await call(port, 'POST', '/api/stage/seed-toggle', { body: '' });
+      const flipOn = await call(port, 'POST', '/api/stage/seed-toggle', { headers: json, body: '' });
       assert.equal(flipOn.status, 200);
       assert.equal(JSON.parse(flipOn.body).seed_mode, true, 'an empty body flips the mode');
-      const off = await call(port, 'POST', '/api/stage/seed-toggle', { headers: { 'content-type': 'application/json' }, body: '{"enabled":false}' });
+      const off = await call(port, 'POST', '/api/stage/seed-toggle', { headers: json, body: '{"enabled":false}' });
       assert.equal(JSON.parse(off.body).seed_count, 0);
 
-      assert.equal((await call(port, 'POST', '/api/stage/seed-toggle', { body: '{"enabled":"yes"}' })).status, 400);
-      assert.equal((await call(port, 'POST', '/api/stage/seed-toggle', { body: '{oops' })).status, 400);
+      assert.equal((await call(port, 'POST', '/api/stage/seed-toggle', { headers: json, body: '{"enabled":"yes"}' })).status, 400);
+      assert.equal((await call(port, 'POST', '/api/stage/seed-toggle', { headers: json, body: '{oops' })).status, 400);
       for (const body of ['null', '[]', '"on"', '7']) {
-        assert.equal((await call(port, 'POST', '/api/stage/seed-toggle', { body })).status, 400, body);
+        assert.equal((await call(port, 'POST', '/api/stage/seed-toggle', { headers: json, body })).status, 400, body);
       }
       assert.equal(buildStageSnapshot(db).kpis.seed_builders, 0, 'rejected bodies change nothing');
+    });
+  });
+
+  test('the seed toggle refuses cross-site requests from a page in the presenter\'s browser', async (t) => {
+    const db = freshDb(t);
+    await withServer(db, async (port) => {
+      const self = `http://127.0.0.1:${port}`;
+      const post = (headers: Record<string, string>, body = '{"enabled":true}') => call(port, 'POST', '/api/stage/seed-toggle', { headers, body });
+      const seeds = (): number => buildStageSnapshot(db).kpis.seed_builders;
+
+      // A cross-site "simple request" (no preflight) can only carry these content types.
+      for (const type of ['text/plain', 'application/x-www-form-urlencoded', 'multipart/form-data; boundary=x']) {
+        const res = await post({ 'content-type': type, origin: 'https://evil.example' });
+        assert.equal(res.status, 415, type);
+      }
+      assert.equal((await post({})).status, 415, 'no content type');
+
+      const foreign = await post({ 'content-type': 'application/json', origin: 'https://evil.example' });
+      assert.equal(foreign.status, 403);
+      assert.equal(JSON.parse(foreign.body).reason, 'foreign_origin');
+      assert.equal((await post({ 'content-type': 'application/json', origin: 'null' })).status, 403, 'opaque origin');
+      for (const site of ['cross-site', 'same-site']) {
+        const res = await post({ 'content-type': 'application/json', 'sec-fetch-site': site });
+        assert.equal(res.status, 403, site);
+        assert.equal(JSON.parse(res.body).reason, 'cross_site_fetch', site);
+      }
+      assert.equal(seeds(), 0, 'no refused request changed the pool');
+
+      const stagePage = await post({ 'content-type': 'application/json; charset=utf-8', origin: self, 'sec-fetch-site': 'same-origin' });
+      assert.equal(stagePage.status, 200, 'the stage page itself is allowed');
+      assert.equal(seeds(), 25);
+      const curl = await post({ 'content-type': 'application/json', 'sec-fetch-site': 'none' }, '{"enabled":false}');
+      assert.equal(curl.status, 200, 'a direct request from the host (no Origin) is allowed');
+      assert.equal(seeds(), 0);
     });
   });
 

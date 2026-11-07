@@ -4,6 +4,9 @@ All notable changes to Ariadne-PM are documented in this file.
 
 ## [Unreleased]
 
+### Security
+- **Stage seed toggle refuses cross-site requests (`src/routes/stage-snapshot.ts`, follow-up to A-010 #10):** `POST /api/stage/seed-toggle` already rejected requests through the public tunnel, but any web page open in the presenter's browser could send a no-preflight `text/plain` POST to `127.0.0.1:3420` and flip the seed pool. It now requires `application/json` (415 otherwise) and rejects a foreign or opaque `Origin` and any `Sec-Fetch-Site` other than `same-origin`/`none` (403 `cross_site_request`). The stage page already sends JSON. Reported by Ariadne-Lane-C.
+
 ### Added
 - **O-Gate Certification — Sprint `v0.2.0` Canonical v2.0.0 Report, `T_eng = t7 - t2` Validator Arithmetic Guard & Public Hub Publication (`Ariadne-Obsr`):**
   - Updated `sprint-reports/metrics_schema.py`, `sprint-reports/metrics-schema.json`, `sprint-reports/generators/gen_v020.py`, `sprint-reports/generators/gen_v010.py`, and `sprint-reports/index.html` with empirical Wave 2 (`v0.2.0 @ 3f14b9e`) telemetry and strict contract §3.1 `T_eng = t7 - t2` exact-second arithmetic:

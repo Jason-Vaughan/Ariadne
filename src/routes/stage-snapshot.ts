@@ -619,6 +619,27 @@ export function isPresenterRequest(req: IncomingMessage): boolean {
 }
 
 /**
+ * Why a state-changing stage request must be refused as cross-site, if it must. Loopback alone
+ * does not prove intent: any page open in the presenter's browser can reach 127.0.0.1. Requiring
+ * a JSON content type forces a browser preflight, which this server never grants, and the Origin
+ * and Sec-Fetch-Site headers that browsers attach are checked as well.
+ * @param req - Incoming request.
+ * @returns `null` when the request is a same-origin JSON request, else the refusal reason.
+ */
+export function crossSiteRefusal(req: IncomingMessage): 'not_json' | 'foreign_origin' | 'cross_site_fetch' | null {
+  const mediaType = (req.headers['content-type'] ?? '').split(';')[0]?.trim().toLowerCase();
+  if (mediaType !== 'application/json') return 'not_json';
+  const origin = req.headers.origin;
+  if (origin !== undefined) {
+    const host = req.headers.host;
+    if (!host || (origin !== `http://${host}` && origin !== `https://${host}`)) return 'foreign_origin';
+  }
+  const fetchSite = req.headers['sec-fetch-site'];
+  if (fetchSite !== undefined && fetchSite !== 'same-origin' && fetchSite !== 'none') return 'cross_site_fetch';
+  return null;
+}
+
+/**
  * The URL attendees open from the stage QR code: `ARIADNE_PUBLIC_URL` + `/join`.
  * @param env - Environment to read.
  * @returns The https join URL, or null when the public URL is unset or not https.
@@ -1027,6 +1048,15 @@ async function postSeedToggle(
 ): Promise<void> {
   if (!isPresenterRequest(req)) {
     sendJson(res, 403, { error: 'presenter_only', message: 'Stage controls work only from the host machine, not through the public tunnel.' });
+    return;
+  }
+  const refusal = crossSiteRefusal(req);
+  if (refusal === 'not_json') {
+    sendJson(res, 415, { error: 'unsupported_media_type', message: 'Send the request as application/json.' });
+    return;
+  }
+  if (refusal) {
+    sendJson(res, 403, { error: 'cross_site_request', reason: refusal });
     return;
   }
   let body: unknown;
