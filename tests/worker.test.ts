@@ -206,6 +206,19 @@ describe('job leasing', () => {
     db.close();
   });
 
+  test('an abandoned analysis marks the participant failed instead of leaving them mid-analysis', () => {
+    const db = freshDb();
+    const p = addParticipant(db);
+    const crashedAt = new Date(NOW.getTime() - STALE_RUNNING_MS - 1000);
+    const id = enqueue(db, ANALYZE_JOB_KIND, p.id, { github_username: p.login }, crashedAt);
+    db.prepare("UPDATE async_jobs SET status = 'running', attempts = ?, updated_at = ? WHERE id = ?").run(MAX_ATTEMPTS, crashedAt.toISOString(), id);
+    db.prepare("UPDATE participants SET analysis_state = 'analyzing_profile' WHERE id = ?").run(p.id);
+    recoverStaleJobs(db, NOW);
+    assert.equal(state(db, p.id), 'failed');
+    assert.deepEqual(readEventsAfter(db, 0).filter((e) => e.type === 'analysis.failed').map((e) => e.payload), [{ display_alias: p.alias, reason_code: 'analysis_error' }]);
+    db.close();
+  });
+
   test('the shared limiter caps concurrent work across independent callers', async () => {
     const limiter = new Limiter(() => 2);
     let peak = 0;

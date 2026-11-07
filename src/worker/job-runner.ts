@@ -223,11 +223,16 @@ export async function mapWithConcurrency<T, R>(items: readonly T[], limit: numbe
 export function recoverStaleJobs(db: DatabaseSync, now: Date, log?: Logger): { requeued: number; abandoned: number } {
   const at = now.toISOString();
   const cutoff = new Date(now.getTime() - STALE_RUNNING_MS).toISOString();
-  const abandoned = Number(
-    db
-      .prepare("UPDATE async_jobs SET status = 'failed', last_error = ?, updated_at = ? WHERE status = 'running' AND updated_at < ? AND attempts >= ?")
-      .run(`abandoned after ${MAX_ATTEMPTS} attempts`, at, cutoff, MAX_ATTEMPTS).changes,
-  );
+  const giveUp = db
+    .prepare("SELECT id, kind, participant_id FROM async_jobs WHERE status = 'running' AND updated_at < ? AND attempts >= ?")
+    .all(cutoff, MAX_ATTEMPTS) as Array<{ id: string; kind: string; participant_id: string | null }>;
+  for (const stuck of giveUp) {
+    finishJob(db, stuck.id, 'failed', `abandoned after ${MAX_ATTEMPTS} attempts`, now);
+    // Without this the participant would sit in fetching_github/analyzing_profile and /me would never stop loading.
+    const row = stuck.participant_id ? participantRow(db, stuck.participant_id) : undefined;
+    if (stuck.kind === ANALYZE_JOB_KIND && consents(row)) failAnalysis(db, row, 'analysis_error', now);
+  }
+  const abandoned = giveUp.length;
   const requeued = Number(db.prepare("UPDATE async_jobs SET status = 'queued', updated_at = ? WHERE status = 'running' AND updated_at < ?").run(at, cutoff).changes);
   if (requeued || abandoned) log?.info('worker recovered stale jobs', { requeued, abandoned });
   return { requeued, abandoned };
