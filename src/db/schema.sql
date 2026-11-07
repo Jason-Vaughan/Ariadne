@@ -97,11 +97,22 @@ CREATE TABLE IF NOT EXISTS matches (
                                   AND json_array_length(evidence_receipt_ids) >= 2),
   intro_state                   TEXT NOT NULL DEFAULT 'candidate' CHECK (intro_state IN
                                   ('candidate', 'proposed_by_a', 'proposed_by_b', 'mutual_accepted', 'completed', 'declined')),
+  approval_a                    INTEGER NOT NULL DEFAULT 0 CHECK (approval_a IN (0, 1)),
+  approval_b                    INTEGER NOT NULL DEFAULT 0 CHECK (approval_b IN (0, 1)),
   shared_intro_notes            TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(shared_intro_notes)
                                   AND json_type(shared_intro_notes) = 'array'),
   created_at                    TEXT NOT NULL,
   updated_at                    TEXT NOT NULL,
   CHECK (participant_a_id < participant_b_id),
+  -- Each intro state implies exactly which participants have explicitly approved.
+  CHECK (CASE intro_state
+           WHEN 'candidate'       THEN approval_a = 0 AND approval_b = 0
+           WHEN 'proposed_by_a'   THEN approval_a = 1 AND approval_b = 0
+           WHEN 'proposed_by_b'   THEN approval_a = 0 AND approval_b = 1
+           WHEN 'mutual_accepted' THEN approval_a = 1 AND approval_b = 1
+           WHEN 'completed'       THEN approval_a = 1 AND approval_b = 1
+           ELSE NOT (approval_a = 1 AND approval_b = 1)
+         END),
   UNIQUE (participant_a_id, participant_b_id)
 );
 CREATE INDEX IF NOT EXISTS idx_matches_participant_b ON matches(participant_b_id);

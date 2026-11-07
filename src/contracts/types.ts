@@ -234,6 +234,32 @@ export const IntroRoomMessageSchema = z.strictObject({
 });
 export type IntroRoomMessage = z.infer<typeof IntroRoomMessageSchema>;
 
+/**
+ * Approval flags each intro state requires, as `[approval_a, approval_b]`. A decline
+ * may follow one participant's approval, so it only rules out a mutual approval.
+ */
+const APPROVALS_BY_STATE: Readonly<Record<IntroductionState, readonly [boolean, boolean] | null>> = {
+  candidate: [false, false],
+  proposed_by_a: [true, false],
+  proposed_by_b: [false, true],
+  mutual_accepted: [true, true],
+  completed: [true, true],
+  declined: null,
+};
+
+/**
+ * Whether a match's approval flags are consistent with its introduction state.
+ * @param state - The match's intro state.
+ * @param approvalA - Whether participant A explicitly approved.
+ * @param approvalB - Whether participant B explicitly approved.
+ * @returns True when the flags are exactly what the state implies.
+ */
+export function approvalsMatchState(state: IntroductionState, approvalA: boolean, approvalB: boolean): boolean {
+  const required = APPROVALS_BY_STATE[state];
+  if (required === null) return !(approvalA && approvalB);
+  return required[0] === approvalA && required[1] === approvalB;
+}
+
 export const MatchProposalSchema = z
   .strictObject({
     id: IdSchema,
@@ -247,6 +273,8 @@ export const MatchProposalSchema = z
     confidence_limitations: z.string().min(1).max(600),
     evidence_receipt_ids: z.array(IdSchema).min(2),
     intro_state: IntroductionStateSchema,
+    approval_a: z.boolean().default(false),
+    approval_b: z.boolean().default(false),
     shared_intro_notes: z.array(IntroRoomMessageSchema).default([]),
   })
   .refine((m) => m.participant_a_id < m.participant_b_id, {
@@ -256,6 +284,10 @@ export const MatchProposalSchema = z
   .refine((m) => m.composite_score === compositeScore(m.score_breakdown), {
     path: ['composite_score'],
     message: 'composite_score must equal round(sum of score_breakdown)',
+  })
+  .refine((m) => approvalsMatchState(m.intro_state, m.approval_a, m.approval_b), {
+    path: ['intro_state'],
+    message: 'approval_a / approval_b must match intro_state',
   })
   .refine((m) => m.intro_state === 'completed' || m.shared_intro_notes.length === 0, {
     path: ['shared_intro_notes'],
@@ -270,31 +302,56 @@ export const MatchProposalSchema = z
   );
 export type MatchProposal = z.infer<typeof MatchProposalSchema>;
 
+/**
+ * Whether contact cards may be returned for a match: only after BOTH participants
+ * explicitly approved and the introduction completed.
+ * @param match - The match's state and approval flags.
+ * @returns True only when contact details may be revealed to the two participants.
+ */
+export function canRevealContact(match: Pick<MatchProposal, 'intro_state' | 'approval_a' | 'approval_b'>): boolean {
+  return match.intro_state === 'completed' && match.approval_a && match.approval_b;
+}
+
 // ---------------------------------------------------------------------------
 // Mutual-introduction state machine
 // ---------------------------------------------------------------------------
 
+/** Who requests a transition: participant A, participant B, or the system. */
+export type IntroActorSide = 'a' | 'b' | 'system';
+
+/** The acting party and whether it has `ownership_verified === true`. */
+export interface IntroActor {
+  readonly side: IntroActorSide;
+  readonly verified: boolean;
+}
+
 interface IntroEdge {
   readonly to: IntroductionState;
+  readonly actor: IntroActorSide;
   readonly requiresVerifiedActor: boolean;
 }
 
-/** Allowed edges of the mutual-introduction state machine (DATA_AND_EVENTS_CONTRACT.md §2). */
+/**
+ * Allowed edges of the mutual-introduction state machine (DATA_AND_EVENTS_CONTRACT.md §2).
+ * Each edge names the only party that may take it, so the approval completing
+ * `mutual_accepted` always comes from the participant who did not propose.
+ */
 export const INTRO_TRANSITIONS: Readonly<Record<IntroductionState, readonly IntroEdge[]>> = {
   candidate: [
-    { to: 'proposed_by_a', requiresVerifiedActor: true },
-    { to: 'proposed_by_b', requiresVerifiedActor: true },
-    { to: 'declined', requiresVerifiedActor: false },
+    { to: 'proposed_by_a', actor: 'a', requiresVerifiedActor: true },
+    { to: 'proposed_by_b', actor: 'b', requiresVerifiedActor: true },
+    { to: 'declined', actor: 'a', requiresVerifiedActor: false },
+    { to: 'declined', actor: 'b', requiresVerifiedActor: false },
   ],
   proposed_by_a: [
-    { to: 'mutual_accepted', requiresVerifiedActor: true },
-    { to: 'declined', requiresVerifiedActor: false },
+    { to: 'mutual_accepted', actor: 'b', requiresVerifiedActor: true },
+    { to: 'declined', actor: 'b', requiresVerifiedActor: false },
   ],
   proposed_by_b: [
-    { to: 'mutual_accepted', requiresVerifiedActor: true },
-    { to: 'declined', requiresVerifiedActor: false },
+    { to: 'mutual_accepted', actor: 'a', requiresVerifiedActor: true },
+    { to: 'declined', actor: 'a', requiresVerifiedActor: false },
   ],
-  mutual_accepted: [{ to: 'completed', requiresVerifiedActor: false }],
+  mutual_accepted: [{ to: 'completed', actor: 'system', requiresVerifiedActor: false }],
   completed: [],
   declined: [],
 };
@@ -303,27 +360,30 @@ export const INTRO_TRANSITIONS: Readonly<Record<IntroductionState, readonly Intr
  * Outcome of a requested introduction transition.
  * - `allowed`: apply it and emit its event.
  * - `noop`: the match is already in that state; answer idempotently and emit nothing.
- * - `unverified`: the edge exists but the actor has not verified GitHub ownership.
+ * - `wrong_actor`: the edge exists but belongs to another party.
+ * - `unverified`: the right party, but it has not verified GitHub ownership.
  * - `forbidden`: no such edge.
  */
-export type IntroTransitionOutcome = 'allowed' | 'noop' | 'unverified' | 'forbidden';
+export type IntroTransitionOutcome = 'allowed' | 'noop' | 'wrong_actor' | 'unverified' | 'forbidden';
 
 /**
  * Classify a requested introduction state change.
  * @param from - Current state of the match.
  * @param to - Requested next state.
- * @param actorVerified - Whether the acting participant has `ownership_verified === true`.
+ * @param actor - The requesting party and its verification status.
  * @returns How the caller should treat the request.
  */
 export function classifyIntroTransition(
   from: IntroductionState,
   to: IntroductionState,
-  actorVerified: boolean,
+  actor: IntroActor,
 ): IntroTransitionOutcome {
   if (from === to) return 'noop';
-  const edge = INTRO_TRANSITIONS[from].find((e) => e.to === to);
-  if (!edge) return 'forbidden';
-  if (edge.requiresVerifiedActor && !actorVerified) return 'unverified';
+  const edges = INTRO_TRANSITIONS[from].filter((e) => e.to === to);
+  if (edges.length === 0) return 'forbidden';
+  const edge = edges.find((e) => e.actor === actor.side);
+  if (!edge) return 'wrong_actor';
+  if (edge.requiresVerifiedActor && !actor.verified) return 'unverified';
   return 'allowed';
 }
 
@@ -332,13 +392,13 @@ export function classifyIntroTransition(
  * is an idempotent no-op, not a transition, and must not emit a second event.
  * @param from - Current state of the match.
  * @param to - Requested next state.
- * @param actorVerified - Whether the acting participant has `ownership_verified === true`.
+ * @param actor - The requesting party and its verification status.
  * @returns True only when the transition is `allowed`.
  */
 export function canTransitionIntroState(
   from: IntroductionState,
   to: IntroductionState,
-  actorVerified: boolean,
+  actor: IntroActor,
 ): boolean {
-  return classifyIntroTransition(from, to, actorVerified) === 'allowed';
+  return classifyIntroTransition(from, to, actor) === 'allowed';
 }

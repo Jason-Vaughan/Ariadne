@@ -14,10 +14,12 @@ import {
   OpportunityNeedSchema,
   ParticipantSchema,
   PublicEventEnvelopeSchema,
+  canRevealContact,
   canTransitionIntroState,
   classifyIntroTransition,
   compositeScore,
   type EventType,
+  type IntroActor,
   type IntroductionState,
 } from '../src/contracts/index.ts';
 
@@ -216,6 +218,8 @@ describe('MatchProposal', () => {
       'note by an outsider',
       {
         intro_state: 'completed',
+        approval_a: true,
+        approval_b: true,
         shared_intro_notes: [{ id: E1, author_participant_id: E2, body: 'hi', created_at: NOW }],
       },
     ],
@@ -225,6 +229,40 @@ describe('MatchProposal', () => {
       assert.equal(MatchProposalSchema.safeParse(match(over)).success, false);
     });
   }
+  it('accepts a completed match carrying both approvals and participant notes', () => {
+    const completed = match({
+      intro_state: 'completed',
+      approval_a: true,
+      approval_b: true,
+      shared_intro_notes: [{ id: E1, author_participant_id: B, body: 'hi', created_at: NOW }],
+    });
+    assert.equal(MatchProposalSchema.safeParse(completed).success, true);
+  });
+
+  const inconsistentApprovals: Array<[string, Record<string, unknown>]> = [
+    ['candidate already approved', { approval_a: true }],
+    ['proposal by A missing A', { intro_state: 'proposed_by_a' }],
+    ['proposal by A carrying B', { intro_state: 'proposed_by_a', approval_a: true, approval_b: true }],
+    ['mutual acceptance with one approval', { intro_state: 'mutual_accepted', approval_a: true }],
+    ['completion without approvals', { intro_state: 'completed' }],
+    ['decline after both approved', { intro_state: 'declined', approval_a: true, approval_b: true }],
+  ];
+  for (const [name, over] of inconsistentApprovals) {
+    it(`rejects ${name}`, () => {
+      assert.equal(MatchProposalSchema.safeParse(match(over)).success, false);
+    });
+  }
+
+  it('accepts a decline after one approval', () => {
+    assert.equal(MatchProposalSchema.safeParse(match({ intro_state: 'declined', approval_a: true })).success, true);
+  });
+
+  it('reveals contact only after both approvals and completion', () => {
+    assert.equal(canRevealContact({ intro_state: 'completed', approval_a: true, approval_b: true }), true);
+    assert.equal(canRevealContact({ intro_state: 'mutual_accepted', approval_a: true, approval_b: true }), false);
+    assert.equal(canRevealContact({ intro_state: 'completed', approval_a: true, approval_b: false }), false);
+    assert.equal(canRevealContact({ intro_state: 'proposed_by_a', approval_a: true, approval_b: false }), false);
+  });
 });
 
 describe('PublicEventEnvelope', () => {
@@ -294,56 +332,80 @@ describe('PublicEventEnvelope', () => {
 });
 
 describe('introduction state machine', () => {
-  const allowed: Array<[IntroductionState, IntroductionState]> = [
-    ['candidate', 'proposed_by_a'],
-    ['candidate', 'proposed_by_b'],
-    ['candidate', 'declined'],
-    ['proposed_by_a', 'mutual_accepted'],
-    ['proposed_by_b', 'mutual_accepted'],
-    ['proposed_by_a', 'declined'],
-    ['proposed_by_b', 'declined'],
-    ['mutual_accepted', 'completed'],
+  const A_OK: IntroActor = { side: 'a', verified: true };
+  const B_OK: IntroActor = { side: 'b', verified: true };
+  const SYSTEM: IntroActor = { side: 'system', verified: false };
+  const allowed: Array<[IntroductionState, IntroductionState, IntroActor]> = [
+    ['candidate', 'proposed_by_a', A_OK],
+    ['candidate', 'proposed_by_b', B_OK],
+    ['candidate', 'declined', A_OK],
+    ['candidate', 'declined', B_OK],
+    ['proposed_by_a', 'mutual_accepted', B_OK],
+    ['proposed_by_b', 'mutual_accepted', A_OK],
+    ['proposed_by_a', 'declined', B_OK],
+    ['proposed_by_b', 'declined', A_OK],
+    ['mutual_accepted', 'completed', SYSTEM],
   ];
-  const isAllowed = (from: IntroductionState, to: IntroductionState) =>
+  const hasEdge = (from: IntroductionState, to: IntroductionState) =>
     allowed.some(([f, t]) => f === from && t === to);
 
-  for (const [from, to] of allowed) {
-    it(`allows ${from} -> ${to} for a verified actor`, () => {
-      assert.equal(canTransitionIntroState(from, to, true), true);
+  for (const [from, to, actor] of allowed) {
+    it(`allows ${from} -> ${to} by ${actor.side}`, () => {
+      assert.equal(canTransitionIntroState(from, to, actor), true);
     });
   }
 
-  it('forbids every edge outside the diagram', () => {
+  it('forbids every edge outside the diagram, whoever asks', () => {
     for (const from of INTRODUCTION_STATES) {
       for (const to of INTRODUCTION_STATES) {
-        if (from === to || isAllowed(from, to)) continue;
-        assert.equal(classifyIntroTransition(from, to, true), 'forbidden', `${from} -> ${to}`);
+        if (from === to || hasEdge(from, to)) continue;
+        for (const actor of [A_OK, B_OK, SYSTEM]) {
+          assert.equal(classifyIntroTransition(from, to, actor), 'forbidden', `${from} -> ${to} by ${actor.side}`);
+        }
       }
     }
   });
 
+  it('never lets a proposer accept their own proposal', () => {
+    assert.equal(classifyIntroTransition('proposed_by_a', 'mutual_accepted', A_OK), 'wrong_actor');
+    assert.equal(classifyIntroTransition('proposed_by_b', 'mutual_accepted', B_OK), 'wrong_actor');
+    assert.equal(classifyIntroTransition('proposed_by_a', 'mutual_accepted', SYSTEM), 'wrong_actor');
+  });
+
+  it('lets each participant propose only on their own behalf', () => {
+    assert.equal(classifyIntroTransition('candidate', 'proposed_by_a', B_OK), 'wrong_actor');
+    assert.equal(classifyIntroTransition('candidate', 'proposed_by_b', A_OK), 'wrong_actor');
+  });
+
+  it('leaves completion to the system', () => {
+    assert.equal(classifyIntroTransition('mutual_accepted', 'completed', A_OK), 'wrong_actor');
+    assert.equal(classifyIntroTransition('mutual_accepted', 'completed', B_OK), 'wrong_actor');
+  });
+
   it('treats a repeated decision as an idempotent no-op', () => {
     for (const state of INTRODUCTION_STATES) {
-      assert.equal(classifyIntroTransition(state, state, true), 'noop');
-      assert.equal(canTransitionIntroState(state, state, true), false);
+      assert.equal(classifyIntroTransition(state, state, A_OK), 'noop');
+      assert.equal(canTransitionIntroState(state, state, B_OK), false);
     }
   });
 
   it('requires verified ownership to propose or accept', () => {
-    assert.equal(classifyIntroTransition('candidate', 'proposed_by_a', false), 'unverified');
-    assert.equal(classifyIntroTransition('proposed_by_b', 'mutual_accepted', false), 'unverified');
-    assert.equal(canTransitionIntroState('candidate', 'proposed_by_b', false), false);
+    assert.equal(classifyIntroTransition('candidate', 'proposed_by_a', { side: 'a', verified: false }), 'unverified');
+    assert.equal(classifyIntroTransition('proposed_by_b', 'mutual_accepted', { side: 'a', verified: false }), 'unverified');
+    assert.equal(canTransitionIntroState('candidate', 'proposed_by_b', { side: 'b', verified: false }), false);
   });
 
-  it('lets an unverified participant pass and the system complete', () => {
-    assert.equal(canTransitionIntroState('candidate', 'declined', false), true);
-    assert.equal(canTransitionIntroState('mutual_accepted', 'completed', false), true);
+  it('lets an unverified participant pass', () => {
+    assert.equal(canTransitionIntroState('candidate', 'declined', { side: 'a', verified: false }), true);
+    assert.equal(canTransitionIntroState('proposed_by_a', 'declined', { side: 'b', verified: false }), true);
   });
 
   it('never leaves a terminal state', () => {
     for (const to of INTRODUCTION_STATES) {
-      assert.equal(canTransitionIntroState('completed', to, true), false);
-      assert.equal(canTransitionIntroState('declined', to, true), false);
+      for (const actor of [A_OK, B_OK, SYSTEM]) {
+        assert.equal(canTransitionIntroState('completed', to, actor), false);
+        assert.equal(canTransitionIntroState('declined', to, actor), false);
+      }
     }
   });
 });
@@ -426,6 +488,24 @@ describe('SQLite schema', () => {
     assert.doesNotThrow(() => insert.run(M, A, B, receipts, 'candidate', NOW, NOW));
     assert.throws(() => insert.run(E1, B, A, receipts, 'candidate', NOW, NOW));
     assert.throws(() => insert.run(E2, A, B, receipts, 'accepted', NOW, NOW));
+  });
+
+  it('ties approval flags to the intro state', () => {
+    insertParticipant(A, 'octo-cat', 'Thread-7C4E');
+    insertParticipant(B, 'hubot', 'Loom-1A2B');
+    const insert = db.prepare(
+      `INSERT INTO matches (id, participant_a_id, participant_b_id, composite_score, score_breakdown,
+         complementary_summary, relevant_projects, suggested_first_collaboration, confidence_limitations,
+         evidence_receipt_ids, intro_state, approval_a, approval_b, created_at, updated_at)
+       VALUES (?, ?, ?, 84, '{}', 's', '[]', 'c', 'l', ?, ?, ?, ?, ?, ?)`,
+    );
+    const receipts = JSON.stringify([E1, E2]);
+    assert.throws(() => insert.run(M, A, B, receipts, 'proposed_by_a', 1, 1, NOW, NOW));
+    assert.throws(() => insert.run(M, A, B, receipts, 'completed', 1, 0, NOW, NOW));
+    assert.throws(() => insert.run(M, A, B, receipts, 'candidate', 1, 0, NOW, NOW));
+    assert.doesNotThrow(() => insert.run(M, A, B, receipts, 'mutual_accepted', 1, 1, NOW, NOW));
+    db.prepare(`UPDATE matches SET intro_state = 'completed' WHERE id = ?`).run(M);
+    assert.throws(() => db.prepare(`UPDATE matches SET approval_b = 0 WHERE id = ?`).run(M));
   });
 
   it('assigns increasing seq_ids and blocks duplicate idempotency keys', () => {
