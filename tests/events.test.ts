@@ -4,21 +4,19 @@ import { createServer, request } from 'node:http';
 import type { IncomingMessage, Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { DatabaseSync } from 'node:sqlite';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import {
-  EVENT_TYPES,
-  latestSeqId,
-  parseCursor,
-  publishEvent,
-  readEventsAfter,
-  sanitizePublicPayload,
-  subscriberCount,
-} from '../src/events/bus.ts';
-import type { EventType, PublicEventEnvelope } from '../src/events/bus.ts';
+import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { EventPollResponseSchema, PublicEventEnvelopeSchema } from '../src/contracts/index.ts';
+import type { PublicEventEnvelope } from '../src/contracts/index.ts';
+import { latestSeqId, parseCursor, publishEvent, readEventsAfter, subscribe, subscriberCount } from '../src/events/bus.ts';
 import { createEventRoutes, formatSseFrame } from '../src/routes/events.ts';
 import type { RouteDefinition } from '../src/server.ts';
+
+const REPO_ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
+const SCHEMA_SQL = readFileSync(join(REPO_ROOT, 'src/db/schema.sql'), 'utf8');
+const MATCH_ID = '6f1c2b1e-8a4d-4c1e-9b7a-2f3d4e5a6b7c';
 
 /**
  * Creates a throwaway directory removed when the test process ends.
@@ -32,15 +30,27 @@ function scratchDir(prefix: string): string {
 }
 
 /**
- * Opens a file-backed WAL database, as production does.
- * @param path - Database file path.
+ * Opens a database with the A-001 schema applied, as the app's database client does.
+ * @param path - Database file path, or `:memory:`.
  * @returns The open handle.
  */
-function openWal(path: string): DatabaseSync {
+function openDb(path = ':memory:'): DatabaseSync {
   const db = new DatabaseSync(path);
-  db.exec('PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;');
+  if (path !== ':memory:') db.exec('PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;');
+  db.exec(SCHEMA_SQL);
   return db;
 }
+
+/**
+ * Builds a valid `match.evaluated` payload.
+ * @param score - Composite score.
+ * @returns The payload.
+ */
+function evaluated(score: number) {
+  return { match_id: MATCH_ID, pseudonym_a: 'Thread-7C4E', pseudonym_b: 'Spool-A1B2', composite_score: score };
+}
+
+const registered = { participant_pseudonym: 'Thread-7C4E' };
 
 interface Harness {
   db: DatabaseSync;
@@ -57,7 +67,7 @@ interface Harness {
  */
 async function startHarness(options: { heartbeatMs?: number; dbPollMs?: number } = {}): Promise<Harness> {
   const dbPath = join(scratchDir('events'), 'ariadne.db');
-  const db = openWal(dbPath);
+  const db = openDb(dbPath);
   const routes: RouteDefinition[] = createEventRoutes({ heartbeatMs: 60_000, dbPollMs: 60_000, ...options });
   const startedAt = Date.now();
   const server = createServer((req, res) => {
@@ -70,7 +80,7 @@ async function startHarness(options: { heartbeatMs?: number; dbPollMs?: number }
     }
     void route.handler(req, res, { db, params: {}, url, log: { info() {} }, startedAt });
   });
-  await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
+  await new Promise<void>((done) => server.listen(0, '127.0.0.1', done));
   const { port } = server.address() as AddressInfo;
   return {
     db,
@@ -78,11 +88,11 @@ async function startHarness(options: { heartbeatMs?: number; dbPollMs?: number }
     base: `http://127.0.0.1:${port}`,
     server,
     close: () =>
-      new Promise<void>((resolve) => {
+      new Promise<void>((done) => {
         server.closeAllConnections();
         server.close(() => {
           db.close();
-          resolve();
+          done();
         });
       }),
   };
@@ -91,7 +101,7 @@ async function startHarness(options: { heartbeatMs?: number; dbPollMs?: number }
 /**
  * GETs a JSON endpoint.
  * @param url - Absolute URL.
- * @returns Status and parsed body.
+ * @returns Status, parsed body and headers.
  */
 async function getJson(url: string): Promise<{ status: number; body: any; headers: Headers }> {
   const res = await fetch(url);
@@ -102,7 +112,7 @@ interface SseClient {
   response: IncomingMessage;
   /** Everything received so far. */
   text(): string;
-  /** Parsed `data:` envelopes received so far. */
+  /** Parsed `data:` envelopes from complete frames received so far. */
   events(): PublicEventEnvelope[];
   /** Resolves once `predicate` holds for the received text. */
   waitFor(predicate: (text: string) => boolean, timeoutMs?: number): Promise<void>;
@@ -116,7 +126,7 @@ interface SseClient {
  * @returns The connected client.
  */
 function openSse(url: string, headers: Record<string, string> = {}): Promise<SseClient> {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolveClient, reject) => {
     const req = request(url, { headers: { accept: 'text/event-stream', ...headers } }, (response) => {
       let buffer = '';
       const waiters: Array<() => void> = [];
@@ -137,7 +147,7 @@ function openSse(url: string, headers: Record<string, string> = {}): Promise<Sse
             .map((line) => JSON.parse(line.slice('data: '.length)) as PublicEventEnvelope),
         waitFor(predicate, timeoutMs = 3000) {
           return new Promise<void>((done, fail) => {
-            const timer = setTimeout(() => fail(new Error(`timed out; received: ${JSON.stringify(buffer)}`)), timeoutMs);
+            const timer = setTimeout(() => fail(new Error(`timed out; received: ${JSON.stringify(buffer.slice(-500))}`)), timeoutMs);
             const check = (): void => {
               if (predicate(buffer)) {
                 clearTimeout(timer);
@@ -149,7 +159,7 @@ function openSse(url: string, headers: Record<string, string> = {}): Promise<Sse
         },
         close: () => req.destroy(),
       };
-      resolve(client);
+      resolveClient(client);
     });
     req.on('error', reject);
     req.end();
@@ -169,129 +179,101 @@ async function eventually(condition: () => boolean, timeoutMs = 2000): Promise<v
   }
 }
 
+/**
+ * Counts stored events.
+ * @param db - An open database handle.
+ * @returns Row count of `domain_events`.
+ */
+function rowCount(db: DatabaseSync): number {
+  return Number((db.prepare('SELECT COUNT(*) AS n FROM domain_events').get() as { n: number }).n);
+}
+
 describe('event bus', () => {
-  test('assigns strictly increasing seq_ids and reads them back in order', () => {
-    const db = new DatabaseSync(':memory:');
-    const published = EVENT_TYPES.map((type) => publishEvent(db, type, { n: type }));
+  test('assigns strictly increasing seq_ids and serves contract-valid envelopes in order', () => {
+    const db = openDb();
+    const published = [10, 20, 30, 40].map((s) => publishEvent(db, 'match.evaluated', evaluated(s)).envelope);
     const ids = published.map((e) => e.seq_id);
-    assert.deepEqual(ids, [...ids].sort((a, b) => a - b));
-    assert.equal(new Set(ids).size, ids.length);
+    assert.deepEqual(ids, [1, 2, 3, 4]);
+    assert.equal(new Set(published.map((e) => e.event_id)).size, 4);
+    for (const envelope of published) PublicEventEnvelopeSchema.parse(envelope);
     assert.deepEqual(readEventsAfter(db, 0), published);
-    assert.deepEqual(readEventsAfter(db, ids[4]!), published.slice(5));
-    assert.equal(latestSeqId(db), ids.at(-1));
+    assert.deepEqual(readEventsAfter(db, 2), published.slice(2));
+    assert.equal(latestSeqId(db), 4);
     db.close();
   });
 
   test('latestSeqId is 0 on an empty stream', () => {
-    const db = new DatabaseSync(':memory:');
+    const db = openDb();
     assert.equal(latestSeqId(db), 0);
     assert.deepEqual(readEventsAfter(db, 0), []);
     db.close();
   });
 
-  test('rejects event types outside the canonical catalog', () => {
-    const db = new DatabaseSync(':memory:');
-    assert.throws(() => publishEvent(db, 'agent.heartbeat' as EventType, {}), /Unknown event type/);
-    assert.equal(latestSeqId(db), 0);
+  test('rejects event types outside the canonical catalog and writes nothing', () => {
+    const db = openDb();
+    assert.throws(() => publishEvent(db, 'agent.heartbeat' as any, {} as any));
+    assert.equal(rowCount(db), 0);
     db.close();
   });
 
-  test('strips github_username and avatar_url without display consent, at any depth', () => {
-    const payload = {
-      participant_id: 'p1',
-      pseudonym: 'Thread-7C4E',
-      github_username: 'octocat',
-      avatar_url: 'https://avatars.example/1',
-      score_breakdown: { github_username: 'octocat', avatar_url: 'x', recency: 9 },
-      capabilities: [{ avatar_url: 'y', category: 'language' }],
-    };
-    assert.deepEqual(sanitizePublicPayload('participant.registered', payload), {
-      participant_id: 'p1',
-      pseudonym: 'Thread-7C4E',
-      score_breakdown: { recency: 9 },
-      capabilities: [{ category: 'language' }],
-    });
-  });
-
-  test('keeps github_username and avatar_url with display consent', () => {
-    const out = sanitizePublicPayload(
-      'participant.registered',
-      { github_username: 'octocat', avatar_url: 'https://avatars.example/1' },
-      true,
-    );
-    assert.deepEqual(out, { github_username: 'octocat', avatar_url: 'https://avatars.example/1' });
-  });
-
-  test('always strips contact details and secrets, even with consent', () => {
-    const out = sanitizePublicPayload(
-      'introduction.completed',
-      {
-        match_id: 'm1',
-        pseudonym_a: 'Thread-A',
-        pseudonym_b: 'Thread-B',
-        channel: 'web',
-        contact_card: '@me',
-        email: 'a@b.c',
-        participant_email: 'a@b.c',
-        phone_number: '555',
-        github_user_id: 42,
-        access_token: 't',
-        shared_intro_notes: [{ body: 'hi' }],
-      },
-      true,
-    );
-    assert.deepEqual(out, { match_id: 'm1', pseudonym_a: 'Thread-A', pseudonym_b: 'Thread-B', channel: 'web' });
-  });
-
-  test('drops any key not on the public allowlist, including identity-bearing aliases', () => {
-    const out = sanitizePublicPayload(
-      'profile.analysis.completed',
-      {
-        participant_id: 'p1',
-        cluster: 'infra',
-        login: 'octocat',
-        html_url: 'https://github.com/octocat',
-        profile_url: 'https://github.com/octocat',
-        project_repo: 'octocat/hello',
-        relevant_projects: ['octocat/hello'],
-        summary: 'octocat builds compilers',
-        score_breakdown: { recency: 8, repo: 'octocat/x' },
-      },
-      true,
-    );
-    assert.deepEqual(out, { participant_id: 'p1', cluster: 'infra', score_breakdown: { recency: 8 } });
-  });
-
-  test('display consent never reveals identity on two-participant events', () => {
-    for (const type of ['match.candidate.generated', 'match.evaluated', 'introduction.proposed', 'introduction.accepted', 'introduction.completed'] as const) {
-      const out = sanitizePublicPayload(
-        type,
-        { match_id: 'm1', pseudonym_a: 'A', pseudonym_b: 'B', github_username: 'octocat', avatar_url: 'x' },
-        true,
-      );
-      assert.deepEqual(out, { match_id: 'm1', pseudonym_a: 'A', pseudonym_b: 'B' }, type);
+  test('rejects an unconsented username, contact card or unknown key and writes nothing', () => {
+    const db = openDb();
+    const leaks = [
+      { ...registered, github_username: 'octocat' },
+      { ...registered, avatar_url: 'https://avatars.example/1' },
+      { ...registered, contact_card: '@me' },
+      { ...registered, login: 'octocat' },
+      { participant_pseudonym: 'octocat' },
+    ];
+    for (const payload of leaks) {
+      assert.throws(() => publishEvent(db, 'participant.registered', payload as any), JSON.stringify(payload));
     }
-  });
-
-  test('introduction.declined carries no identifying payload on the public stream', () => {
-    const db = new DatabaseSync(':memory:');
-    const event = publishEvent(db, 'introduction.declined', { match_id: 'm1', participant_id: 'p1' });
-    assert.deepEqual(event.payload, {});
+    assert.equal(rowCount(db), 0);
     db.close();
   });
 
-  test('persists only the sanitized payload, so raw PII never reaches the table', () => {
-    const db = new DatabaseSync(':memory:');
-    publishEvent(db, 'participant.registered', { pseudonym: 'T', github_username: 'octocat', contact_card: '@me' });
-    const row = db.prepare('SELECT public_payload FROM domain_events').get() as { public_payload: string };
-    assert.equal(row.public_payload, JSON.stringify({ pseudonym: 'T' }));
+  test('identity is accepted only inside a consented display block', () => {
+    const db = openDb();
+    const display = { public_display_consent: true as const, github_username: 'octocat', avatar_url: null };
+    const { envelope } = publishEvent(db, 'participant.registered', { ...registered, display });
+    assert.deepEqual(envelope.payload, { ...registered, display });
+    assert.throws(() =>
+      publishEvent(db, 'participant.registered', { ...registered, display: { ...display, public_display_consent: false } } as any),
+    );
+    assert.equal(rowCount(db), 1);
     db.close();
   });
 
-  test('does not mutate the caller payload', () => {
-    const payload = { github_username: 'octocat', nested: { email: 'a@b.c' } };
-    sanitizePublicPayload('participant.registered', payload);
-    assert.deepEqual(payload, { github_username: 'octocat', nested: { email: 'a@b.c' } });
+  test('introduction.declined carries only the aggregate count', () => {
+    const db = openDb();
+    assert.deepEqual(publishEvent(db, 'introduction.declined', { declined_total: 3 }).envelope.payload, { declined_total: 3 });
+    assert.throws(() => publishEvent(db, 'introduction.declined', { declined_total: 4, match_id: MATCH_ID } as any));
+    db.close();
+  });
+
+  test('a repeated idempotency key inserts nothing, returns the stored event and wakes no one', () => {
+    const db = openDb();
+    const woken: number[] = [];
+    const unsubscribe = subscribe(db, (seq) => woken.push(seq));
+    const key = `${MATCH_ID}:a:interested`;
+    const proposed = { match_id: MATCH_ID, pseudonym_a: 'Thread-7C4E', pseudonym_b: 'Spool-A1B2' };
+    const first = publishEvent(db, 'introduction.proposed', proposed, { idempotencyKey: key });
+    const second = publishEvent(db, 'introduction.proposed', proposed, { idempotencyKey: key });
+    assert.equal(first.inserted, true);
+    assert.equal(second.inserted, false);
+    assert.deepEqual(second.envelope, first.envelope);
+    assert.equal(rowCount(db), 1);
+    assert.deepEqual(woken, [first.envelope.seq_id]);
+    unsubscribe();
+    db.close();
+  });
+
+  test('events without an idempotency key never collide', () => {
+    const db = openDb();
+    publishEvent(db, 'match.evaluated', evaluated(50));
+    publishEvent(db, 'match.evaluated', evaluated(50));
+    assert.equal(rowCount(db), 2);
+    db.close();
   });
 
   test('parseCursor accepts non-negative integers and rejects everything else', () => {
@@ -303,20 +285,23 @@ describe('event bus', () => {
     for (const bad of ['-1', '1.5', 'abc', '1e3', '99999999999999999999']) assert.equal(parseCursor(bad), null, bad);
   });
 
-  test('formatSseFrame uses seq_id as the SSE id', () => {
-    const frame = formatSseFrame({ seq_id: 7, type: 'match.evaluated', occurred_at: 't', payload: {} });
-    assert.equal(frame, `id: 7\ndata: {"seq_id":7,"type":"match.evaluated","occurred_at":"t","payload":{}}\n\n`);
+  test('formatSseFrame uses seq_id as the SSE id and the envelope as data', () => {
+    const db = openDb();
+    const { envelope } = publishEvent(db, 'match.evaluated', evaluated(70));
+    assert.equal(formatSseFrame(envelope), `id: ${envelope.seq_id}\ndata: ${JSON.stringify(envelope)}\n\n`);
+    db.close();
   });
 });
 
 describe('GET /api/events/poll', () => {
-  test('returns events after the cursor with the latest seq_id', async () => {
+  test('returns events after the cursor with the latest seq_id, matching the contract schema', async () => {
     const h = await startHarness();
     try {
-      const all = [1, 2, 3].map((n) => publishEvent(h.db, 'match.evaluated', { n }));
+      const all = [1, 2, 3].map((n) => publishEvent(h.db, 'match.evaluated', evaluated(n)).envelope);
       const { status, body, headers } = await getJson(`${h.base}/api/events/poll?after=${all[0]!.seq_id}`);
       assert.equal(status, 200);
       assert.equal(headers.get('cache-control'), 'no-store');
+      EventPollResponseSchema.parse(body);
       assert.deepEqual(body, { events: all.slice(1), latest_seq_id: all[2]!.seq_id });
     } finally {
       await h.close();
@@ -326,7 +311,7 @@ describe('GET /api/events/poll', () => {
   test('defaults to after=0 and honours limit while latest_seq_id still reports the head', async () => {
     const h = await startHarness();
     try {
-      const all = [1, 2, 3].map((n) => publishEvent(h.db, 'match.evaluated', { n }));
+      const all = [1, 2, 3].map((n) => publishEvent(h.db, 'match.evaluated', evaluated(n)).envelope);
       const { body } = await getJson(`${h.base}/api/events/poll?limit=2`);
       assert.deepEqual(body.events, all.slice(0, 2));
       assert.equal(body.latest_seq_id, all[2]!.seq_id);
@@ -378,12 +363,12 @@ describe('GET /api/events/stream', () => {
 
   test('replays everything after Last-Event-ID, then delivers new events live', async () => {
     const h = await startHarness();
-    const before = [1, 2, 3].map((n) => publishEvent(h.db, 'match.evaluated', { n }));
+    const before = [1, 2, 3].map((n) => publishEvent(h.db, 'match.evaluated', evaluated(n)).envelope);
     const client = await openSse(`${h.base}/api/events/stream`, { 'Last-Event-ID': String(before[0]!.seq_id) });
     try {
       await client.waitFor(() => client.events().length === 2);
       assert.deepEqual(client.events(), before.slice(1));
-      const live = publishEvent(h.db, 'introduction.proposed', { match_id: 'm1' });
+      const live = publishEvent(h.db, 'introduction.declined', { declined_total: 1 }).envelope;
       await client.waitFor(() => client.events().length === 3);
       assert.deepEqual(client.events().at(-1), live);
       assert.match(client.text(), new RegExp(`id: ${live.seq_id}\\n`));
@@ -395,7 +380,7 @@ describe('GET /api/events/stream', () => {
 
   test('replays from ?after= when no Last-Event-ID is sent, and Last-Event-ID wins when both are', async () => {
     const h = await startHarness();
-    const all = [1, 2, 3].map((n) => publishEvent(h.db, 'match.evaluated', { n }));
+    const all = [1, 2, 3].map((n) => publishEvent(h.db, 'match.evaluated', evaluated(n)).envelope);
     const byQuery = await openSse(`${h.base}/api/events/stream?after=${all[1]!.seq_id}`);
     const both = await openSse(`${h.base}/api/events/stream?after=${all[1]!.seq_id}`, { 'Last-Event-ID': '0' });
     try {
@@ -412,11 +397,11 @@ describe('GET /api/events/stream', () => {
 
   test('with no cursor, starts live from the head and does not replay history', async () => {
     const h = await startHarness();
-    publishEvent(h.db, 'match.evaluated', { old: true });
+    publishEvent(h.db, 'match.evaluated', evaluated(1));
     const client = await openSse(`${h.base}/api/events/stream`);
     try {
       await client.waitFor((t) => t.includes('retry:'));
-      const live = publishEvent(h.db, 'match.evaluated', { old: false });
+      const live = publishEvent(h.db, 'match.evaluated', evaluated(2)).envelope;
       await client.waitFor(() => client.events().length >= 1);
       assert.deepEqual(client.events(), [live]);
     } finally {
@@ -427,7 +412,7 @@ describe('GET /api/events/stream', () => {
 
   test('a cursor beyond the head (store was reset) replays from the start instead of going silent', async () => {
     const h = await startHarness();
-    const all = [1, 2].map((n) => publishEvent(h.db, 'match.evaluated', { count: n }));
+    const all = [1, 2].map((n) => publishEvent(h.db, 'match.evaluated', evaluated(n)).envelope);
     const client = await openSse(`${h.base}/api/events/stream`, { 'Last-Event-ID': '9999' });
     try {
       await client.waitFor(() => client.events().length === 2);
@@ -442,13 +427,15 @@ describe('GET /api/events/stream', () => {
     const h = await startHarness();
     const total = 1200;
     h.db.exec('BEGIN');
-    for (let n = 0; n < total; n++) publishEvent(h.db, 'match.evaluated', { count: n });
+    for (let n = 0; n < total; n++) publishEvent(h.db, 'match.evaluated', evaluated(n % 101));
     h.db.exec('COMMIT');
     const client = await openSse(`${h.base}/api/events/stream?after=0`);
     try {
       await client.waitFor(() => client.events().length === total, 10_000);
-      const ids = client.events().map((e) => e.seq_id);
-      assert.deepEqual(ids, Array.from({ length: total }, (_, i) => i + 1));
+      assert.deepEqual(
+        client.events().map((e) => e.seq_id),
+        Array.from({ length: total }, (_, i) => i + 1),
+      );
     } finally {
       client.close();
       await h.close();
@@ -457,12 +444,11 @@ describe('GET /api/events/stream', () => {
 
   test('stream catch-up matches poll catch-up for the same cursor', async () => {
     const h = await startHarness();
-    const all = [1, 2, 3, 4].map((n) => publishEvent(h.db, 'opportunity.identified', { n }));
-    const cursor = all[0]!.seq_id;
-    const client = await openSse(`${h.base}/api/events/stream?after=${cursor}`);
+    [1, 2, 3, 4].map((n) => publishEvent(h.db, 'match.evaluated', evaluated(n)));
+    const client = await openSse(`${h.base}/api/events/stream?after=1`);
     try {
       await client.waitFor(() => client.events().length === 3);
-      const { body } = await getJson(`${h.base}/api/events/poll?after=${cursor}`);
+      const { body } = await getJson(`${h.base}/api/events/poll?after=1`);
       assert.deepEqual(client.events(), body.events);
     } finally {
       client.close();
@@ -473,10 +459,10 @@ describe('GET /api/events/stream', () => {
   test('picks up events written by another connection (e.g. the worker)', async () => {
     const h = await startHarness({ dbPollMs: 25 });
     const client = await openSse(`${h.base}/api/events/stream?after=0`);
-    const worker = openWal(h.dbPath);
+    const worker = new DatabaseSync(h.dbPath);
     try {
       await client.waitFor((t) => t.includes('retry:'));
-      const external = publishEvent(worker, 'github.fetch.completed', { participant_id: 'p1' });
+      const external = publishEvent(worker, 'github.fetch.completed', { ...registered, repo_count: 3, evidence_count: 9 }).envelope;
       await client.waitFor(() => client.events().length === 1);
       assert.deepEqual(client.events(), [external]);
     } finally {
@@ -499,14 +485,16 @@ describe('GET /api/events/stream', () => {
     }
   });
 
-  test('never streams fields the sanitizer removed', async () => {
+  test('a payload rejected by the contract never reaches a connected stream', async () => {
     const h = await startHarness();
     const client = await openSse(`${h.base}/api/events/stream?after=0`);
     try {
-      publishEvent(h.db, 'participant.registered', { pseudonym: 'T', github_username: 'octocat', avatar_url: 'a', email: 'e' });
+      await client.waitFor((t) => t.includes('retry:'));
+      assert.throws(() => publishEvent(h.db, 'participant.registered', { ...registered, github_username: 'octocat' } as any));
+      const ok = publishEvent(h.db, 'participant.registered', registered).envelope;
       await client.waitFor(() => client.events().length === 1);
-      assert.deepEqual(client.events()[0]!.payload, { pseudonym: 'T' });
-      assert.doesNotMatch(client.text(), /octocat|avatar_url|email/);
+      assert.deepEqual(client.events(), [ok]);
+      assert.doesNotMatch(client.text(), /octocat/);
     } finally {
       client.close();
       await h.close();
@@ -518,7 +506,7 @@ describe('GET /api/events/stream', () => {
     try {
       const res = await fetch(`${h.base}/api/events/stream`, { headers: { 'Last-Event-ID': 'nope' } });
       assert.equal(res.status, 400);
-      assert.equal((await res.json()).error, 'invalid_cursor');
+      assert.equal(((await res.json()) as { error: string }).error, 'invalid_cursor');
     } finally {
       await h.close();
     }
@@ -544,7 +532,6 @@ describe('GET /api/events/stream', () => {
       assert.equal(subscriberCount(h.db), 1);
       client.close();
       await eventually(() => subscriberCount(h.db) === 0);
-      publishEvent(h.db, 'match.evaluated', {});
     } finally {
       await h.close();
     }

@@ -1,162 +1,51 @@
+import { randomUUID } from 'node:crypto';
 import { EventEmitter } from 'node:events';
 import type { DatabaseSync } from 'node:sqlite';
+import { EVENT_PAYLOAD_SCHEMAS, EventTypeSchema } from '../contracts/index.ts';
+import type { EventPayload, EventType, PublicEventEnvelope } from '../contracts/index.ts';
 
-// Mirrors DATA_AND_EVENTS_CONTRACT.md §3 until A-001's src/contracts exports the canonical catalog.
-export const EVENT_TYPES = [
-  'participant.registered',
-  'github.fetch.started',
-  'github.fetch.completed',
-  'profile.analysis.completed',
-  'opportunity.identified',
-  'match.candidate.generated',
-  'match.evaluated',
-  'introduction.proposed',
-  'introduction.accepted',
-  'introduction.declined',
-  'introduction.completed',
-  'analysis.failed',
-] as const;
-
-export type EventType = (typeof EVENT_TYPES)[number];
-
-/** One row of the public event stream, as served by SSE and the poll endpoint. */
-export interface PublicEventEnvelope {
-  seq_id: number;
-  type: EventType;
-  occurred_at: string;
-  payload: Record<string, unknown>;
-}
+export const MAX_BATCH = 500;
 
 export interface PublishOptions {
   /**
-   * The subject participant's `public_display_consent`. Unlocks `github_username` and `avatar_url` only,
-   * and only on single-participant event types; two-participant events never carry them.
+   * Makes the publish idempotent: a second publish with the same key inserts nothing and
+   * returns the event already stored (e.g. `<match_id>:a:interested` for a repeated decision).
    */
-  publicDisplayConsent?: boolean;
+  idempotencyKey?: string;
   /** Event time; defaults to now. */
   occurredAt?: Date;
 }
 
-export const MAX_BATCH = 500;
+export interface PublishResult {
+  envelope: PublicEventEnvelope;
+  /** False when `idempotencyKey` matched an existing event and nothing was written. */
+  inserted: boolean;
+}
 
-export const EVENT_SCHEMA = `CREATE TABLE IF NOT EXISTS domain_events (
-  seq_id INTEGER PRIMARY KEY AUTOINCREMENT,
-  event_type TEXT NOT NULL,
-  public_payload TEXT NOT NULL,
-  occurred_at TEXT NOT NULL
-);`;
+interface EventRow {
+  seq_id: number;
+  event_id: string;
+  type: string;
+  payload_json: string;
+  occurred_at: string;
+}
 
-const EVENT_TYPE_SET: ReadonlySet<string> = new Set(EVENT_TYPES);
-
-/**
- * The only keys the public stream may carry, at any depth. Fail closed: a key not listed here is dropped,
- * so a producer adding a field cannot leak identity by accident. Free text and `owner/repo` names are
- * deliberately absent because they can embed a GitHub login.
- */
-export const PUBLIC_PAYLOAD_KEYS: ReadonlySet<string> = new Set([
-  'participant_id',
-  'pseudonym',
-  'display_alias',
-  'cluster',
-  'cluster_badge',
-  'analysis_state',
-  'stage',
-  'progress',
-  'match_id',
-  'participant_a_id',
-  'participant_b_id',
-  'pseudonym_a',
-  'pseudonym_b',
-  'channel',
-  'intro_state',
-  'composite_score',
-  'score_breakdown',
-  'complementary_skills',
-  'project_relevance',
-  'evidence_strength',
-  'recency',
-  'opportunity_id',
-  'opportunity_type',
-  'category',
-  'capabilities',
-  'label',
-  'confidence',
-  'count',
-  'evidence_count',
-  'error_code',
-  'duration_ms',
-  'attempt',
-]);
-
-// Shown only with the subject's public_display_consent, and only on events about exactly one participant.
-const CONSENT_GATED_KEYS: ReadonlySet<string> = new Set(['github_username', 'avatar_url']);
-const SINGLE_SUBJECT_TYPES: ReadonlySet<EventType> = new Set([
-  'participant.registered',
-  'github.fetch.started',
-  'github.fetch.completed',
-  'profile.analysis.completed',
-  'opportunity.identified',
-  'analysis.failed',
-]);
-// The public stream counts declines; it must not reveal who declined whom.
-const AGGREGATE_ONLY_TYPES: ReadonlySet<EventType> = new Set(['introduction.declined']);
-
-const ensured = new WeakSet<DatabaseSync>();
+const SELECT_COLUMNS = 'seq_id, event_id, type, payload_json, occurred_at';
 const emitters = new WeakMap<DatabaseSync, EventEmitter>();
 
 /**
- * Creates the `domain_events` table if it does not exist. Safe to call repeatedly.
- * @param db - An open database handle.
+ * Converts a stored row into its public envelope. Rows are validated on the way in, so they are trusted here.
+ * @param row - A `domain_events` row.
+ * @returns The public envelope.
  */
-export function ensureEventSchema(db: DatabaseSync): void {
-  if (ensured.has(db)) return;
-  db.exec(EVENT_SCHEMA);
-  ensured.add(db);
-}
-
-/**
- * Checks whether a string is one of the canonical event types.
- * @param value - Candidate type name.
- * @returns True for a catalogued `EventType`.
- */
-export function isEventType(value: string): value is EventType {
-  return EVENT_TYPE_SET.has(value);
-}
-
-/**
- * Keeps only allowlisted fields, at any depth, so the public stream stays pseudonymous.
- * `github_username` / `avatar_url` survive only with display consent on a single-participant
- * event type; aggregate-only types lose their whole payload.
- * @param type - The event type being published.
- * @param payload - The raw payload from the publisher.
- * @param publicDisplayConsent - Whether the event's single subject consented to public display.
- * @returns A new, sanitized payload; the input is not modified.
- */
-export function sanitizePublicPayload(
-  type: EventType,
-  payload: Record<string, unknown>,
-  publicDisplayConsent = false,
-): Record<string, unknown> {
-  if (AGGREGATE_ONLY_TYPES.has(type)) return {};
-  const allowIdentity = publicDisplayConsent && SINGLE_SUBJECT_TYPES.has(type);
-  return sanitizeValue(payload, allowIdentity) as Record<string, unknown>;
-}
-
-/**
- * Recursively copies a JSON-like value, keeping only allowlisted keys.
- * @param value - Value to copy.
- * @param allowIdentity - Whether consent-gated identity keys may be kept.
- * @returns The sanitized copy.
- */
-function sanitizeValue(value: unknown, allowIdentity: boolean): unknown {
-  if (Array.isArray(value)) return value.map((item) => sanitizeValue(item, allowIdentity));
-  if (value === null || typeof value !== 'object') return value;
-  const out: Record<string, unknown> = {};
-  for (const [key, child] of Object.entries(value)) {
-    const allowed = PUBLIC_PAYLOAD_KEYS.has(key) || (allowIdentity && CONSENT_GATED_KEYS.has(key));
-    if (allowed) out[key] = sanitizeValue(child, allowIdentity);
-  }
-  return out;
+function toEnvelope(row: EventRow): PublicEventEnvelope {
+  return {
+    seq_id: Number(row.seq_id),
+    event_id: row.event_id,
+    type: row.type,
+    occurred_at: row.occurred_at,
+    payload: JSON.parse(row.payload_json),
+  } as PublicEventEnvelope;
 }
 
 /**
@@ -175,35 +64,45 @@ function emitterFor(db: DatabaseSync): EventEmitter {
 }
 
 /**
- * Sanitizes and appends one event to `domain_events`, then wakes live subscribers.
- * @param db - An open database handle.
+ * Validates a payload against its type's strict public schema, appends it to `domain_events`,
+ * and wakes live subscribers. The strict schema is the privacy gate: a key the contract does not
+ * name (a raw username, contact card, token) is rejected, so it can never be stored or served.
+ * @param db - An open database handle whose schema includes `domain_events` (A-001 `src/db/schema.sql`).
  * @param type - A canonical event type.
- * @param payload - Raw payload; private fields are stripped before anything is written.
- * @param options - Display consent and event time.
- * @returns The stored public envelope with its assigned `seq_id`.
- * @throws If `type` is not in the canonical catalog.
+ * @param payload - The public payload for that type.
+ * @param options - Idempotency key and event time.
+ * @returns The stored envelope and whether this call inserted it.
+ * @throws If `type` is unknown or the payload fails its schema (nothing is written).
  */
-export function publishEvent(
+export function publishEvent<T extends EventType>(
   db: DatabaseSync,
-  type: EventType,
-  payload: Record<string, unknown> = {},
+  type: T,
+  payload: EventPayload<T>,
   options: PublishOptions = {},
-): PublicEventEnvelope {
-  if (!isEventType(type)) throw new Error(`Unknown event type: ${String(type)}`);
-  ensureEventSchema(db);
-  const publicPayload = sanitizePublicPayload(type, payload, options.publicDisplayConsent ?? false);
-  const occurredAt = (options.occurredAt ?? new Date()).toISOString();
+): PublishResult {
+  const eventType = EventTypeSchema.parse(type);
+  const validPayload = EVENT_PAYLOAD_SCHEMAS[eventType].parse(payload);
+  const idempotencyKey = options.idempotencyKey ?? null;
   const result = db
-    .prepare('INSERT INTO domain_events (event_type, public_payload, occurred_at) VALUES (?, ?, ?)')
-    .run(type, JSON.stringify(publicPayload), occurredAt);
-  const envelope: PublicEventEnvelope = {
-    seq_id: Number(result.lastInsertRowid),
-    type,
-    occurred_at: occurredAt,
-    payload: publicPayload,
-  };
-  emitterFor(db).emit('published', envelope.seq_id);
-  return envelope;
+    .prepare(
+      `INSERT INTO domain_events (event_id, type, payload_json, idempotency_key, occurred_at)
+       VALUES (?, ?, ?, ?, ?) ON CONFLICT (idempotency_key) DO NOTHING`,
+    )
+    .run(randomUUID(), eventType, JSON.stringify(validPayload), idempotencyKey, (options.occurredAt ?? new Date()).toISOString());
+
+  if (Number(result.changes) === 0) {
+    const existing = db
+      .prepare(`SELECT ${SELECT_COLUMNS} FROM domain_events WHERE idempotency_key = ?`)
+      .get(idempotencyKey) as EventRow | undefined;
+    if (!existing) throw new Error(`Event insert for ${eventType} wrote nothing and matched no idempotency key`);
+    return { envelope: toEnvelope(existing), inserted: false };
+  }
+
+  const row = db
+    .prepare(`SELECT ${SELECT_COLUMNS} FROM domain_events WHERE seq_id = ?`)
+    .get(Number(result.lastInsertRowid)) as unknown as EventRow;
+  emitterFor(db).emit('published', Number(row.seq_id));
+  return { envelope: toEnvelope(row), inserted: true };
 }
 
 /**
@@ -211,22 +110,14 @@ export function publishEvent(
  * @param db - An open database handle.
  * @param after - Exclusive lower bound on `seq_id`.
  * @param limit - Maximum rows to return (clamped to 1..MAX_BATCH).
- * @returns The envelopes, built only from the `public_payload` column.
+ * @returns The envelopes.
  */
 export function readEventsAfter(db: DatabaseSync, after: number, limit = MAX_BATCH): PublicEventEnvelope[] {
-  ensureEventSchema(db);
   const bounded = Math.min(Math.max(Math.trunc(limit), 1), MAX_BATCH);
   const rows = db
-    .prepare(
-      'SELECT seq_id, event_type, public_payload, occurred_at FROM domain_events WHERE seq_id > ? ORDER BY seq_id ASC LIMIT ?',
-    )
-    .all(after, bounded) as Array<{ seq_id: number; event_type: string; public_payload: string; occurred_at: string }>;
-  return rows.map((row) => ({
-    seq_id: Number(row.seq_id),
-    type: row.event_type as EventType,
-    occurred_at: row.occurred_at,
-    payload: JSON.parse(row.public_payload) as Record<string, unknown>,
-  }));
+    .prepare(`SELECT ${SELECT_COLUMNS} FROM domain_events WHERE seq_id > ? ORDER BY seq_id ASC LIMIT ?`)
+    .all(after, bounded) as unknown as EventRow[];
+  return rows.map(toEnvelope);
 }
 
 /**
@@ -235,7 +126,6 @@ export function readEventsAfter(db: DatabaseSync, after: number, limit = MAX_BAT
  * @returns The latest sequence number, or 0 when no event exists.
  */
 export function latestSeqId(db: DatabaseSync): number {
-  ensureEventSchema(db);
   const row = db.prepare('SELECT COALESCE(MAX(seq_id), 0) AS latest FROM domain_events').get() as { latest: number };
   return Number(row.latest);
 }

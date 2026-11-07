@@ -1,7 +1,7 @@
 import type { ServerResponse } from 'node:http';
 import type { RouteDefinition } from '../server.ts';
 import { latestSeqId, MAX_BATCH, parseCursor, readEventsAfter, subscribe } from '../events/bus.ts';
-import type { PublicEventEnvelope } from '../events/bus.ts';
+import type { PublicEventEnvelope } from '../contracts/index.ts';
 
 export const HEARTBEAT_MS = 15_000;
 // Picks up events written by other connections (e.g. the worker), which never signal this process.
