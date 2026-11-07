@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ariadne — Autonomous Sprint Reports Hub (SPRINT_REPORT_CONTRACT v2.0.0)</title>
+  <!-- TANGLECLAW_OG_META_START -->
+  <meta name="description" content="Ariadne Autonomous Sprint Reports Hub (v2.0.0): Longitudinal engineering velocity, 8-timestamp release cadence, 4-state completion accounting, 3-tier operating cost ledger, and 16-point Rule #283 governance audits across v0.1.0 – v1.0.0." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Ariadne Autonomous Sprint Reports (Powered by TangleClaw)" />
+  <meta property="og:title" content="Ariadne — Autonomous Sprint Reports Hub (SPRINT_REPORT_CONTRACT v2.0.0)" />
+  <meta property="og:description" content="Ariadne Autonomous Sprint Reports Hub (v2.0.0): Longitudinal engineering velocity, 8-timestamp release cadence, 4-state completion accounting, and 3-tier operating cost ledger." />
+  <meta property="og:url" content="https://jason-vaughan.github.io/Ariadne/reports/" />
+  <meta property="og:image" content="https://jason-vaughan.github.io/Ariadne/reports/assets/og-card.png" />
+  <meta property="og:image:type" content="image/png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Ariadne — Autonomous Sprint Reports Hub (SPRINT_REPORT_CONTRACT v2.0.0)" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Ariadne — Autonomous Sprint Reports Hub (SPRINT_REPORT_CONTRACT v2.0.0)" />
+  <meta name="twitter:description" content="Ariadne Autonomous Sprint Reports Hub (v2.0.0): Longitudinal engineering velocity, 8-timestamp release cadence, and 3-tier operating cost ledger." />
+  <meta name="twitter:image" content="https://jason-vaughan.github.io/Ariadne/reports/assets/og-card.png" />
+  <link rel="icon" type="image/png" href="./assets/logo-icon.png" />
+  <link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
+  <!-- TANGLECLAW_OG_META_END -->
+  <style>
+    :root {
+      --bg: #070b14;
+      --panel: #0f172a;
+      --panel-alt: #131c31;
+      --border: #1e293b;
+      --border-hi: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --cyan: #38bdf8;
+      --green: #34d399;
+      --purple: #c084fc;
+      --amber: #fbbf24;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+      background: radial-gradient(circle at 15% 0%, #0f1f3d 0%, var(--bg) 45%);
+      color: var(--text);
+      line-height: 1.55;
+    }
+    a { color: var(--cyan); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.86em;
+      background: rgba(148, 163, 184, 0.14);
+      padding: 0.12rem 0.36rem;
+      border-radius: 5px;
+      color: #e2e8f0;
+    }
+    .topnav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(7, 11, 20, 0.9);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      font-weight: 800;
+      font-size: 1.05rem;
+    }
+    .brand-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--cyan), var(--green));
+      box-shadow: 0 0 12px var(--cyan);
+    }
+    .nav-links {
+      display: flex;
+      gap: 1.1rem;
+      flex-wrap: wrap;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    main { max-width: 1220px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+    .hero {
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(30, 27, 75, 0.72));
+      border: 1px solid var(--border-hi);
+      border-radius: 18px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.22rem 0.65rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .badge-green { background: rgba(52, 211, 153, 0.16); color: var(--green); border: 1px solid rgba(52, 211, 153, 0.4); }
+    .badge-cyan { background: rgba(56, 189, 248, 0.16); color: var(--cyan); border: 1px solid rgba(56, 189, 248, 0.4); }
+    .badge-purple { background: rgba(192, 132, 252, 0.16); color: var(--purple); border: 1px solid rgba(192, 132, 252, 0.4); }
+    .badge-amber { background: rgba(251, 191, 36, 0.16); color: var(--amber); border: 1px solid rgba(251, 191, 36, 0.4); }
+    h1 { margin: 0.65rem 0 0.5rem; font-size: clamp(1.65rem, 2.8vw, 2.35rem); }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 0.85rem;
+      margin-top: 1.35rem;
+    }
+    .kpi-card {
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 0.95rem 1.1rem;
+    }
+    .kpi-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 700; }
+    .kpi-value { font-size: 1.45rem; font-weight: 800; margin: 0.25rem 0; }
+    .kpi-sub { font-size: 0.78rem; color: var(--muted); }
+    .report-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 1.1rem;
+      margin: 1.25rem 0 2.25rem;
+    }
+    .report-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.35rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .report-card:hover { transform: translateY(-2px); border-color: var(--cyan); text-decoration: none; }
+    .report-card h3 { margin: 0.55rem 0 0.4rem; font-size: 1.15rem; color: var(--text); }
+    .report-card p { margin: 0 0 0.9rem; font-size: 0.88rem; color: var(--muted); }
+    .card-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.35rem;
+      margin-bottom: 1.5rem;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+    th, td { text-align: left; padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    body { position: relative; min-height: 100vh; }
+    .tc-bg-watermark { position: fixed; inset: 0; z-index: 0; pointer-events: none; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .tc-bg-watermark img { width: min(82vw, 860px); height: min(82vw, 860px); object-fit: contain; opacity: 0.09; filter: drop-shadow(0 0 48px rgba(52, 211, 153, 0.16)); user-select: none; -webkit-user-drag: none; }
+    main { position: relative; z-index: 1; }
+  </style>
+</head>
+<body>
+  <div class="tc-bg-watermark" aria-hidden="true">
+    <img src="/tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="" />
+  </div>
+  <nav class="topnav">
+    <div class="brand">
+      <span class="brand-dot"></span>
+      <span>Ariadne · Autonomous Sprint Reports Hub (<code>SPRINT_REPORT_CONTRACT v2.0.0</code>)</span>
+    </div>
+    <div class="nav-links">
+      <a href="../" style="color:var(--green);">← Back to Public Roadmap (Trains &amp; Cars)</a>
+      <a href="./v0.1.0/">🔬 Sprint v0.1.0 Executive Report</a>
+      <a href="#longitudinal">Longitudinal Ledger</a>
+      <a href="/docs/">📚 All Branded Docs (52)</a>
+      <a href="/docs/MASTER_SSOT.md">⭐ Master SSOT Index</a>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <span class="badge badge-green">SPRINT_REPORT_CONTRACT v2.0.0 · PYTHON REPORTING PIPELINE ACTIVE</span>
+      <span class="badge badge-cyan" style="margin-left:8px;">Validated by validate-sprint-report.py --all (10/10 Unit Tests Green)</span>
+      <h1>Ariadne Autonomous Sprint Reports &amp; Judge Telemetry Archive</h1>
+      <p style="color:var(--muted);max-width:78ch;margin:0.4rem 0 0;">
+        Every Ariadne release wave (<code>v0.1.0 → v0.2.0 → v0.3.0 → v0.4.0 → v1.0.0</code>) is audited by <code>Ariadne-Obsr</code> and <code>Ariadne-PM</code> using the TangleClaw Python reporting toolchain (<code>metrics_schema.py</code>, <code>validate-sprint-report.py</code>, <code>sync-live-sprint.py</code>, <code>enrich-sprint-reports.py</code>). Each report enforces the 8-section executive layout, 8-timestamp release cadence, 4-state work-completion accounting, 3-tier operating cost ledger, and 16-point <code>Rule #283</code> governance audit.
+      </p>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-label">Planned Sprint Waves</div>
+          <div class="kpi-value" style="color:var(--cyan)">5 Releases</div>
+          <div class="kpi-sub"><code>v0.1.0</code>, <code>v0.2.0</code>, <code>v0.3.0</code>, <code>v0.4.0</code>, <code>v1.0.0</code></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Active MVP Issues Sorted</div>
+          <div class="kpi-value" style="color:var(--green)">15 Issues</div>
+          <div class="kpi-sub">Sorted across 4 persistent parallel Trains (0 shared files)</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Autonomous Fleet Topology</div>
+          <div class="kpi-value" style="color:var(--purple)">9 Lanes</div>
+          <div class="kpi-sub"><code>PM</code>, <code>Arc</code>, <code>PRR</code>, <code>INT</code>, <code>Obsr</code> + <code>Lane-A..D</code></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">3-Tier Cost Transparency</div>
+          <div class="kpi-value" style="color:var(--green)">$0.00 Marginal</div>
+          <div class="kpi-sub">Tier 1 cash <code>$0.00</code> · Tier 2 pool <code>$2.46/hr</code> · Tier 3 API shadow</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Contract Validator Status</div>
+          <div class="kpi-value" style="color:var(--amber)">100% PASS</div>
+          <div class="kpi-sub"><code>validate-sprint-report.py --all</code> + <code>10/10</code> unit tests</div>
+        </div>
+      </div>
+    </section>
+
+    <h2 style="margin:0 0 0.5rem;">Published &amp; Staged Sprint Reports (<code>v0.1.0 – v1.0.0</code>)</h2>
+    <div class="report-grid">
+      <a class="report-card" href="./v0.1.0/">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <span class="badge badge-green">● Latest Release</span>
+            <span style="font-size:0.78rem;color:var(--muted);">Wave 1 · Milestone #1</span>
+          </div>
+          <h3>Sprint <code>v0.1.0</code> — Spine, Contracts, Event Stream &amp; Reports Hub</h3>
+          <p>
+            4 pairwise file-disjoint Cars across <code>Ariadne-Lane-A..D</code>: Canonical Contracts &amp; 10-table SQLite WAL schema (<code>#1</code>), Express + SSE Spine with auto-mounted <code>src/routes/*.ts</code> loader (<code>#14</code>), Structured Event Stream (<code>#9</code>), and Public Roadmap &amp; Reports Hub (<code>#15</code>).
+          </p>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.8rem;color:var(--cyan);font-weight:700;padding-top:0.65rem;border-top:1px solid var(--border);">
+          <span>4/4 Issues · 5 PRs · +1,480 LOC · T_eng 1.20h</span>
+          <span>Open Report →</span>
+        </div>
+      </a>
+
+      <div class="report-card" style="opacity:0.9;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <span class="badge badge-cyan">Wave 2 Target (Saturday 10:30 PST)</span>
+            <span style="font-size:0.78rem;color:var(--muted);">Milestone #2 · 4 Cars</span>
+          </div>
+          <h3>Sprint <code>v0.2.0</code> — Onboarding, GitHub Ingestion, Scorer &amp; 16:9 Graph</h3>
+          <p>
+            4 parallel Cars: Mobile <code>/join</code> onboarding flow (<code>#2</code>, <code>Lane-A</code>), GitHub signal ingestion &amp; SQLite caching (<code>#3</code>, <code>Lane-B</code>), Deterministic 5-factor complementarity scorer (<code>#6</code>, <code>Lane-C</code>), and 16:9 Stage Network Graph canvas (<code>#10</code>, <code>Lane-D</code>).
+          </p>
+        </div>
+        <div style="font-size:0.78rem;color:var(--muted);padding-top:0.65rem;border-top:1px solid var(--border);">
+          Auto-generated by <code>sync-live-sprint.py</code> &amp; <code>gen_v020.py</code> upon Wave 2 completion
+        </div>
+      </div>
+
+      <div class="report-card" style="opacity:0.9;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <span class="badge badge-purple">Wave 3 Target (Saturday 11:30 PST)</span>
+            <span style="font-size:0.78rem;color:var(--muted);">Milestone #3 · 4 Cars</span>
+          </div>
+          <h3>Sprint <code>v0.3.0</code> — Thread View, Capability Agent, Explanations &amp; Spotlight</h3>
+          <p>
+            4 parallel Cars: Mobile <code>/me</code> Thread View (<code>#8</code>, <code>Lane-A</code>), Capability Profile Inference Agent (<code>#4</code>, <code>Lane-B</code>), Explainable Match Card &amp; Starter Agent (<code>#7</code>, <code>Lane-C</code>), and 16:9 Stage Spotlight &amp; Live Event Ticker (<code>#11</code>, <code>Lane-D</code>).
+          </p>
+        </div>
+        <div style="font-size:0.78rem;color:var(--muted);padding-top:0.65rem;border-top:1px solid var(--border);">
+          Auto-generated by <code>sync-live-sprint.py</code> &amp; <code>gen_v030.py</code> upon Wave 3 completion
+        </div>
+      </div>
+
+      <div class="report-card" style="opacity:0.9;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <span class="badge badge-amber">Wave 4 Target (Saturday 12:15 PST)</span>
+            <span style="font-size:0.78rem;color:var(--muted);">Milestone #4 · 3 Cars</span>
+          </div>
+          <h3>Sprint <code>v0.4.0</code> — Double-Opt-In Intro Loop, Opportunity Agent &amp; Worker</h3>
+          <p>
+            3 parallel Cars: Double-opt-in introduction flow &amp; <code>/intro-room</code> screen (<code>#12</code>, <code>Lane-A</code>), Opportunity Thesis Agent (<code>#5</code>, <code>Lane-B</code>), and Asynchronous SQLite Job Queue &amp; Pipeline Orchestrator (<code>#16</code>, <code>Lane-C</code>).
+          </p>
+        </div>
+        <div style="font-size:0.78rem;color:var(--muted);padding-top:0.65rem;border-top:1px solid var(--border);">
+          Auto-generated by <code>sync-live-sprint.py</code> &amp; <code>gen_v040.py</code> upon Wave 4 completion
+        </div>
+      </div>
+
+      <div class="report-card" style="opacity:0.9;">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+            <span class="badge badge-green">Wave 5 Finale (Saturday 13:00–17:45 PST)</span>
+            <span style="font-size:0.78rem;color:var(--muted);">Milestone #5 · Demo Cut</span>
+          </div>
+          <h3>Sprint <code>v1.0.0</code> — 50-Persona Hackathon Seed, QR Dogfooding &amp; Judge Retrospective</h3>
+          <p>
+            Ships the 50-persona realistic SF hackathon seed dataset &amp; offline demo safeguard (<code>#13</code>), full mobile QR dogfooding verification, and the multi-version <code>v0.1.0–v1.0.0-retrospective</code> report for the 18:00 PST judging session.
+          </p>
+        </div>
+        <div style="font-size:0.78rem;color:var(--muted);padding-top:0.65rem;border-top:1px solid var(--border);">
+          Auto-generated by <code>gen_v100.py</code> &amp; <code>gen_v010_v100_retro.py</code> at 17:45 PST
+        </div>
+      </div>
+    </div>
+
+    <div class="card-panel" id="longitudinal">
+      <h3 style="margin:0 0 0.75rem;color:var(--cyan);">📊 Longitudinal 5-Wave Sprint Ledger (<code>v0.1.0 → v1.0.0</code>)</h3>
+      <div style="overflow-x:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Release Wave</th>
+              <th>Milestone &amp; Cars</th>
+              <th>Issues Addressed</th>
+              <th>Parallel Builder Lanes</th>
+              <th>Shared Files</th>
+              <th>Report Status &amp; Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong><a href="./v0.1.0/"><code>v0.1.0</code></a></strong></td>
+              <td>Milestone #1 · 4 Cars (<code>Car 01-A..D</code>)</td>
+              <td><code>#1, #14, #9, #15</code> (4 issues)</td>
+              <td><code>Ariadne-Lane-A, B, C, D</code></td>
+              <td><code>0</code> (100% Disjoint)</td>
+              <td><a href="./v0.1.0/"><span class="badge badge-green">Published (1,919 lines · v2.0.0 PASS)</span></a></td>
+            </tr>
+            <tr>
+              <td><strong><code>v0.2.0</code></strong></td>
+              <td>Milestone #2 · 4 Cars (<code>Car 02-A..D</code>)</td>
+              <td><code>#2, #3, #6, #10</code> (4 issues)</td>
+              <td><code>Ariadne-Lane-A, B, C, D</code></td>
+              <td><code>0</code> (100% Disjoint)</td>
+              <td><span class="badge badge-cyan">Staged for Wave 2 (Saturday 10:30 PST)</span></td>
+            </tr>
+            <tr>
+              <td><strong><code>v0.3.0</code></strong></td>
+              <td>Milestone #3 · 4 Cars (<code>Car 03-A..D</code>)</td>
+              <td><code>#8, #4, #7, #11</code> (4 issues)</td>
+              <td><code>Ariadne-Lane-A, B, C, D</code></td>
+              <td><code>0</code> (100% Disjoint)</td>
+              <td><span class="badge badge-purple">Staged for Wave 3 (Saturday 11:30 PST)</span></td>
+            </tr>
+            <tr>
+              <td><strong><code>v0.4.0</code></strong></td>
+              <td>Milestone #4 · 3 Cars (<code>Car 04-A..C</code>)</td>
+              <td><code>#12, #5, #16</code> (3 issues)</td>
+              <td><code>Ariadne-Lane-A, B, C</code></td>
+              <td><code>0</code> (100% Disjoint)</td>
+              <td><span class="badge badge-amber">Staged for Wave 4 (Saturday 12:15 PST)</span></td>
+            </tr>
+            <tr>
+              <td><strong><code>v1.0.0</code></strong></td>
+              <td>Milestone #5 · Finale (<code>Car 05-A</code> + Polish)</td>
+              <td><code>#13</code> + Live QR Dogfooding</td>
+              <td>Full 9-Lane Fleet</td>
+              <td><code>0</code> (100% Disjoint)</td>
+              <td><span class="badge badge-green">Staged for Wave 5 (Saturday 13:00–17:45 PST)</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
