@@ -124,7 +124,10 @@ export function publishEvent<T extends EventType>(
     if (existing.type !== eventType) {
       throw new Error(`Idempotency key already used by a ${existing.type} event, not ${eventType}`);
     }
-    return { envelope: toEnvelope(existing), inserted: false };
+    // The stored row may come from another writer, so it gets the same public-contract check as any read.
+    const envelope = toPublicEnvelope(existing);
+    if (!envelope) throw new Error(`Stored event for idempotency key fails the public event contract (seq ${existing.seq_id})`);
+    return { envelope, inserted: false };
   }
 
   const row = db

@@ -193,13 +193,35 @@ async function eventually(condition: () => boolean, timeoutMs = 2000): Promise<v
  * The payload leaks an unconsented username, so the public contract rejects it.
  * @param db - An open database handle.
  */
-function insertLeakyRow(db: DatabaseSync): void {
-  db.prepare('INSERT INTO domain_events (event_id, type, payload_json, occurred_at) VALUES (?, ?, ?, ?)').run(
+function insertLeakyRow(db: DatabaseSync, idempotencyKey: string | null = null): void {
+  db.prepare(
+    'INSERT INTO domain_events (event_id, type, payload_json, idempotency_key, occurred_at) VALUES (?, ?, ?, ?, ?)',
+  ).run(
     randomUUID(),
     'participant.registered',
     JSON.stringify({ display_alias: 'Thread-7C4E', github_username: 'octocat' }),
+    idempotencyKey,
     new Date().toISOString(),
   );
+}
+
+/**
+ * Walks the poll endpoint the way a client does, resuming from each response's `latest_seq_id`.
+ * @param base - Harness base URL.
+ * @param limit - Page size.
+ * @returns Every event received, in order.
+ */
+async function pollAll(base: string, limit: number): Promise<PublicEventEnvelope[]> {
+  const seen: PublicEventEnvelope[] = [];
+  let after = 0;
+  for (let guard = 0; guard < 1000; guard++) {
+    const { body } = await getJson(`${base}/api/events/poll?after=${after}&limit=${limit}`);
+    EventPollResponseSchema.parse(body);
+    seen.push(...body.events);
+    if (body.latest_seq_id === after) return seen;
+    after = body.latest_seq_id;
+  }
+  throw new Error('poll walk did not terminate');
 }
 
 /**
@@ -291,6 +313,17 @@ describe('event bus', () => {
     db.close();
   });
 
+  test('replaying an idempotency key never returns a stored row that fails the public contract', () => {
+    const db = openDb();
+    insertLeakyRow(db, 'k-poison');
+    assert.throws(
+      () => publishEvent(db, 'participant.registered', registered, { idempotencyKey: 'k-poison' }),
+      /fails the public event contract/,
+    );
+    assert.equal(rowCount(db), 1);
+    db.close();
+  });
+
   test('reusing an idempotency key for a different event type is an error', () => {
     const db = openDb();
     const pair = { match_id: MATCH_ID, display_alias_a: 'Thread-7C4E', display_alias_b: 'Spool-A1B2' };
@@ -355,16 +388,38 @@ describe('GET /api/events/poll', () => {
     }
   });
 
-  test('defaults to after=0 and honours limit while latest_seq_id still reports the head', async () => {
+  test('a limited page returns latest_seq_id as the resume cursor, so paging never skips an event', async () => {
     const h = await startHarness();
     try {
       const all = [1, 2, 3].map((n) => publishEvent(h.db, 'match.evaluated', evaluated(n)).envelope);
       const { body } = await getJson(`${h.base}/api/events/poll?limit=2`);
-      assert.deepEqual(body.events, all.slice(0, 2));
-      assert.equal(body.latest_seq_id, all[2]!.seq_id);
-      const next = await getJson(`${h.base}/api/events/poll?after=${all[1]!.seq_id}&limit=2`);
-      assert.deepEqual(next.body.events, all.slice(2));
+      assert.deepEqual(body, { events: all.slice(0, 2), latest_seq_id: all[1]!.seq_id });
+      const next = await getJson(`${h.base}/api/events/poll?after=${body.latest_seq_id}&limit=2`);
+      assert.deepEqual(next.body, { events: all.slice(2), latest_seq_id: all[2]!.seq_id });
+      assert.deepEqual(await pollAll(h.base, 2), all);
     } finally {
+      await h.close();
+    }
+  });
+
+  test('paging across withheld rows returns every valid event exactly once and matches the stream', async () => {
+    const h = await startHarness();
+    const valid: PublicEventEnvelope[] = [];
+    for (let n = 0; n < 7; n++) {
+      if (n % 2 === 0) insertLeakyRow(h.db);
+      valid.push(publishEvent(h.db, 'match.evaluated', evaluated(n)).envelope);
+    }
+    h.db.exec('BEGIN');
+    for (let n = 0; n < 520; n++) insertLeakyRow(h.db);
+    h.db.exec('COMMIT');
+    valid.push(publishEvent(h.db, 'introduction.declined', { declined_total: 1 }).envelope);
+    const client = await openSse(`${h.base}/api/events/stream?after=0`);
+    try {
+      for (const limit of [1, 2, 3, 100]) assert.deepEqual(await pollAll(h.base, limit), valid, `limit=${limit}`);
+      await client.waitFor(() => client.events().length === valid.length);
+      assert.deepEqual(client.events(), valid);
+    } finally {
+      client.close();
       await h.close();
     }
   });

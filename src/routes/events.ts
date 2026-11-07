@@ -65,6 +65,8 @@ export function createEventRoutes(options: EventRouteOptions = {}): RouteDefinit
       path: '/api/events/poll',
       /**
        * `GET /api/events/poll?after=<seq_id>&limit=<n>`: `{ events, latest_seq_id }`; 400 on a malformed cursor or limit.
+       * `latest_seq_id` is the resume cursor: the highest `seq_id` this response accounts for (returned or withheld),
+       * so `?after=<latest_seq_id>` never skips an unread event, even when `limit` cut the page short.
        */
       handler(_req, res, ctx) {
         const after = parseCursor(ctx.url.searchParams.get('after'));
@@ -73,19 +75,20 @@ export function createEventRoutes(options: EventRouteOptions = {}): RouteDefinit
           sendNoStoreJson(res, 400, { error: 'invalid_cursor', detail: 'after and limit must be non-negative integers' });
           return;
         }
-        const head = latestSeqId(ctx.db);
         const wanted = Math.min(limit ?? DEFAULT_POLL_LIMIT, MAX_BATCH);
         const onRejected = logRejected(ctx.log);
         const events: PublicEventEnvelope[] = [];
-        let cursor = effectiveCursor(after ?? 0, head);
+        let resumeAt = effectiveCursor(after ?? 0, latestSeqId(ctx.db));
         // Keep reading past withheld rows, so a page of them cannot leave the client re-asking forever.
         for (;;) {
-          const page = readEventPage(ctx.db, cursor, MAX_BATCH, onRejected);
-          events.push(...page.events.slice(0, wanted - events.length));
-          if (events.length >= wanted || page.scanned < MAX_BATCH) break;
-          cursor = page.lastScanned;
+          const page = readEventPage(ctx.db, resumeAt, MAX_BATCH, onRejected);
+          const taken = page.events.slice(0, wanted - events.length);
+          events.push(...taken);
+          const truncated = taken.length < page.events.length;
+          resumeAt = truncated ? taken.at(-1)!.seq_id : page.lastScanned;
+          if (truncated || events.length >= wanted || page.scanned < MAX_BATCH) break;
         }
-        sendNoStoreJson(res, 200, { events, latest_seq_id: head });
+        sendNoStoreJson(res, 200, { events, latest_seq_id: resumeAt });
       },
     },
     {
