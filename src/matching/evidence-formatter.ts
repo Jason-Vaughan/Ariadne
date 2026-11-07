@@ -25,7 +25,7 @@ const SOURCE_LABELS: Readonly<Record<EvidenceReceipt['source_type'], string>> = 
 
 const URL_PATTERN = /https?:\/\/[^\s)<>"'\]]+/gi;
 const GITHUB_PATH_PATTERN = /(?:https?:\/\/)?(?:www\.)?github\.com\/([A-Za-z0-9-]{1,39}(?:\/[A-Za-z0-9._-]{1,100})?)/gi;
-const REPO_TOKEN_PATTERN = /(^|[^A-Za-z0-9._\/-])([a-z0-9][a-z0-9-]{0,38}\/[A-Za-z0-9._-]{1,100})(?=$|[^A-Za-z0-9._\/-])/g;
+const REPO_TOKEN_PATTERN = /(^|[^A-Za-z0-9._\/-])([A-Za-z0-9][A-Za-z0-9-]{0,38}\/[A-Za-z0-9._-]{1,100})(?=$|[^A-Za-z0-9._\/-])/g;
 const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
 
 /**
@@ -104,8 +104,8 @@ export function extractGithubPaths(text: string): string[] {
 }
 
 /**
- * Lists bare `owner/repo`-shaped tokens whose owner looks like a GitHub login (lowercase).
- * Capability pairs written in title case, such as `Rust/WebRTC`, are not matched.
+ * Lists every bare `owner/repo`-shaped token (`a/b`, any case). Callers decide which are allowed,
+ * e.g. the pair's own repos or capability pairs such as `Rust/WebRTC`.
  * @param text - Free text with URLs already removed.
  * @returns Lowercased tokens.
  */

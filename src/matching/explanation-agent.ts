@@ -278,7 +278,7 @@ export function explainMatches(
       const staged = buildStage1Explanation(pair, a, b);
       if (options.db) {
         const db = options.db;
-        db.exec('BEGIN');
+        db.exec('SAVEPOINT explain_pair');
         try {
           upsertProposal(db, staged.proposal, options.now);
           publishEvent(
@@ -292,9 +292,9 @@ export function explainMatches(
             },
             { idempotencyKey: `${pair.match_id}:evaluated:stage1:${pair.composite_score}` },
           );
-          db.exec('COMMIT');
+          db.exec('RELEASE explain_pair');
         } catch (error) {
-          db.exec('ROLLBACK');
+          db.exec('ROLLBACK TO explain_pair; RELEASE explain_pair');
           throw error;
         }
       }
@@ -364,7 +364,12 @@ export function verifyThesis(thesis: LlmThesis, staged: StagedExplanation, a: Pa
   let withoutUrls = text;
   for (const url of extractUrls(text)) withoutUrls = withoutUrls.split(url).join(' ');
   withoutUrls = withoutUrls.replace(/(?:www\.)?github\.com\/\S*/gi, ' ');
-  if (!extractRepoTokens(withoutUrls).every((token) => allowedRepos.has(token) || NON_REPO_TOKENS.has(token))) return 'foreign_repo';
+  // A slash token is a repo unless it is one of the pair's, a stock phrase, or two capabilities the pair holds or needs.
+  const capabilities = new Set(
+    [a, b].flatMap((p) => [...p.claims.map((c) => c.name), ...p.needs.flatMap((n) => n.desired_capabilities)]).map(normalizeCapability),
+  );
+  const isCapabilityPair = (token: string): boolean => token.split('/').every((part) => capabilities.has(normalizeCapability(part)));
+  if (!extractRepoTokens(withoutUrls).every((t) => allowedRepos.has(t) || NON_REPO_TOKENS.has(t) || isCapabilityPair(t))) return 'foreign_repo';
   // Repo names and their URLs legitimately contain owners' logins, so a login is only "leaked" outside them.
   let outsideEvidence = text.toLowerCase();
   // Display aliases are public by design, so an alias that happens to spell a login is not a leak.
@@ -481,7 +486,8 @@ export async function enrichExplanation(
   });
   if (options.db) {
     const db = options.db;
-    db.exec('BEGIN');
+    // A savepoint nests inside a caller's transaction as well as standing alone.
+    db.exec('SAVEPOINT enrich_match');
     try {
       // Only the row this card was built from: a re-score in the meantime makes this thesis stale.
       const updated = db
@@ -498,7 +504,7 @@ export async function enrichExplanation(
           JSON.stringify(proposal.evidence_receipt_ids),
         );
       if (Number(updated.changes) === 0) {
-        db.exec('ROLLBACK');
+        db.exec('ROLLBACK TO enrich_match; RELEASE enrich_match');
         return fallback('stale');
       }
       publishEvent(
@@ -512,9 +518,9 @@ export async function enrichExplanation(
         },
         { idempotencyKey: `${proposal.id}:evaluated:stage2:${proposal.composite_score}` },
       );
-      db.exec('COMMIT');
+      db.exec('RELEASE enrich_match');
     } catch (error) {
-      db.exec('ROLLBACK');
+      db.exec('ROLLBACK TO enrich_match; RELEASE enrich_match');
       throw error;
     }
   }

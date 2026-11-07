@@ -354,6 +354,19 @@ describe('Stage 1', () => {
     assert.ok(card.pills.some((p) => p.side === 'b' && p.url === sharedUrl));
   });
 
+  test('Stage 1 and Stage 2 writes nest inside a caller transaction', async () => {
+    const { a, b, card } = staged();
+    const db = dbWith([a, b]);
+    db.exec('BEGIN');
+    const cards = explainMatches(new Map([[a.participant.id, [scorePair(a, b, { now: NOW })]]]), [a, b], { now: NOW, db });
+    const result = await enrichExplanation(card, a, b, { llm: fakeLlm(thesis(card)), db, now: NOW });
+    db.exec('COMMIT');
+    assert.equal(cards.size, 1);
+    assert.equal(result.source, 'llm');
+    assert.equal(readEventsAfter(db, 0).length, 2);
+    db.close();
+  });
+
   test('a pair that cannot be explained is skipped and logged; the rest of the batch still runs', () => {
     const [a, b] = pair();
     const db = dbWith([a, b]);
@@ -431,6 +444,7 @@ describe('Stage 2', () => {
       ['private_detail', thesis(card, { collaboration_angle: `${a.participant.display_alias} and ${b.participant.display_alias}: ask "@spool" for access.` })],
       ['foreign_repo', thesis(card, { why_you_match: 'You could both learn from someone-else/media-kit first.' })],
       ['foreign_repo', thesis(card, { why_you_match: 'Start from github.com/someone-else/media-kit together.' })],
+      ['foreign_repo', thesis(card, { why_you_match: 'Borrow the approach from Facebook/react first.' })],
       ['missing_element', thesis(card, { collaboration_angle: 'Spend 15 minutes wiring the worklet to the SFU.' })],
       ['private_detail', thesis(card, { why_you_match: `Ask ${b.participant.github_username} about the deck.` })],
       ['private_detail', thesis(card, { collaboration_angle: `${a.participant.display_alias} and ${b.participant.display_alias}: message them at ${a.participant.contact_card}.` })],
