@@ -4,7 +4,8 @@ Ariadne Testament Test Suite Runner & Architecture Contract Verification.
 Invoked via `/Users/jasonvaughan/.local/bin/testament run --json`.
 Executes:
 1. Canonical architectural, privacy, and roadmap contract checks.
-2. Workspace package test suites (`packages/shared`, `packages/server`, `packages/client`)
+2. All `tests/*.test.ts` and `tests/*.test.js` suites via `node --test`.
+3. Workspace package test suites (`packages/shared`, `packages/server`, `packages/client`)
    whenever `package.json` and package suites are present.
 """
 
@@ -17,6 +18,18 @@ from pathlib import Path
 import pytest
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
+TESTS_DIR = REPO_ROOT / "tests"
+
+
+def _discover_node_test_files() -> list[str]:
+    """Return relative paths of all tests/*.test.ts and tests/*.test.js files."""
+    if not TESTS_DIR.is_dir():
+        return []
+    found = sorted(
+        p.relative_to(REPO_ROOT).as_posix()
+        for p in list(TESTS_DIR.glob("*.test.ts")) + list(TESTS_DIR.glob("*.test.js"))
+    )
+    return found or ["__none__"]
 
 
 def test_canonical_contracts_present() -> None:
@@ -55,22 +68,37 @@ def test_public_roadmap_and_watermark_assets() -> None:
     assert "tc-bg-watermark" in content, "roadmap-board/index.html must include fixed tc-bg-watermark"
 
 
+@pytest.mark.parametrize("rel_test_file", _discover_node_test_files())
+def test_node_typescript_suite(rel_test_file: str) -> None:
+    """Execute each tests/*.test.ts or tests/*.test.js suite via node --test under Testament."""
+    if rel_test_file == "__none__":
+        pytest.skip("No tests/*.test.ts files merged on current branch yet")
+
+    result = subprocess.run(
+        ["node", "--test", rel_test_file],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    assert result.returncode == 0, (
+        f"node --test {rel_test_file} failed (exit {result.returncode}):\n"
+        f"STDOUT:\n{result.stdout}\nSTDERR:\n{result.stderr}"
+    )
+
+
 @pytest.mark.parametrize("pkg_name", ["shared", "server", "client"])
 def test_workspace_package_suite(pkg_name: str) -> None:
-    """Run npm test for each workspace package once scaffolded by Wave 1 (Car 01-A / Car 01-B)."""
+    """Run npm test for each workspace package if present."""
     pkg_dir = REPO_ROOT / "packages" / pkg_name
     pkg_json = pkg_dir / "package.json"
     if not pkg_json.is_file():
-        pytest.skip(f"packages/{pkg_name}/package.json not yet scaffolded")
+        pytest.skip(f"packages/{pkg_name}/package.json not used in flat src/ layout")
 
     data = json.loads(pkg_json.read_text(encoding="utf-8"))
     scripts = data.get("scripts") or {}
     if "test" not in scripts:
         pytest.skip(f"packages/{pkg_name} has no test script")
-
-    node_modules = REPO_ROOT / "node_modules"
-    if not node_modules.is_dir() and not (pkg_dir / "node_modules").is_dir():
-        pytest.skip(f"node_modules not installed in worktree for packages/{pkg_name}")
 
     result = subprocess.run(
         ["npm", "test", "--workspace", f"@ariadne/{pkg_name}", "--if-present"],

@@ -5,6 +5,9 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Added `node --test` Discovery to Testament Suite (`tests/test_ariadne_suite.py`) & Explicitly Added Shared `CHANGELOG.md` to Car Envelopes (`ARIADNE_ROADMAP.md`):**
+  - Updated `tests/test_ariadne_suite.py` so `/Users/jasonvaughan/.local/bin/testament run --json` automatically discovers and executes every `tests/*.test.ts` and `tests/*.test.js` file via `node --test`.
+  - Updated `ARIADNE_ROADMAP.md` to explicitly list shared `CHANGELOG.md` (and `package.json`/`tsconfig.json` for Foundation Cars) in the Car envelopes and aligned GitHub issue numbers (`#13 = A-014`, `#14 = A-015`).
 - **Generated Roadmap Board (`/roadmap/`) & Sprint Reports Hub (`/reports/`) — Car 01-D, A-015 (#14):**
   - `scripts/build-sprint-report.js` (Node 22, no dependencies) rebuilds `public/roadmap/index.html` and `public/reports/index.html` from `roadmap-board/roadmap2-data.json`, live GitHub issue state (`gh issue list`, or `--issues <file>` offline), and published reports under `sprint-reports/<slug>/index.html`.
   - Roadmap: active release, MVP issues completed, workstreams completed, every release's workstreams with live per-issue state, deferred backlog, and the public-projection rules (withheld issues, excluded labels and title prefixes). Issues are matched to planning codes by title (`A-015` is GitHub `#14`).
