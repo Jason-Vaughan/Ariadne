@@ -607,15 +607,53 @@ const LOOPBACK_ADDRESSES = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 // cloudflared and ngrok add at least one of these to every request they forward.
 const PROXY_HEADERS = ['x-forwarded-for', 'forwarded', 'cf-connecting-ip', 'x-real-ip'];
 
+const LOOPBACK_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]']);
+
 /**
- * Whether a request came straight from this machine rather than through the public tunnel,
- * which also arrives on loopback but always carries forwarding headers.
+ * Whether the Host header names this machine. A DNS-rebinding page (an attacker's domain made to
+ * resolve to 127.0.0.1) arrives on a loopback socket with no proxy headers, but its Host still
+ * carries the attacker's domain.
+ * @param host - The Host header.
+ * @returns True for localhost, 127.0.0.1 or [::1], on any port.
+ */
+export function isLoopbackHost(host: string | undefined): boolean {
+  if (!host) return false;
+  const name = host.startsWith('[') ? host.slice(0, host.indexOf(']') + 1) : (host.split(':')[0] ?? '');
+  return LOOPBACK_HOSTNAMES.has(name.toLowerCase());
+}
+
+/**
+ * Whether a request came straight from this machine's own browser or tools: a loopback socket,
+ * no forwarding headers (the public tunnel also arrives on loopback but always adds them), and a
+ * loopback Host (which a DNS-rebinding page cannot present).
  * @param req - Incoming request.
  * @returns True for a direct local request.
  */
 export function isPresenterRequest(req: IncomingMessage): boolean {
   if (!LOOPBACK_ADDRESSES.has(req.socket.remoteAddress ?? '')) return false;
+  if (!isLoopbackHost(req.headers.host)) return false;
   return PROXY_HEADERS.every((h) => req.headers[h] === undefined);
+}
+
+/**
+ * Why a state-changing stage request must be refused as cross-site, if it must. Loopback alone
+ * does not prove intent: any page open in the presenter's browser can reach 127.0.0.1. Requiring
+ * a JSON content type forces a browser preflight, which this server never grants, and the Origin
+ * and Sec-Fetch-Site headers that browsers attach are checked as well.
+ * @param req - Incoming request.
+ * @returns `null` when the request is a same-origin JSON request, else the refusal reason.
+ */
+export function crossSiteRefusal(req: IncomingMessage): 'not_json' | 'foreign_origin' | 'cross_site_fetch' | null {
+  const mediaType = (req.headers['content-type'] ?? '').split(';')[0]?.trim().toLowerCase();
+  if (mediaType !== 'application/json') return 'not_json';
+  const origin = req.headers.origin;
+  if (origin !== undefined) {
+    const host = req.headers.host;
+    if (!host || (origin !== `http://${host}` && origin !== `https://${host}`)) return 'foreign_origin';
+  }
+  const fetchSite = req.headers['sec-fetch-site'];
+  if (fetchSite !== undefined && fetchSite !== 'same-origin' && fetchSite !== 'none') return 'cross_site_fetch';
+  return null;
 }
 
 /**
@@ -1027,6 +1065,15 @@ async function postSeedToggle(
 ): Promise<void> {
   if (!isPresenterRequest(req)) {
     sendJson(res, 403, { error: 'presenter_only', message: 'Stage controls work only from the host machine, not through the public tunnel.' });
+    return;
+  }
+  const refusal = crossSiteRefusal(req);
+  if (refusal === 'not_json') {
+    sendJson(res, 415, { error: 'unsupported_media_type', message: 'Send the request as application/json.' });
+    return;
+  }
+  if (refusal) {
+    sendJson(res, 403, { error: 'cross_site_request', reason: refusal });
     return;
   }
   let body: unknown;

@@ -4,6 +4,9 @@ All notable changes to Ariadne-PM are documented in this file.
 
 ## [Unreleased]
 
+### Security
+- **Stage seed toggle refuses cross-site requests (`src/routes/stage-snapshot.ts`, follow-up to A-010 #10):** `POST /api/stage/seed-toggle` already rejected requests through the public tunnel, but any web page open in the presenter's browser could send a no-preflight `text/plain` POST to `127.0.0.1:3420` and flip the seed pool. It now requires `application/json` (415 otherwise) and rejects a foreign or opaque `Origin` and any `Sec-Fetch-Site` other than `same-origin`/`none` (403 `cross_site_request`). The presenter guard also requires a loopback `Host` (`localhost`, `127.0.0.1` or `[::1]`), because a DNS-rebinding page arrives on a loopback socket with matching `Origin`/`Host` and would otherwise pass every same-origin check. The stage page already sends JSON. Reported by Ariadne-Lane-C.
+
 ### Added
 - **Background job worker, golden seed personas and `/admin` capacity controller (A-016, #15):**
   - `src/worker/job-runner.ts` runs `async_jobs`. Start it with `node src/worker/job-runner.ts`, a separate process sharing the WAL database; live views pick up its events within 1 s.
