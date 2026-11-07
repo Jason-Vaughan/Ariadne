@@ -617,7 +617,7 @@ describe('24h snapshot cache', () => {
     return {
       version: 1, username, user_id: 1, avatar_url: null,
       profile: { name: '', bio: '', company: '', location: '', blog: '', html_url: `https://github.com/${username}`, public_repos: 0, followers: 0, created_at: '2020-01-01T00:00:00.000Z', updated_at: '2020-01-01T00:00:00.000Z' },
-      repos: [], readme: null, website: null, public_website: false, website_skip_reason: null,
+      repos: [], readme: null, website: null, website_requested_url: null, public_website: false, website_skip_reason: null,
       fingerprint: { systems_infra: 0, agent_orchestration: 0, llm_eval: 0, frontend_ux: 0, product_gtm: 0, data_pipelines: 0 },
       fetched_at: '2026-11-07T19:00:00.000Z', api_calls: 3, duration_ms: 10,
     };
@@ -673,6 +673,117 @@ describe('24h snapshot cache', () => {
     assert.equal(calls.length, MAX_GITHUB_CALLS);
     assert.deepEqual(second.snapshot, first.snapshot);
     db.close();
+  });
+
+  /**
+   * A website fetcher that records requested URLs and succeeds with a page naming the URL.
+   * @returns The fetcher and its call log.
+   */
+  function recordingWebsite(): { fetchWebsite: (url: string) => Promise<WebsiteResult>; urls: string[] } {
+    const urls: string[] = [];
+    return {
+      urls,
+      fetchWebsite: async (url: string) => {
+        urls.push(url);
+        return { ok: true, website: { url, title: 'Portfolio', description: 'startup founder', headings: [], text: 'marketing community', fetched_at: '2026-11-07T19:00:00.000Z' } };
+      },
+    };
+  }
+
+  test('pre-warm without a website, then registration with one, fetches only the website and keeps the expiry', async () => {
+    const db = freshDb();
+    let githubFetches = 0;
+    const fetcher = async (u: string) => {
+      githubFetches += 1;
+      return snap(u);
+    };
+    await prewarmSnapshots(db, ['octocat'], { fetcher });
+    const expiryBefore = (db.prepare("SELECT expires_at FROM github_snapshots WHERE github_username = 'octocat'").get() as { expires_at: string }).expires_at;
+    const site = recordingWebsite();
+    const registered = await getOrFetchSnapshot(db, 'octocat', { fetcher, websiteUrl: 'https://portfolio.example/', fetchWebsite: site.fetchWebsite });
+    assert.equal(githubFetches, 1, 'no second GitHub retrieval');
+    assert.deepEqual(site.urls, ['https://portfolio.example/']);
+    assert.equal(registered.cached, false);
+    assert.equal(registered.snapshot.public_website, true);
+    assert.equal(registered.snapshot.website?.url, 'https://portfolio.example/');
+    assert.ok(registered.snapshot.fingerprint.product_gtm > 0, 'fingerprint recomputed with the website');
+    const stored = readSnapshot(db, 'octocat');
+    assert.equal(stored?.website_requested_url, 'https://portfolio.example/');
+    const expiryAfter = (db.prepare("SELECT expires_at FROM github_snapshots WHERE github_username = 'octocat'").get() as { expires_at: string }).expires_at;
+    assert.equal(expiryAfter, expiryBefore);
+
+    const again = await getOrFetchSnapshot(db, 'octocat', { fetcher, websiteUrl: 'https://PORTFOLIO.example', fetchWebsite: site.fetchWebsite });
+    assert.equal(again.cached, true, 'the same site (canonicalized) is a plain cache hit');
+    assert.equal(site.urls.length, 1);
+    db.close();
+  });
+
+  test('a changed website URL refetches the website; null removes it; undefined accepts the cached one', async () => {
+    const db = freshDb();
+    const site = recordingWebsite();
+    const fetcher = async (u: string, options: { websiteUrl?: string | null }) =>
+      ({ ...snap(u), website_requested_url: options.websiteUrl ?? null, website: options.websiteUrl ? { url: options.websiteUrl, title: 'Old', description: '', headings: [], text: '', fetched_at: '2026-11-07T19:00:00.000Z' } : null, public_website: Boolean(options.websiteUrl) });
+    await getOrFetchSnapshot(db, 'octocat', { fetcher, websiteUrl: 'https://old.example/' });
+
+    const changed = await getOrFetchSnapshot(db, 'octocat', { fetcher, websiteUrl: 'https://new.example/', fetchWebsite: site.fetchWebsite });
+    assert.deepEqual(site.urls, ['https://new.example/']);
+    assert.equal(changed.snapshot.website?.url, 'https://new.example/');
+
+    const untouched = await getOrFetchSnapshot(db, 'octocat', { fetcher, fetchWebsite: site.fetchWebsite });
+    assert.equal(untouched.cached, true);
+    assert.equal(untouched.snapshot.website?.url, 'https://new.example/');
+
+    const removed = await getOrFetchSnapshot(db, 'octocat', { fetcher, websiteUrl: null, fetchWebsite: site.fetchWebsite });
+    assert.equal(removed.snapshot.website, null);
+    assert.equal(removed.snapshot.public_website, false);
+    assert.equal(readSnapshot(db, 'octocat')?.website, null);
+    assert.equal(site.urls.length, 1, 'removing a website fetches nothing');
+    db.close();
+  });
+
+  test('a cached payload from before website tracking counts as built without a website', async () => {
+    const db = freshDb();
+    const legacy = snap('legacy') as Partial<GithubSnapshot>;
+    delete legacy.website_requested_url;
+    writeSnapshot(db, legacy as GithubSnapshot, {});
+    const site = recordingWebsite();
+    const result = await getOrFetchSnapshot(db, 'legacy', { fetcher: async () => assert.fail('no GitHub call'), websiteUrl: 'https://p.example/', fetchWebsite: site.fetchWebsite });
+    assert.equal(result.snapshot.website?.url, 'https://p.example/');
+    db.close();
+  });
+
+  test('concurrent first scans with different websites are not merged', async () => {
+    const db = freshDb();
+    const requested: (string | null | undefined)[] = [];
+    const fetcher = async (u: string, options: { websiteUrl?: string | null }) => {
+      requested.push(options.websiteUrl);
+      await new Promise((r) => setTimeout(r, 20));
+      return { ...snap(u), website_requested_url: options.websiteUrl ?? null };
+    };
+    const [a, b, c] = await Promise.all([
+      getOrFetchSnapshot(db, 'race', { fetcher, websiteUrl: 'https://a.example/' }),
+      getOrFetchSnapshot(db, 'race', { fetcher, websiteUrl: 'https://b.example/' }),
+      getOrFetchSnapshot(db, 'race', { fetcher, websiteUrl: 'https://a.example/' }),
+    ]);
+    assert.deepEqual(requested.sort(), ['https://a.example/', 'https://b.example/']);
+    assert.equal(a.snapshot.website_requested_url, 'https://a.example/');
+    assert.equal(b.snapshot.website_requested_url, 'https://b.example/');
+    assert.equal(c.snapshot.website_requested_url, 'https://a.example/');
+    db.close();
+  });
+
+  test('the connector records which website a snapshot was built for', async () => {
+    const { fetchImpl } = fakeGithub(STANDARD_ROUTES);
+    const withSite = await fetchGithubSnapshot('octo-builder', {
+      pool: new TokenPool([]),
+      fetchImpl,
+      websiteUrl: 'https://Octo.example',
+      fetchWebsite: async () => ({ ok: false, reason: 'login_required' }),
+    });
+    assert.equal(withSite.website_requested_url, 'https://octo.example/');
+    assert.equal(withSite.website_skip_reason, 'login_required');
+    const without = await fetchGithubSnapshot('octo-builder', { pool: new TokenPool([]), fetchImpl });
+    assert.equal(without.website_requested_url, null);
   });
 
   test('pre-warming fetches each valid handle once, skips fresh ones, and reports failures', async () => {

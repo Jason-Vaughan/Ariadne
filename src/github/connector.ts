@@ -294,6 +294,8 @@ export interface GithubSnapshot {
   readme: ReadmeExcerpt | null;
   website: WebsiteSummary | null;
   public_website: boolean;
+  /** Canonical form of the website URL this snapshot was built for (`null` = none requested). */
+  website_requested_url: string | null;
   website_skip_reason: WebsiteSkipReason | null;
   fingerprint: FingerprintVector;
   fetched_at: string;
@@ -875,9 +877,7 @@ export async function fetchGithubSnapshot(rawUsername: string, options: FetchGit
     }
   }
 
-  const websiteResult = await websitePromise;
-  const website = websiteResult?.ok ? websiteResult.website : null;
-  return {
+  const base: GithubSnapshot = {
     version: 1,
     username,
     user_id: userId,
@@ -885,14 +885,70 @@ export async function fetchGithubSnapshot(rawUsername: string, options: FetchGit
     profile,
     repos,
     readme,
-    website,
-    public_website: website !== null,
-    website_skip_reason: websiteResult && !websiteResult.ok ? websiteResult.reason : null,
-    fingerprint: computeFingerprint({ profile, repos, readme, website }),
+    website: null,
+    website_requested_url: null,
+    public_website: false,
+    website_skip_reason: null,
+    fingerprint: computeFingerprint({ profile, repos, readme, website: null }),
     fetched_at: fetchedAt,
     api_calls: budget.calls,
-    duration_ms: Date.now() - started,
+    duration_ms: 0,
   };
+  const snapshot = applyWebsite(base, options.websiteUrl ?? null, await websitePromise);
+  snapshot.duration_ms = Date.now() - started;
+  return snapshot;
+}
+
+/**
+ * Normalizes a website URL for comparison, so `https://A.example` and `https://a.example/` count as the same request.
+ * @param url - Requested website URL, or `null`.
+ * @returns The canonical form, or `null`.
+ */
+export function canonicalWebsiteUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    return new URL(url).href;
+  } catch {
+    return url;
+  }
+}
+
+/**
+ * Returns a copy of a snapshot carrying the outcome of a website request (or none), with the fingerprint recomputed.
+ * @param snapshot - Snapshot whose GitHub parts are kept as-is.
+ * @param requestedUrl - The website the participant asked for, or `null` for none.
+ * @param result - The fetch outcome, or `null` when no website was requested.
+ * @returns The updated snapshot.
+ */
+export function applyWebsite(snapshot: GithubSnapshot, requestedUrl: string | null, result: WebsiteResult | null): GithubSnapshot {
+  const website = requestedUrl && result?.ok ? result.website : null;
+  return {
+    ...snapshot,
+    website,
+    website_requested_url: canonicalWebsiteUrl(requestedUrl),
+    public_website: website !== null,
+    website_skip_reason: requestedUrl && result && !result.ok ? result.reason : null,
+    fingerprint: computeFingerprint({ profile: snapshot.profile, repos: snapshot.repos, readme: snapshot.readme, website }),
+  };
+}
+
+/**
+ * Brings a (cached) snapshot in line with the website a participant now requests, fetching only the website — never
+ * GitHub. With no website requested, any previously attached site is removed.
+ * @param snapshot - Existing snapshot.
+ * @param requestedUrl - Website now requested, or `null` for none.
+ * @param options - Website fetcher and clock overrides.
+ * @returns The updated snapshot.
+ */
+export async function refreshWebsite(
+  snapshot: GithubSnapshot,
+  requestedUrl: string | null,
+  options: Pick<FetchGithubOptions, 'fetchWebsite' | 'now'> = {},
+): Promise<GithubSnapshot> {
+  if (!requestedUrl) return applyWebsite(snapshot, null, null);
+  const fetchWebsite = options.fetchWebsite ?? ((url: string) => fetchPublicWebsite(url, { now: options.now }));
+  const result = await fetchWebsite(requestedUrl).catch((): WebsiteResult => ({ ok: false, reason: 'network_error' }));
+  return applyWebsite(snapshot, requestedUrl, result);
 }
 
 // ---------------------------------------------------------------------------

@@ -1,6 +1,6 @@
 import type { DatabaseSync } from 'node:sqlite';
 import { GithubUsernameSchema } from '../contracts/index.ts';
-import { fetchGithubSnapshot } from './connector.ts';
+import { canonicalWebsiteUrl, fetchGithubSnapshot, refreshWebsite } from './connector.ts';
 import type { FetchGithubOptions, GithubSnapshot } from './connector.ts';
 
 /** Snapshots live 24 hours, long enough to cover the whole event from a pre-demo warm-up. */
@@ -76,17 +76,37 @@ export interface GetSnapshotOptions extends FetchGithubOptions {
   refresh?: boolean;
 }
 
-// Single-flight: concurrent scans of the same handle share one GitHub retrieval.
+// Single-flight, keyed by handle AND requested website: concurrent scans of the same handle share one retrieval,
+// but a request for a different website is never answered with another request's result.
 const inFlight = new Map<string, Promise<GithubSnapshot>>();
 
 /**
+ * Runs `start` once per key while a call is outstanding; concurrent callers with the same key share its promise.
+ * @param key - Single-flight key.
+ * @param start - Starts the work.
+ * @returns The shared result.
+ */
+function singleFlight(key: string, start: () => Promise<GithubSnapshot>): Promise<GithubSnapshot> {
+  let pending = inFlight.get(key);
+  if (!pending) {
+    pending = start().finally(() => inFlight.delete(key));
+    inFlight.set(key, pending);
+  }
+  return pending;
+}
+
+/**
  * Returns a participant's snapshot from the 24-hour cache, or fetches and caches it. Concurrent callers for the same
- * handle share one retrieval, so a QR burst never multiplies GitHub calls.
+ * handle and website share one retrieval, so a QR burst never multiplies GitHub calls.
+ *
+ * `websiteUrl` semantics: `undefined` accepts whatever website the cached snapshot has; a URL, or `null` for none, is
+ * authoritative. A cached snapshot built for a different website is brought in line by fetching only the website (no
+ * GitHub calls) and keeps its original expiry.
  * @param db - Open database with the A-001 schema.
  * @param username - GitHub login.
  * @param options - Participant link, website, fetcher and connector overrides.
- * @returns The snapshot and whether it came from the cache.
- * @throws GithubFetchError when a fetch is needed and fails.
+ * @returns The snapshot, and `cached: true` only when it was served unchanged from the cache.
+ * @throws GithubFetchError when a GitHub fetch is needed and fails.
  */
 export async function getOrFetchSnapshot(
   db: DatabaseSync,
@@ -94,22 +114,38 @@ export async function getOrFetchSnapshot(
   options: GetSnapshotOptions = {},
 ): Promise<{ snapshot: GithubSnapshot; cached: boolean }> {
   const key = cacheKey(username);
+  const websiteSpecified = options.websiteUrl !== undefined;
+  const requested = canonicalWebsiteUrl(options.websiteUrl);
   if (!options.refresh) {
     const cached = readSnapshot(db, key, options.now?.());
     if (cached) {
-      if (options.participantId) linkParticipant(db, key, options.participantId);
-      return { snapshot: cached, cached: true };
+      if (!websiteSpecified || (cached.website_requested_url ?? null) === requested) {
+        if (options.participantId) linkParticipant(db, key, options.participantId);
+        return { snapshot: cached, cached: true };
+      }
+      const updated = await singleFlight(`${key}\n${requested ?? ''}\nwebsite-only`, () =>
+        refreshWebsite(cached, options.websiteUrl ?? null, { fetchWebsite: options.fetchWebsite, now: options.now }),
+      );
+      replacePayload(db, updated, options.participantId ?? null);
+      return { snapshot: updated, cached: false };
     }
   }
-  let pending = inFlight.get(key);
-  if (!pending) {
-    const { fetcher = fetchGithubSnapshot, participantId: _participantId, refresh: _refresh, ...connectorOptions } = options;
-    pending = fetcher(key, connectorOptions).finally(() => inFlight.delete(key));
-    inFlight.set(key, pending);
-  }
-  const snapshot = await pending;
+  const { fetcher = fetchGithubSnapshot, participantId: _participantId, refresh: _refresh, ...connectorOptions } = options;
+  const snapshot = await singleFlight(`${key}\n${requested ?? ''}`, () => fetcher(key, connectorOptions));
   writeSnapshot(db, snapshot, { participantId: options.participantId ?? null, now: options.now?.() });
   return { snapshot, cached: false };
+}
+
+/**
+ * Replaces a cached snapshot's payload without extending its expiry (used when only the website part changed).
+ * @param db - Open database.
+ * @param snapshot - Updated snapshot.
+ * @param participantId - Participant to link if the row has none yet.
+ */
+function replacePayload(db: DatabaseSync, snapshot: GithubSnapshot, participantId: string | null): void {
+  db.prepare(
+    'UPDATE github_snapshots SET payload_json = ?, participant_id = COALESCE(participant_id, ?) WHERE github_username = ?',
+  ).run(JSON.stringify(snapshot), participantId, cacheKey(snapshot.username));
 }
 
 /**
@@ -158,7 +194,9 @@ export async function prewarmSnapshots(
   const worker = async (): Promise<void> => {
     for (let key = queue.shift(); key !== undefined; key = queue.shift()) {
       try {
-        const { cached } = await getOrFetchSnapshot(db, key, { ...rest, participantId: null, websiteUrl: websites.get(key) ?? null });
+        // A handle with no website in the map leaves any existing website alone (`undefined`, not `null`).
+        const website = websites.has(key) ? { websiteUrl: websites.get(key) ?? null } : {};
+        const { cached } = await getOrFetchSnapshot(db, key, { ...rest, participantId: null, ...website });
         (cached ? result.alreadyCached : result.warmed).push(key);
       } catch (error) {
         const reason = (error as { reason?: unknown })?.reason;
