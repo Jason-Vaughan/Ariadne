@@ -464,6 +464,10 @@ function dispatch(action) {
 }
 
 bindControls(document, () => state.view, dispatch);
+// A click on the dimmed backdrop (not on the card) closes the explainer.
+$('info-modal').addEventListener('click', (event) => {
+  if (event.target === $('info-modal')) setInfo(null);
+});
 makeDraggable($('qr-floating'), $('qr-float-handle'));
 window.addEventListener('resize', fitStage);
 

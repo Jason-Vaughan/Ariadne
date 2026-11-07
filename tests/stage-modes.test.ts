@@ -566,5 +566,6 @@ describe('stage explainer (I / ?)', () => {
     assert.ok(html.includes('id="view-info" class="view-info" data-action="info"'));
     assert.ok(html.indexOf('<div id="info-modal"') > html.indexOf('</main>'), 'the modal covers every view');
     assert.ok(html.includes("else if (action === 'info') setInfo($('info-modal').hidden ? state.view : null);"), 'opens on the current view');
+    assert.ok(html.includes("if (event.target === $('info-modal')) setInfo(null);"), 'clicking the backdrop closes it');
   });
 });

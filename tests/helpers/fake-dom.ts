@@ -126,4 +126,3 @@ export const byTag = (tag: string) => (n: FakeNode) => n.tagName === tag;
  * @returns Predicate for `findAll`.
  */
 export const byClass = (cls: string) => (n: FakeNode) => (n.getAttribute('class') ?? n.className).split(/\s+/).includes(cls);
-
