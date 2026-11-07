@@ -1179,6 +1179,8 @@ if cur_lines < 1380 or len(html.encode("utf-8")) < 86000:
     )
     html = html.replace("</body>", f"{padding_lines}\n</body>")
 
+html = "\n".join(line.rstrip() for line in html.splitlines()) + "\n"
+
 out_file = BASE / "v0.1.0/index.html"
 out_file.parent.mkdir(parents=True, exist_ok=True)
 out_file.write_text(html, encoding="utf-8")
