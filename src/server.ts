@@ -31,6 +31,7 @@ export interface StaticAlias {
 // expose a draft.
 export const DEFAULT_STATIC_ALIASES: readonly StaticAlias[] = [
   { path: '/tangleclaw-logo.png', file: join(REPO_ROOT, 'roadmap-board', 'tangleclaw-logo.png') },
+  { path: '/ariadne-logo.png', file: join(REPO_ROOT, 'roadmap-board', 'ariadne-logo.png') },
 ];
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
