@@ -4,6 +4,10 @@ All notable changes to Ariadne-PM are documented in this file.
 
 ## [Unreleased]
 
+### Changed
+- **Upgraded All 4 Ariadne Builder Lanes (`#151..#154`) to Flagship `claude-fable-sprint` (`claude-fable-5-1 --effort high`):**
+  - Updated `Ariadne-Lane-A` (`#151`), `Ariadne-Lane-B` (`#152`), `Ariadne-Lane-C` (`#153`), and `Ariadne-Lane-D` (`#154`) in TangleClaw SQLite (`projects.engine_id`), `FLEET_PROVISIONING_PACK.md`, and `PROJECT_DOCUMENTS.md` / `MASTER_SSOT.md` from `claude-sonnet-reviewer` to `claude-fable-sprint` (`claude --model claude-fable-5-1 --effort high`) to maximize first-pass PR quality and hit the 3-to-4 hour 4-wave sprint target on H-Day.
+
 ### Added
 - **TangleClaw Background Watermark Logo Across All Roadmap, Sprint Report & Documentation Pages (`roadmap-board/tangleclaw-logo.png`, `build-ariadne-roadmap.py`, `serve-roadmap.py`, `sprint-reports/`):**
   - Cached `tangleclaw-logo.png` (`1024x1024` RGBA from `Jason-Vaughan/project-assets`) locally for offline venue reliability (with automatic fallback to GitHub Raw) and added a fixed, centered, large (`860px`), semi-transparent (`opacity: 0.08–0.10`, `position: fixed`) background watermark that stays static on screen as you scroll.
