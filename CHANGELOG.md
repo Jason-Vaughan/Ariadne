@@ -5,6 +5,9 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Added
+- **O-Gate Certification — Sprint `v0.1.0` Canonical v2.0.0 Report & Public Hub Publication (`Ariadne-Obsr`):**
+  - Updated `sprint-reports/metrics_schema.py`, `sprint-reports/generators/gen_v010.py`, `sprint-reports/index.html`, and `sprint-reports/test_validate_sprint_report.py` with empirical Wave 1 (`v0.1.0`) telemetry: 8 canonical timestamps (`t1..t8`), full engineering window `T_eng = 0.84h` (`50m 12s`), 4/4 Milestone #1 issues closed (`#1, #13, #9, #14`), 4 merged PRs (`#18 @ 4a75d2d`, `#19 @ 719b35b`, `#20 @ 5bacf1e`, `#21 @ 101d16c`, net `+5,132 / -49` LOC across 24 files), and 3-tier cost ledger (`$0.00` marginal API fee, `$2.07` allocated subscription pool, `$0.52/issue`, `ADE_v1 = 2.30`).
+  - Generated and validated `sprint-reports/v0.1.0/index.html`, published `public/reports/v0.1.0/index.html`, and rebuilt `public/reports/index.html` and `public/roadmap/index.html` via `node scripts/build-sprint-report.js` (`python3 sprint-reports/validate-sprint-report.py --all` 100% PASS, 10/10 Python validator tests, 18/18 `tests/reports.test.ts` tests).
 - **Deterministic five-component match scorer, anti-clone guard and Top-K selector (A-006, #6):**
   - `src/matching/scorer.ts`: `scorePair()` computes A-001's `ScoreBreakdown` using MATCH_SCORING_SPEC.md §3:
     - `capability_similarity`: confidence × proficiency cosine;

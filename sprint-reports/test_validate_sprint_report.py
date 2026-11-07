@@ -25,7 +25,7 @@ import re
 import sys
 import unittest
 
-REPORTS_DIR = "/Users/jasonvaughan/Documents/Projects/Ariadne-PM/sprint-reports"
+REPORTS_DIR = os.path.dirname(os.path.abspath(__file__))
 if REPORTS_DIR not in sys.path:
     sys.path.insert(0, REPORTS_DIR)
 
@@ -69,16 +69,16 @@ class TestValidateSprintReport(unittest.TestCase):
 
     def test_03_rejects_pr_count_mismatch(self):
         bad = copy.deepcopy(self.v010_json)
-        bad["diff"]["true_merge_count"] = 4  # Claims 4 instead of 5
+        bad["diff"]["true_merge_count"] = len(bad["diff"]["prs_merged"]) - 1
         mut_html = replace_embedded_json(self.v010_html, bad)
         errs = validator.validate_report_content(mut_html, "v0.1.0", enforce_registry_match=False)
         self.assertTrue(any("PR count mismatch" in e for e in errs), f"Expected PR count mismatch error, got {errs}")
 
     def test_04_rejects_issue_ids_in_pr_list(self):
         bad = copy.deepcopy(self.v010_json)
-        # Replace PR #17 with issue ID #1
-        bad["diff"]["prs_merged"] = [1, 18, 19, 20, 21]
-        bad["diff"]["feature_prs"] = [1, 18, 19, 20]
+        # Replace first PR with issue ID #1
+        bad["diff"]["prs_merged"] = [1] + bad["diff"]["prs_merged"][1:]
+        bad["diff"]["feature_prs"] = [1] + bad["diff"]["feature_prs"][1:]
         mut_html = replace_embedded_json(self.v010_html, bad)
         errs = validator.validate_report_content(mut_html, "v0.1.0", enforce_registry_match=False)
         self.assertTrue(any("Issue ID(s) [1] erroneously listed inside diff.prs_merged" in e for e in errs), f"Got {errs}")
@@ -130,11 +130,12 @@ class TestValidateSprintReport(unittest.TestCase):
 
     def test_10_rejects_html_banner_vs_json_divergence_and_chronology_violation(self):
         bad = copy.deepcopy(self.v010_json)
-        bad["timestamps"]["t2_first_branch_commit"] = "2026-11-07T19:00:00Z"  # After t3..t8
+        bad["timestamps"]["t2_first_branch_commit"] = "2026-11-07T20:30:00Z"  # After t3..t8
+        ade_str = f"{self.v010_json['efficiency']['legacy_ade_v1_closed']:.2f}"
         mut_html = (
             replace_embedded_json(self.v010_html, bad)
-            .replace("Legacy ADE_v1 = 1.13", "Legacy ADE_v1 = 9.99")
-            .replace("<strong>1.13</strong>", "<strong>9.99</strong>")
+            .replace(f"Legacy ADE_v1 = {ade_str}", "Legacy ADE_v1 = 9.99")
+            .replace(f"<strong>{ade_str}</strong>", "<strong>9.99</strong>")
         )
         errs = validator.validate_report_content(mut_html, "v0.1.0", enforce_registry_match=False)
         self.assertTrue(any("Timestamp chronology violation" in e for e in errs), f"Expected chronology error, got {errs}")
