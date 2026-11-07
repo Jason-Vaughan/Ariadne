@@ -305,7 +305,7 @@ describe('static aliases and report publication', () => {
     const draft = join(REPO_ROOT, 'sprint-reports', 'v0.1.0', 'index.html');
     assert.ok(existsSync(draft), 'fixture precondition: the pre-staged v0.1.0 draft is committed');
     const { db } = openDatabase({ path: 'd.db', cwd: scratchDir('draft'), schemaPath: null });
-    const server = createServer({ db, routes: [], log: silent });
+    const server = createServer({ db, routes: [], publicDir: scratchDir('draft-pub'), log: silent });
     await new Promise<void>((done) => server.listen(0, '127.0.0.1', done));
     const base = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
     try {
