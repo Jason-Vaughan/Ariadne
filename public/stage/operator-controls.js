@@ -12,6 +12,9 @@ export const KEY_ACTIONS = {
   r: 'qr:floating',
   s: 'seed',
   p: 'privacy',
+  i: 'info',
+  '?': 'info',
+  escape: 'info:close',
   ' ': 'cycle',
 };
 
@@ -66,15 +69,17 @@ export function renderHud(container, items) {
 }
 
 /**
- * Wire on-screen buttons (`data-action`) and hotkeys to the stage's action handler.
+ * Wire on-screen controls (any element with `data-action`) and hotkeys to the stage's action handler.
  * @param {Document} doc
  * @param {() => string} currentView
  * @param {(action:string) => void} dispatch
  */
 export function bindControls(doc, currentView, dispatch) {
-  for (const button of doc.querySelectorAll('[data-action]')) {
-    button.addEventListener('click', () => dispatch(button.dataset.action));
-  }
+  // Delegated, so controls rendered later (explainer tabs, pipeline info badges) work too.
+  doc.addEventListener('click', (event) => {
+    const target = event.target instanceof Element ? event.target.closest('[data-action]') : null;
+    if (target) dispatch(target.dataset.action);
+  });
   doc.addEventListener('keydown', (event) => {
     const action = actionForKey(event, currentView());
     if (!action) return;

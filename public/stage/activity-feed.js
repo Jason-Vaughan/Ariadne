@@ -185,7 +185,13 @@ export function renderPipeline(container, snapshot) {
   const seen = new Set([...container.querySelectorAll('li[data-seq]')].map((li) => li.dataset.seq));
   const columns = PIPELINE_STAGES.map((stage, i) => {
     const column = el('section', `pipe-col pipe-${stage.key}`);
-    column.append(el('h2', 'pipe-title', stage.title), el('p', 'pipe-sub', stage.subtitle));
+    const title = el('h2', 'pipe-title', stage.title);
+    const badge = el('button', 'info-badge', 'ℹ️');
+    badge.setAttribute('type', 'button');
+    badge.setAttribute('aria-label', `How ${stage.title} works`);
+    badge.dataset.action = 'info:tab:1';
+    title.append(badge);
+    column.append(title, el('p', 'pipe-sub', stage.subtitle));
     const counters = el('div', 'pipe-counters');
     for (const tile of tiles[stage.key]) {
       const box = el('div', 'pipe-tile');
