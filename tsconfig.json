@@ -6,6 +6,7 @@
     "lib": ["ES2023", "DOM"],
     "types": ["node"],
     "strict": true,
+    "noUncheckedIndexedAccess": true,
     "allowJs": true,
     "exactOptionalPropertyTypes": false,
     "isolatedModules": true,

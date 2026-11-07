@@ -6,7 +6,7 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS participants (
   id                     TEXT PRIMARY KEY,
-  pseudonym              TEXT NOT NULL UNIQUE,
+  display_alias          TEXT NOT NULL UNIQUE,
   github_username        TEXT NOT NULL UNIQUE CHECK (github_username = lower(github_username)),
   github_user_id         INTEGER UNIQUE,
   avatar_url             TEXT,
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS participants (
   ownership_verified     INTEGER NOT NULL DEFAULT 0 CHECK (ownership_verified IN (0, 1)),
   consent_status         TEXT NOT NULL CHECK (consent_status IN ('granted', 'withdrawn')),
   consent_granted_at     TEXT NOT NULL,
-  public_display_consent INTEGER NOT NULL DEFAULT 0 CHECK (public_display_consent IN (0, 1)),
+  stage_display_consent  INTEGER NOT NULL DEFAULT 0 CHECK (stage_display_consent IN (0, 1)),
   contact_card           TEXT,
   analysis_state         TEXT NOT NULL DEFAULT 'registered' CHECK (analysis_state IN
                            ('registered', 'fetching_github', 'analyzing_profile', 'ready', 'failed', 'withdrawn')),

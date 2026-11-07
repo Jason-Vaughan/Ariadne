@@ -10,10 +10,10 @@ export const TimestampSchema = z.iso.datetime({ offset: true });
 export const ConfidenceSchema = z.number().min(0).max(1);
 
 /**
- * Stage-safe handle such as `Thread-7C4E`. The fixed shape guarantees a
- * pseudonym can never carry a GitHub login or other identifying text.
+ * Stage-safe display alias such as `Thread-7C4E`. The fixed shape guarantees an
+ * alias can never carry a GitHub login or other identifying text.
  */
-export const PseudonymSchema = z.string().regex(/^[A-Z][a-z]{1,15}-[0-9A-F]{4}$/);
+export const DisplayAliasSchema = z.string().regex(/^[A-Z][a-z]{1,15}-[0-9A-F]{4}$/);
 
 /** Normalized (lowercase) GitHub login, following GitHub's own login rules. */
 export const GithubUsernameSchema = z
@@ -47,7 +47,7 @@ export type AnalysisState = z.infer<typeof AnalysisStateSchema>;
 
 export const ParticipantSchema = z.strictObject({
   id: IdSchema,
-  pseudonym: PseudonymSchema,
+  display_alias: DisplayAliasSchema,
   github_username: GithubUsernameSchema,
   github_user_id: z.number().int().positive().nullable(),
   avatar_url: HttpsUrlSchema.nullable(),
@@ -55,7 +55,7 @@ export const ParticipantSchema = z.strictObject({
   ownership_verified: z.boolean().default(false),
   consent_status: ConsentStatusSchema,
   consent_granted_at: TimestampSchema,
-  public_display_consent: z.boolean().default(false),
+  stage_display_consent: z.boolean().default(false),
   contact_card: z.string().max(280).nullable(),
   analysis_state: AnalysisStateSchema,
   created_at: TimestampSchema,
@@ -193,26 +193,44 @@ export type OpportunityNeed = z.infer<typeof OpportunityNeedSchema>;
 /** Minimum composite score for a match to be surfaced. */
 export const MATCH_SURFACE_THRESHOLD = 45;
 
+/** Weights of the five-component hybrid match score (TangleClaw Rule #314.3). They sum to 1. */
+export const SCORE_WEIGHTS = {
+  capability_similarity: 0.35,
+  need_offer_fit: 0.3,
+  complementarity: 0.15,
+  novelty: 0.1,
+  freshness: 0.1,
+} as const;
+
+/**
+ * The five normalized score components, each in 0.0–1.0:
+ * - `capability_similarity`: cos(u, v) of the two capability vectors.
+ * - `need_offer_fit`: max(cos(n_u, o_v), cos(n_v, o_u)) — one side's needs against the other's offers.
+ * - `complementarity`, `novelty`, `freshness`: as defined in MATCH_SCORING_SPEC.md.
+ */
 export const ScoreBreakdownSchema = z.strictObject({
-  complementary_skills: z.number().min(0).max(40),
-  project_relevance: z.number().min(0).max(30),
-  evidence_strength: z.number().min(0).max(20),
-  recency: z.number().min(0).max(10),
+  capability_similarity: z.number().min(0).max(1),
+  need_offer_fit: z.number().min(0).max(1),
+  complementarity: z.number().min(0).max(1),
+  novelty: z.number().min(0).max(1),
+  freshness: z.number().min(0).max(1),
 });
 export type ScoreBreakdown = z.infer<typeof ScoreBreakdownSchema>;
 
 /**
- * Composite score as defined by MATCH_SCORING_SPEC.md: `round(D1 + D2 + D3 + D4)`.
- * @param breakdown - The four scored dimensions.
+ * Composite score: `round(100 × (0.35·capability_similarity + 0.30·need_offer_fit
+ * + 0.15·complementarity + 0.10·novelty + 0.10·freshness))`.
+ * @param breakdown - The five normalized components.
  * @returns Integer score in 0–100.
  */
 export function compositeScore(breakdown: ScoreBreakdown): number {
-  return Math.round(
-    breakdown.complementary_skills +
-      breakdown.project_relevance +
-      breakdown.evidence_strength +
-      breakdown.recency,
-  );
+  const weighted =
+    SCORE_WEIGHTS.capability_similarity * breakdown.capability_similarity +
+    SCORE_WEIGHTS.need_offer_fit * breakdown.need_offer_fit +
+    SCORE_WEIGHTS.complementarity * breakdown.complementarity +
+    SCORE_WEIGHTS.novelty * breakdown.novelty +
+    SCORE_WEIGHTS.freshness * breakdown.freshness;
+  return Math.round(weighted * 100);
 }
 
 export const INTRODUCTION_STATES = [
@@ -283,7 +301,7 @@ export const MatchProposalSchema = z
   })
   .refine((m) => m.composite_score === compositeScore(m.score_breakdown), {
     path: ['composite_score'],
-    message: 'composite_score must equal round(sum of score_breakdown)',
+    message: 'composite_score must equal compositeScore(score_breakdown)',
   })
   .refine((m) => approvalsMatchState(m.intro_state, m.approval_a, m.approval_b), {
     path: ['intro_state'],

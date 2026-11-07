@@ -1,10 +1,10 @@
 import { z } from 'zod';
 import {
+  DisplayAliasSchema,
   GithubUsernameSchema,
   HttpsUrlSchema,
   IdSchema,
   OpportunityTypeSchema,
-  PseudonymSchema,
   TimestampSchema,
 } from './types.ts';
 
@@ -28,10 +28,10 @@ export type EventType = z.infer<typeof EventTypeSchema>;
 
 /**
  * Identity a participant opted to show on stage. It can only be constructed with
- * `public_display_consent: true`, so an unconsented username has nowhere to go.
+ * `stage_display_consent: true`, so an unconsented username has nowhere to go.
  */
 export const PublicDisplaySchema = z.strictObject({
-  public_display_consent: z.literal(true),
+  stage_display_consent: z.literal(true),
   github_username: GithubUsernameSchema,
   avatar_url: HttpsUrlSchema.nullable(),
 });
@@ -51,20 +51,20 @@ export const AnalysisFailureReasonSchema = z.enum(ANALYSIS_FAILURE_REASONS);
 const count = z.number().int().min(0);
 
 const participantRef = {
-  participant_pseudonym: PseudonymSchema,
+  display_alias: DisplayAliasSchema,
   display: PublicDisplaySchema.optional(),
 };
 
 const pairRef = {
   match_id: IdSchema,
-  pseudonym_a: PseudonymSchema,
-  pseudonym_b: PseudonymSchema,
+  display_alias_a: DisplayAliasSchema,
+  display_alias_b: DisplayAliasSchema,
   display_a: PublicDisplaySchema.optional(),
   display_b: PublicDisplaySchema.optional(),
 };
 
 /**
- * Public payload per event type. Every object is strict: a key the contract does
+ * Public payload per event type, identified by display alias only. Every object is strict: a key the contract does
  * not name (a token, contact card, raw username) fails validation.
  */
 export const EVENT_PAYLOAD_SCHEMAS = {

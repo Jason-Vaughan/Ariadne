@@ -151,17 +151,17 @@ test('loadReports publishes a report only when its release tag exists', (t) => {
   t.mock.method(console, 'info', () => {});
   const reports = loadReports(roadmap, dir, new Set(['v0.1.0']));
   assert.deepEqual(reports.map((r) => r.slug), ['v0.1.0', 'v0.2.0', 'v0.1.0-v0.2.0-retrospective']);
-  assert.equal(reports[0].published, true);
-  assert.equal(reports[0].href, '/reports/v0.1.0/');
-  assert.deepEqual(reports[0].metrics, sampleMetrics);
-  assert.equal(reports[1].published, false);
-  assert.equal(reports[1].staged, false, 'no file on disk is plain pending, not pre-staged');
-  assert.equal(reports[2].retrospective, true);
-  assert.equal(reports[2].tag, 'v0.2.0');
+  assert.equal(reports[0]!.published, true);
+  assert.equal(reports[0]!.href, '/reports/v0.1.0/');
+  assert.deepEqual(reports[0]!.metrics, sampleMetrics);
+  assert.equal(reports[1]!.published, false);
+  assert.equal(reports[1]!.staged, false, 'no file on disk is plain pending, not pre-staged');
+  assert.equal(reports[2]!.retrospective, true);
+  assert.equal(reports[2]!.tag, 'v0.2.0');
 
   const untagged = loadReports(roadmap, dir, new Set());
-  assert.equal(untagged[0].published, false, 'a report file without its release tag is a draft');
-  assert.equal(untagged[0].metrics, null);
+  assert.equal(untagged[0]!.published, false, 'a report file without its release tag is a draft');
+  assert.equal(untagged[0]!.metrics, null);
 });
 
 test('loadReports rejects a report whose metrics name a different release or none', (t) => {
@@ -172,8 +172,8 @@ test('loadReports rejects a report whose metrics name a different release or non
   fs.writeFileSync(path.join(dir, 'v0.2.0', 'index.html'), '<html>no metrics</html>');
   t.mock.method(console, 'info', () => {});
   const reports = loadReports(roadmap, dir, new Set(['v0.1.0', 'v0.2.0']));
-  assert.equal(reports[0].published, false);
-  assert.equal(reports[1].published, false);
+  assert.equal(reports[0]!.published, false);
+  assert.equal(reports[1]!.published, false);
 });
 
 test('the pre-event illustrative v0.1.0 report is not published before its release tag exists', (t) => {
@@ -184,7 +184,7 @@ test('the pre-event illustrative v0.1.0 report is not published before its relea
   t.mock.method(console, 'info', () => {});
   const reports = loadReports(realRoadmap, reportsDir, new Set());
   assert.deepEqual(reports.filter((r) => r.published), []);
-  assert.equal(reports[0].staged, true);
+  assert.equal(reports[0]!.staged, true);
   const html = renderReportsPage(reports, { generatedAt: 'T' });
   assert.doesNotMatch(html, /class="pill pill-published"/);
   assert.doesNotMatch(html, /href="\/reports\/v0\.1\.0\/"/);

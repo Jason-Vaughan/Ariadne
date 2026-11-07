@@ -14,6 +14,7 @@ import {
   OpportunityNeedSchema,
   ParticipantSchema,
   PublicEventEnvelopeSchema,
+  SCORE_WEIGHTS,
   canRevealContact,
   canTransitionIntroState,
   classifyIntroTransition,
@@ -38,7 +39,7 @@ const NOW = '2026-11-07T18:00:00Z';
 function participant(over: Record<string, unknown> = {}) {
   return {
     id: A,
-    pseudonym: 'Thread-7C4E',
+    display_alias: 'Thread-7C4E',
     github_username: 'octo-cat',
     github_user_id: 583231,
     avatar_url: 'https://avatars.githubusercontent.com/u/583231',
@@ -62,8 +63,8 @@ function match(over: Record<string, unknown> = {}) {
     id: M,
     participant_a_id: A,
     participant_b_id: B,
-    composite_score: 84,
-    score_breakdown: { complementary_skills: 34, project_relevance: 24, evidence_strength: 17, recency: 9 },
+    composite_score: 83,
+    score_breakdown: { capability_similarity: 1, need_offer_fit: 0.8, complementarity: 0.8, novelty: 0.6, freshness: 0.6 },
     complementary_summary: 'Rust SFU builder meets WebAudio UI builder.',
     relevant_projects: ['octo-cat/sfu', 'hubot/worklets'],
     suggested_first_collaboration: 'Pair for 15 minutes on worklet-to-SFU latency.',
@@ -87,7 +88,7 @@ function envelope(type: string, payload: Record<string, unknown>) {
 describe('Participant', () => {
   it('accepts a valid participant and defaults consent flags to false', () => {
     const p = ParticipantSchema.parse(participant());
-    assert.equal(p.public_display_consent, false);
+    assert.equal(p.stage_display_consent, false);
     assert.equal(p.ownership_verified, false);
   });
 
@@ -100,7 +101,7 @@ describe('Participant', () => {
   const rejected: Array<[string, Record<string, unknown>]> = [
     ['http website', { website_url: 'http://jasonvaughan.com' }],
     ['uppercase login', { github_username: 'OctoCat' }],
-    ['identifying pseudonym', { pseudonym: 'octo-cat' }],
+    ['identifying display alias', { display_alias: 'octo-cat' }],
     ['unknown consent', { consent_status: 'maybe' }],
     ['unknown key', { access_token: 'ghp_secret' }],
   ];
@@ -194,21 +195,37 @@ describe('MatchProposal', () => {
     assert.deepEqual(MatchProposalSchema.parse(match()).shared_intro_notes, []);
   });
 
-  it('computes the composite score as the rounded sum', () => {
-    const score = compositeScore({ complementary_skills: 10.4, project_relevance: 10, evidence_strength: 10, recency: 0 });
-    assert.equal(score, 30);
+  it('weights the five components 0.35 / 0.30 / 0.15 / 0.10 / 0.10', () => {
+    assert.equal(Object.values(SCORE_WEIGHTS).reduce((a, b) => a + b, 0).toFixed(10), '1.0000000000');
+    const zero = { capability_similarity: 0, need_offer_fit: 0, complementarity: 0, novelty: 0, freshness: 0 };
+    assert.equal(compositeScore(zero), 0);
+    assert.equal(compositeScore({ ...zero, capability_similarity: 1 }), 35);
+    assert.equal(compositeScore({ ...zero, need_offer_fit: 1 }), 30);
+    assert.equal(compositeScore({ ...zero, complementarity: 1 }), 15);
+    assert.equal(compositeScore({ ...zero, novelty: 1 }), 10);
+    assert.equal(compositeScore({ ...zero, freshness: 1 }), 10);
+    assert.equal(
+      compositeScore({ capability_similarity: 1, need_offer_fit: 1, complementarity: 1, novelty: 1, freshness: 1 }),
+      100,
+    );
+  });
+
+  it('rounds the weighted score to an integer', () => {
+    const score = compositeScore({ capability_similarity: 0.5, need_offer_fit: 0.5, complementarity: 0.5, novelty: 0.5, freshness: 0.33 });
+    assert.equal(score, 48);
   });
 
   const rejected: Array<[string, Record<string, unknown>]> = [
     ['unordered participants', { participant_a_id: B, participant_b_id: A }],
     ['composite not matching breakdown', { composite_score: 90 }],
     [
-      'breakdown out of range',
+      'component out of range',
       {
-        score_breakdown: { complementary_skills: 41, project_relevance: 24, evidence_strength: 17, recency: 9 },
-        composite_score: 91,
+        score_breakdown: { capability_similarity: 1.2, need_offer_fit: 0.8, complementarity: 0.8, novelty: 0.6, freshness: 0.6 },
+        composite_score: 90,
       },
     ],
+    ['the legacy four-dimension breakdown', { score_breakdown: { complementary_skills: 34, project_relevance: 24, evidence_strength: 17, recency: 9 }, composite_score: 84 }],
     ['fewer than two receipts', { evidence_receipt_ids: [E1] }],
     [
       'notes before completion',
@@ -267,18 +284,18 @@ describe('MatchProposal', () => {
 
 describe('PublicEventEnvelope', () => {
   const samplePayloads: Record<EventType, Record<string, unknown>> = {
-    'participant.registered': { participant_pseudonym: 'Thread-7C4E' },
-    'github.fetch.started': { participant_pseudonym: 'Thread-7C4E' },
-    'github.fetch.completed': { participant_pseudonym: 'Thread-7C4E', repo_count: 6, evidence_count: 14 },
-    'profile.analysis.completed': { participant_pseudonym: 'Thread-7C4E', capability_count: 5 },
-    'opportunity.identified': { participant_pseudonym: 'Thread-7C4E', opportunity_type: 'open_issue_help' },
-    'match.candidate.generated': { match_id: M, pseudonym_a: 'Thread-7C4E', pseudonym_b: 'Loom-1A2B' },
-    'match.evaluated': { match_id: M, pseudonym_a: 'Thread-7C4E', pseudonym_b: 'Loom-1A2B', composite_score: 84 },
-    'introduction.proposed': { match_id: M, pseudonym_a: 'Thread-7C4E', pseudonym_b: 'Loom-1A2B' },
-    'introduction.accepted': { match_id: M, pseudonym_a: 'Thread-7C4E', pseudonym_b: 'Loom-1A2B' },
+    'participant.registered': { display_alias: 'Thread-7C4E' },
+    'github.fetch.started': { display_alias: 'Thread-7C4E' },
+    'github.fetch.completed': { display_alias: 'Thread-7C4E', repo_count: 6, evidence_count: 14 },
+    'profile.analysis.completed': { display_alias: 'Thread-7C4E', capability_count: 5 },
+    'opportunity.identified': { display_alias: 'Thread-7C4E', opportunity_type: 'open_issue_help' },
+    'match.candidate.generated': { match_id: M, display_alias_a: 'Thread-7C4E', display_alias_b: 'Loom-1A2B' },
+    'match.evaluated': { match_id: M, display_alias_a: 'Thread-7C4E', display_alias_b: 'Loom-1A2B', composite_score: 84 },
+    'introduction.proposed': { match_id: M, display_alias_a: 'Thread-7C4E', display_alias_b: 'Loom-1A2B' },
+    'introduction.accepted': { match_id: M, display_alias_a: 'Thread-7C4E', display_alias_b: 'Loom-1A2B' },
     'introduction.declined': { declined_total: 3 },
-    'introduction.completed': { match_id: M, pseudonym_a: 'Thread-7C4E', pseudonym_b: 'Loom-1A2B', channel: 'web' },
-    'analysis.failed': { participant_pseudonym: 'Thread-7C4E', reason_code: 'github_rate_limited' },
+    'introduction.completed': { match_id: M, display_alias_a: 'Thread-7C4E', display_alias_b: 'Loom-1A2B', channel: 'web' },
+    'analysis.failed': { display_alias: 'Thread-7C4E', reason_code: 'github_rate_limited' },
   };
 
   it('defines exactly the 12 canonical event types', () => {
@@ -296,12 +313,12 @@ describe('PublicEventEnvelope', () => {
   });
 
   it('admits identity only with explicit public display consent', () => {
-    const display = { public_display_consent: true, github_username: 'octo-cat', avatar_url: null };
-    const consented = envelope('participant.registered', { participant_pseudonym: 'Thread-7C4E', display });
+    const display = { stage_display_consent: true, github_username: 'octo-cat', avatar_url: null };
+    const consented = envelope('participant.registered', { display_alias: 'Thread-7C4E', display });
     assert.equal(PublicEventEnvelopeSchema.safeParse(consented).success, true);
     const unconsented = envelope('participant.registered', {
-      participant_pseudonym: 'Thread-7C4E',
-      display: { ...display, public_display_consent: false },
+      display_alias: 'Thread-7C4E',
+      display: { ...display, stage_display_consent: false },
     });
     assert.equal(PublicEventEnvelopeSchema.safeParse(unconsented).success, false);
   });
@@ -473,7 +490,7 @@ describe('SQLite schema', () => {
    */
   function insertParticipant(id: string, login: string, pseudonym: string) {
     db.prepare(
-      `INSERT INTO participants (id, pseudonym, github_username, consent_status, consent_granted_at, created_at, updated_at)
+      `INSERT INTO participants (id, display_alias, github_username, consent_status, consent_granted_at, created_at, updated_at)
        VALUES (?, ?, ?, 'granted', ?, ?, ?)`,
     ).run(id, pseudonym, login, NOW, NOW, NOW);
   }
@@ -508,8 +525,8 @@ describe('SQLite schema', () => {
 
   it('defaults privacy flags to 0', () => {
     insertParticipant(A, 'octo-cat', 'Thread-7C4E');
-    assert.deepEqual(row('SELECT public_display_consent, ownership_verified FROM participants'), {
-      public_display_consent: 0,
+    assert.deepEqual(row('SELECT stage_display_consent, ownership_verified FROM participants'), {
+      stage_display_consent: 0,
       ownership_verified: 0,
     });
   });
