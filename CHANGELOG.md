@@ -5,6 +5,8 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Changed
+- **Reverted All 4 Ariadne Builder Lanes (`#151..#154`) to High-Efficiency `claude-sonnet-reviewer` (`claude-sonnet-5`) Instead of High-Burn Fable/Astra:**
+  - Updated `FLEET_PROVISIONING_PACK.md` and `PROJECT_DOCUMENTS.md` / `MASTER_SSOT.md` so `Ariadne-Lane-A..D` (`#151..#154`) run `claude-sonnet-reviewer` (`claude-sonnet-5`), avoiding high-burn flagship models while keeping fast, reliable Builder throughput.
 - **Upgraded All 4 Ariadne Builder Lanes (`#151..#154`) to Flagship `claude-fable-sprint` (`claude-fable-5-1 --effort high`):**
   - Updated `Ariadne-Lane-A` (`#151`), `Ariadne-Lane-B` (`#152`), `Ariadne-Lane-C` (`#153`), and `Ariadne-Lane-D` (`#154`) in TangleClaw SQLite (`projects.engine_id`), `FLEET_PROVISIONING_PACK.md`, and `PROJECT_DOCUMENTS.md` / `MASTER_SSOT.md` from `claude-sonnet-reviewer` to `claude-fable-sprint` (`claude --model claude-fable-5-1 --effort high`) to maximize first-pass PR quality and hit the 3-to-4 hour 4-wave sprint target on H-Day.
 

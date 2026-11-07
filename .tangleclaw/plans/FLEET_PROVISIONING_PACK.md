@@ -46,14 +46,14 @@ tcFetch('/plans/149/FLEET_PROVISIONING_PACK.md').then(r=>r.text()).then(h=>eval(
   };
 
   const fleet = [
-    { name: 'Ariadne-Arc',    engine: 'antigravity',         roleKey: 'ARC' },
-    { name: 'Ariadne-PRR',    engine: 'codex',               roleKey: 'PRR' },
-    { name: 'Ariadne-INT',    engine: 'codex',               roleKey: 'INT' },
-    { name: 'Ariadne-Obsr',   engine: 'antigravity',         roleKey: 'OBSR' },
-    { name: 'Ariadne-Lane-A', engine: 'claude-fable-sprint', roleKey: 'BUILDER_A' },
-    { name: 'Ariadne-Lane-B', engine: 'claude-fable-sprint', roleKey: 'BUILDER_B' },
-    { name: 'Ariadne-Lane-C', engine: 'claude-fable-sprint', roleKey: 'BUILDER_C' },
-    { name: 'Ariadne-Lane-D', engine: 'claude-fable-sprint', roleKey: 'BUILDER_D' },
+    { name: 'Ariadne-Arc',    engine: 'antigravity',            roleKey: 'ARC' },
+    { name: 'Ariadne-PRR',    engine: 'codex',                  roleKey: 'PRR' },
+    { name: 'Ariadne-INT',    engine: 'codex',                  roleKey: 'INT' },
+    { name: 'Ariadne-Obsr',   engine: 'antigravity',            roleKey: 'OBSR' },
+    { name: 'Ariadne-Lane-A', engine: 'claude-sonnet-reviewer', roleKey: 'BUILDER_A' },
+    { name: 'Ariadne-Lane-B', engine: 'claude-sonnet-reviewer', roleKey: 'BUILDER_B' },
+    { name: 'Ariadne-Lane-C', engine: 'claude-sonnet-reviewer', roleKey: 'BUILDER_C' },
+    { name: 'Ariadne-Lane-D', engine: 'claude-sonnet-reviewer', roleKey: 'BUILDER_D' },
   ];
 
   const COMMON_CORE = `TEAM COMMON CORE (ARIADNE-HACK-2026 v1 — governs Ariadne-Arc, Ariadne-PRR, Ariadne-INT, Ariadne-Obsr, Ariadne-Lane-A..D)
