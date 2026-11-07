@@ -9,7 +9,7 @@
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Ariadne Autonomous Sprint Reports (Powered by TangleClaw)" />
   <meta property="og:title" content="Ariadne Sprint v0.1.0 — Executive Engineering &amp; Telemetry Report" />
-  <meta property="og:description" content="Ariadne Sprint v0.1.0 (Milestone #1 · Wave 1): 4 parallel Builder cars (#1, #13, #9, #14) merged via PRs #18..#21 in 0.84h (50m 12s)." />
+  <meta property="og:description" content="Ariadne Sprint v0.1.0 (Milestone #1 · Wave 1): 4 parallel Builder cars (#1, #13, #9, #14) merged via PRs #18..#21 in 0.66h (39m 45s T_eng)." />
   <meta property="og:url" content="https://jason-vaughan.github.io/Ariadne/reports/v0.1.0/" />
   <meta property="og:image" content="https://jason-vaughan.github.io/Ariadne/reports/assets/og-card.png" />
   <meta property="og:image:type" content="image/png" />
@@ -18,7 +18,7 @@
   <meta property="og:image:alt" content="Ariadne Sprint v0.1.0 — Executive Engineering &amp; Telemetry Report" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Ariadne Sprint v0.1.0 — Executive Engineering &amp; Telemetry Report" />
-  <meta name="twitter:description" content="Ariadne Sprint v0.1.0 (Milestone #1 · Wave 1): 4 parallel Builder cars (#1, #13, #9, #14) merged via PRs #18..#21 in 0.84h (50m 12s)." />
+  <meta name="twitter:description" content="Ariadne Sprint v0.1.0 (Milestone #1 · Wave 1): 4 parallel Builder cars (#1, #13, #9, #14) merged via PRs #18..#21 in 0.66h (39m 45s T_eng)." />
   <meta name="twitter:image" content="https://jason-vaughan.github.io/Ariadne/reports/assets/og-card.png" />
   <link rel="icon" type="image/png" href="../assets/logo-icon.png" />
   <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png" />
@@ -542,7 +542,7 @@
         <div class="hero-meta">
           <div><strong>Project / Repo:</strong> <code>Ariadne-PM (#149)</code> · <code>Jason-Vaughan/Ariadne</code></div>
           <div><strong>Base → Release:</strong> <code>d965715</code> → <code>101d16c</code> (<code>v0.1.0</code>)</div>
-          <div><strong>Engineering Window (<code>T_eng</code>):</strong> <code>50m 12s (0.84h · 11:01 → 11:52 PST)</code></div>
+          <div><strong>Engineering Window (<code>T_eng</code>):</strong> <code>39m 45s (0.66h · t2 11:12:15 → t7 11:52:00 PST; t1→t7 50m 12s)</code></div>
           <div><strong>PRs Merged:</strong> <code>4 / 4</code> (<code>#18, #19, #20, #21</code>)</div>
           <div><strong>Milestone #1 Issues Closed:</strong> <code>4 / 4</code> (<code>#1, #13, #9, #14</code> · <code>0</code> open)</div>
           <div><strong>Governance Standard:</strong> <code>Rule #312/#313 + SPRINT_REPORT_CONTRACT v2.0.0</code></div>
@@ -562,8 +562,8 @@
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Total Run Time (Start → Finish)</div>
-          <div class="kpi-value" style="color:var(--purple)">50m 12s (0.84h)</div>
-          <div class="kpi-sub">Full <code>T_eng = 0.84h</code> · <code>0</code> source-file collisions</div>
+          <div class="kpi-value" style="color:var(--purple)">39m 45s (0.66h)</div>
+          <div class="kpi-sub">Full <code>T_eng = 0.66h</code> (<code>t2→t7</code>; <code>t1→t7 = 50m 12s</code>)</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Net Code &amp; Test Footprint</div>
@@ -587,14 +587,14 @@
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Allocated Sprint Cost (Tier 2)</div>
-          <div class="kpi-value" style="color:var(--green)">$2.07 Pool</div>
-          <div class="kpi-sub"><code>$0.00</code> marginal API fee · <code>$0.52/issue</code> · <code>~$25</code> API shadow</div>
+          <div class="kpi-value" style="color:var(--green)">$1.63 Pool</div>
+          <div class="kpi-sub"><code>$0.00</code> marginal API fee · <code>$0.41/issue</code> · <code>~$25</code> API shadow</div>
         </div>
         <!-- TANGLECLAW_ADE_KPI_START -->
         <div class="kpi-card">
           <div class="kpi-label">Autonomous Delivery Efficiency (ADE)</div>
-          <div class="kpi-value" style="color:var(--cyan,#38bdf8)">4.76/hr · ADE 2.30</div>
-          <div class="kpi-meta kpi-sub">Throughput: <code>4.76 closed/hr</code> (<code>T_eng=0.84h</code>) · Allocated: <code>$0.52/issue</code> (<code>$2.07</code> pool · <code>$0.40/kLOC</code>) · Legacy ADE_v1: <code>2.30</code></div>
+          <div class="kpi-value" style="color:var(--cyan,#38bdf8)">6.04/hr · ADE 3.70</div>
+          <div class="kpi-meta kpi-sub">Throughput: <code>6.04 closed/hr</code> (<code>T_eng=0.66h</code>) · Allocated: <code>$0.41/issue</code> (<code>$1.63</code> pool · <code>$0.32/kLOC</code>) · Legacy ADE_v1: <code>3.70</code></div>
         </div>
         <!-- TANGLECLAW_ADE_KPI_END -->
       </div>
@@ -799,12 +799,12 @@
       <div id="ade-efficiency-card" class="subcard" style="margin:18px 0;padding:18px 22px;border:1.5px solid rgba(56,189,248,0.45);background:linear-gradient(135deg,rgba(15,23,42,0.95),rgba(14,116,144,0.16));border-radius:12px;">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
           <span style="color:#38bdf8;font-weight:700;font-size:0.82rem;letter-spacing:0.06em;">📐 AUTONOMOUS DELIVERY EFFICIENCY (ADE) · ORTHOGONAL THROUGHPUT, ALLOCATED COST &amp; LEGACY ADE_v1</span>
-          <span class="badge badge-green" style="font-size:0.78rem;">Throughput = 4.76 Issues/Hr · Allocated = $0.52/Issue ($0.40/kLOC) · Legacy ADE_v1 = 2.30</span>
+          <span class="badge badge-green" style="font-size:0.78rem;">Throughput = 6.04 Issues/Hr · Allocated = $0.41/Issue ($0.32/kLOC) · Legacy ADE_v1 = 3.70</span>
         </div>
         <div style="font-size:0.90rem;color:#e2e8f0;line-height:1.56;">
-          <strong>1. Orthogonal Efficiency Metrics (Primary Standard):</strong> <strong>Throughput</strong> = <code>W_closed / T_eng = 4 / 0.84h = <strong>4.76 closed issues/hr</strong></code> · <strong>Unit Allocated Cost</strong> = <code>C_alloc / W_closed = $2.07 / 4 = <strong>$0.52/closed issue</strong></code> (<code>$0.40/kLOC</code> across <code>+5,132</code> insertions) · <strong>Quality</strong> = <code>100% True Merges, 0 Post-Merge Defects</code>.<br/>
-          <strong>2. Disclosed Legacy Composite Index (<code>ADE_v1</code>):</strong> <code>ADE_v1 = W_closed / (T_eng × C_alloc) = 4 / (0.84h × $2.07) = <strong>2.30</strong></code>. <em>Dimensional Note:</em> Because <code>C_alloc = $2.46/hr × T_eng</code>, <code>ADE_v1 = W / (2.46 × T_eng²)</code> scales as <code>1/T²</code> (units: <code>issues · hr⁻² · $⁻¹</code>); therefore <code>ADE_v1</code> is always evaluated on the full engineering window (<code>T_eng = 0.84h</code>, never a pipelined merge tail) alongside scale-invariant Throughput (<code>4.76 issues/hr</code>).<br/>
-          <strong>3. 3-Tier Operating Cost Basis:</strong> <strong>Tier 1 (Measured Marginal Cash):</strong> <code>$0.00</code> per-run API fee + <code>~$0.02</code> M3 Ultra wall power · <strong>Tier 2 (Allocated Subscription Pool):</strong> <code>$2.07</code> pro-rata allocation (<code>$440/mo ÷ 178.8 active hrs = $2.46/hr × 0.84h</code>; calendar-hour reference <code>$0.51</code> @ <code>$0.611/hr</code>) · <strong>Tier 3 (Hypothetical API Shadow Estimate):</strong> <code>~$25</code> (unmetered estimate across <code>~3.2M</code> tokens → <code>12.1×</code> subscription compression).
+          <strong>1. Orthogonal Efficiency Metrics (Primary Standard):</strong> <strong>Throughput</strong> = <code>W_closed / T_eng = 4 / 0.66h = <strong>6.04 closed issues/hr</strong></code> · <strong>Unit Allocated Cost</strong> = <code>C_alloc / W_closed = $1.63 / 4 = <strong>$0.41/closed issue</strong></code> (<code>$0.32/kLOC</code> across <code>+5,132</code> insertions) · <strong>Quality</strong> = <code>100% True Merges, 0 Post-Merge Defects</code>.<br/>
+          <strong>2. Disclosed Legacy Composite Index (<code>ADE_v1</code>):</strong> <code>ADE_v1 = W_closed / (T_eng × C_alloc) = 4 / (0.66h × $1.63) = <strong>3.70</strong></code>. <em>Dimensional Note:</em> Because <code>C_alloc = $2.46/hr × T_eng</code>, <code>ADE_v1 = W / (2.46 × T_eng²)</code> scales as <code>1/T²</code> (units: <code>issues · hr⁻² · $⁻¹</code>); therefore <code>ADE_v1</code> is always evaluated on the full engineering window (<code>T_eng = 0.66h</code>, never a pipelined merge tail) alongside scale-invariant Throughput (<code>6.04 issues/hr</code>).<br/>
+          <strong>3. 3-Tier Operating Cost Basis:</strong> <strong>Tier 1 (Measured Marginal Cash):</strong> <code>$0.00</code> per-run API fee + <code>~$0.02</code> M3 Ultra wall power · <strong>Tier 2 (Allocated Subscription Pool):</strong> <code>$1.63</code> pro-rata allocation (<code>$440/mo ÷ 178.8 active hrs = $2.46/hr × 0.66h</code>; calendar-hour reference <code>$0.40</code> @ <code>$0.611/hr</code>) · <strong>Tier 3 (Hypothetical API Shadow Estimate):</strong> <code>~$25</code> (unmetered estimate across <code>~3.2M</code> tokens → <code>15.3×</code> subscription compression).
         </div>
       </div>
       <!-- TANGLECLAW_ADE_BANNER_END -->
@@ -818,7 +818,7 @@
 
         <div class="grid-2" style="gap:16px;margin-bottom:16px;">
           <div>
-            <h4 style="margin:0 0 8px;color:var(--green);font-size:0.94rem;">1. Mandatory 8-Timestamp Release Cadence &amp; Engineering Window (<code>T_eng = 0.84h</code>)</h4>
+            <h4 style="margin:0 0 8px;color:var(--green);font-size:0.94rem;">1. Mandatory 8-Timestamp Release Cadence &amp; Engineering Window (<code>T_eng = 0.66h</code>)</h4>
             <div class="table-wrap">
               <table class="pr-table">
                 <thead>
@@ -837,8 +837,8 @@
                   <tr><td><code>t6_release_tag_published</code></td><td><code>2026-11-07T19:51:30Z</code></td><td>11:51:30 PST (Annotated tag v0.1.0 published @ 101d16c)</td></tr>
                   <tr><td><code>t7_live_deploy_completed</code></td><td><code>2026-11-07T19:52:00Z</code></td><td>11:52:00 PST (Live :3420 /api/health 200 OK & 183/183 tests green)</td></tr>
                   <tr><td><code>t8_observer_certification</code></td><td><code>2026-11-07T19:55:00Z</code></td><td>11:55:00 PST (Ariadne-Obsr O-Gate certification)</td></tr>
-                  <tr><td><strong>Full Engineering Window (<code>T_eng</code>)</strong></td><td><strong><code>0.84 hrs</code></strong></td><td><strong>50m 12s (0.84h · 11:01 → 11:52 PST)</strong></td></tr>
-                  <tr><td><strong>Inter-Release Deploy Cadence</strong></td><td><code>0.84 hrs</code></td><td>50m 12s (Wave 1 initial baseline -> v0.1.0 live)</td></tr>
+                  <tr><td><strong>Full Engineering Window (<code>T_eng</code>)</strong></td><td><strong><code>0.66 hrs</code></strong></td><td><strong>39m 45s (0.66h · t2 11:12:15 → t7 11:52:00 PST; t1→t7 wall-clock 50m 12s / 0.84h)</strong></td></tr>
+                  <tr><td><strong>Inter-Release Deploy Cadence</strong></td><td><code>0.66 hrs</code></td><td>39m 45s (0.66h · Wave 1 first commit t2 11:12:15 → v0.1.0 live t7 11:52:00 PST)</td></tr>
                   <tr><td><strong>Cross-Version Pipeline Overlap</strong></td><td><code>0.00 hrs (0.0%)</code></td><td>0m (Wave 1 opens the hackathon sprint train)</td></tr>
                 </tbody>
               </table>
@@ -902,10 +902,10 @@
           <div style="background:rgba(10,15,29,0.65);border:1px solid var(--border);border-radius:10px;padding:14px 16px;">
             <h4 style="margin:0 0 8px;color:var(--amber);font-size:0.94rem;">3. 3-Tier Operating Cost &amp; Orthogonal Efficiency Accounting</h4>
             <ul style="margin:0;padding-left:18px;font-size:0.85rem;line-height:1.55;color:var(--text-muted);">
-              <li><strong>Tier 1 — Measured Marginal Cash Expenditure (<code>measured</code>):</strong> <strong><code>$0.00</code> incremental model/API fee</strong> (covered by fixed monthly CLI subscriptions) + <strong><code>~$0.02</code></strong> measured Mac Studio M3 Ultra wall-power (<code>~$0.025/hr × 0.84h</code>).</li>
-              <li><strong>Tier 2 — Allocated Subscription &amp; Compute Amortization (<code>allocated_estimate</code>):</strong> <strong><code>$2.07</code></strong> on full engineering window <code>T_eng = 0.84h</code> at <code>$2.46/active fleet-hr</code> (<code>$440/mo ÷ 178.8 active hrs/mo</code>; 24/7 calendar-hour reference: <code>$0.51</code> @ <code>$0.611/hr</code>) → <strong><code>$0.52 / closed issue</code></strong> (<code>$0.52 / addressed issue</code>, <code>$0.40 / kLOC</code>).</li>
+              <li><strong>Tier 1 — Measured Marginal Cash Expenditure (<code>measured</code>):</strong> <strong><code>$0.00</code> incremental model/API fee</strong> (covered by fixed monthly CLI subscriptions) + <strong><code>~$0.02</code></strong> measured Mac Studio M3 Ultra wall-power (<code>~$0.025/hr × 0.66h</code>).</li>
+              <li><strong>Tier 2 — Allocated Subscription &amp; Compute Amortization (<code>allocated_estimate</code>):</strong> <strong><code>$1.63</code></strong> on full engineering window <code>T_eng = 0.66h</code> at <code>$2.46/active fleet-hr</code> (<code>$440/mo ÷ 178.8 active hrs/mo</code>; 24/7 calendar-hour reference: <code>$0.40</code> @ <code>$0.611/hr</code>) → <strong><code>$0.41 / closed issue</code></strong> (<code>$0.41 / addressed issue</code>, <code>$0.32 / kLOC</code>).</li>
               <li><strong>Tier 3 — Hypothetical Public API Shadow Estimate (<code>hypothetical_estimate</code>):</strong> <strong><code>~$25</code></strong> order-of-magnitude shadow estimate across <code>~3.2M</code> estimated CLI tokens (unmetered in SQLite; never co-mingled with Tier 1/2).</li>
-              <li><strong>Scale-Invariant Throughput vs. Legacy <code>ADE_v1</code>:</strong> Throughput = <strong><code>4.76 closed issues/hr</code></strong> (<code>4.76 addressed/hr</code>); Legacy <code>ADE_v1</code> = <strong><code>2.30</code></strong> (closed) / <strong><code>2.30</code></strong> (addressed).</li>
+              <li><strong>Scale-Invariant Throughput vs. Legacy <code>ADE_v1</code>:</strong> Throughput = <strong><code>6.04 closed issues/hr</code></strong> (<code>6.04 addressed/hr</code>); Legacy <code>ADE_v1</code> = <strong><code>3.70</code></strong> (closed) / <strong><code>3.70</code></strong> (addressed).</li>
             </ul>
           </div>
 
@@ -950,10 +950,10 @@
     "t8_pst": "11:55:00 PST (Ariadne-Obsr O-Gate certification)"
   },
   "durations": {
-    "full_engineering_window_hrs": 0.84,
-    "full_engineering_window_human": "50m 12s (0.84h \u00b7 11:01 \u2192 11:52 PST)",
-    "inter_release_deploy_cadence_hrs": 0.84,
-    "inter_release_deploy_cadence_human": "50m 12s (Wave 1 initial baseline -> v0.1.0 live)",
+    "full_engineering_window_hrs": 0.66,
+    "full_engineering_window_human": "39m 45s (0.66h \u00b7 t2 11:12:15 \u2192 t7 11:52:00 PST; t1\u2192t7 wall-clock 50m 12s / 0.84h)",
+    "inter_release_deploy_cadence_hrs": 0.66,
+    "inter_release_deploy_cadence_human": "39m 45s (0.66h \u00b7 Wave 1 first commit t2 11:12:15 \u2192 v0.1.0 live t7 11:52:00 PST)",
     "pipeline_overlap_hrs": 0.0,
     "pipeline_overlap_pct": 0.0,
     "pipeline_overlap_human": "0m (Wave 1 opens the hackathon sprint train)"
@@ -1051,9 +1051,9 @@
     "tier1_measured_marginal_api_usd": 0.0,
     "tier1_measured_marginal_electricity_usd": 0.02,
     "tier1_evidence_class": "measured",
-    "tier2_allocated_subscription_usd": 2.07,
+    "tier2_allocated_subscription_usd": 1.63,
     "tier2_hourly_rate_usd": 2.46,
-    "tier2_calendar_hour_subscription_usd": 0.51,
+    "tier2_calendar_hour_subscription_usd": 0.4,
     "tier2_calendar_hourly_rate_usd": 0.611,
     "tier2_evidence_class": "allocated_estimate",
     "tier3_hypothetical_api_shadow_usd": 25.0,
@@ -1061,13 +1061,13 @@
     "tier3_evidence_class": "hypothetical_estimate"
   },
   "efficiency": {
-    "throughput_closed_per_eng_hr": 4.76,
-    "throughput_addressed_per_eng_hr": 4.76,
-    "unit_allocated_cost_per_closed_issue_usd": 0.52,
-    "unit_allocated_cost_per_addressed_issue_usd": 0.52,
-    "unit_allocated_cost_per_kloc_usd": 0.4,
-    "legacy_ade_v1_closed": 2.3,
-    "legacy_ade_v1_addressed": 2.3
+    "throughput_closed_per_eng_hr": 6.04,
+    "throughput_addressed_per_eng_hr": 6.04,
+    "unit_allocated_cost_per_closed_issue_usd": 0.41,
+    "unit_allocated_cost_per_addressed_issue_usd": 0.41,
+    "unit_allocated_cost_per_kloc_usd": 0.32,
+    "legacy_ade_v1_closed": 3.7,
+    "legacy_ade_v1_addressed": 3.7
   }
 }
       </script>
@@ -1077,7 +1077,7 @@
           <h2 class="section-title"><span class="num">02</span> Wave 1 Execution Timeline &amp; Merge Velocity</h2>
           <p class="section-desc">End-to-end progression from Wave 1 Charter dispatch (`11:01:48 PST`) through 4 parallel Builder PRs (`#18..#21`) and Release Tag `v0.1.0` (`@ 101d16c`).</p>
         </div>
-        <span class="badge badge-green">4 PRs Merged (#18..#21) · 4/4 Milestone #1 Issues Closed · 0.84h Full Engineering Window</span>
+        <span class="badge badge-green">4 PRs Merged (#18..#21) · 4/4 Milestone #1 Issues Closed · 0.66h Full Engineering Window</span>
       </div>
 
       <div class="grid-2">
@@ -1267,7 +1267,7 @@
             <tbody>
               <tr>
                 <td><strong>Total Sprint Wall Time (Start → Finish)</strong></td>
-                <td><strong><code>50m 12s</code> (0.84h · Shipped)</strong></td>
+                <td><strong><code>39m 45s</code> (0.66h <code>T_eng</code> · Shipped)</strong></td>
                 <td><code>1h 15m</code> (Target · 4 Cars)</td>
                 <td><code>1h 15m</code> (Target · 4 Cars)</td>
                 <td><code>1h 00m</code> (Target · 3 Cars)</td>
@@ -1294,7 +1294,7 @@
               </tr>
               <tr>
                 <td><strong>Commits / PR &amp; Token Efficiency</strong></td>
-                <td><strong><code>~3.2M</code> Tokens · <code>$2.07</code> Pool</strong></td>
+                <td><strong><code>~3.2M</code> Tokens · <code>$1.63</code> Pool</strong></td>
                 <td><code>~3.8M</code> Est. Tokens</td>
                 <td><code>~3.8M</code> Est. Tokens</td>
                 <td><code>~3.0M</code> Est. Tokens</td>
@@ -1451,7 +1451,7 @@
             <div class="pm-item">
               <h4>3. Pairwise Source-Envelope Disjointness (`Envelope(A) ∩ Envelope(B) = ∅`) Across All 4 Cars</h4>
               <p>
-                Sorting `v0.1.0` into 4 parallel workstreams (`#1`, `#13`, `#9`, `#14`) with zero overlapping source files allowed `Ariadne-INT` to merge `PR #18..#21` in `0.84h` (`50m 12s`) with zero source-code conflicts.
+                Sorting `v0.1.0` into 4 parallel workstreams (`#1`, `#13`, `#9`, `#14`) with zero overlapping source files allowed `Ariadne-INT` to merge `PR #18..#21` in `0.66h` (`39m 45s` `T_eng`; `50m 12s` `t1→t7` wall-clock) with zero source-code conflicts.
               </p>
             </div>
             <div class="pm-item">
@@ -1559,7 +1559,7 @@
             </thead>
             <tbody>
               <tr><td>1</td><td><strong>Operator Interventions &amp; Causes</strong></td><td><code>0</code> unplanned Operator code interventions across Wave 1 (`#1, #13, #9, #14`)</td><td>0 interventions</td><td><span class="badge badge-green">PASS</span></td><td>Carry standing multi-wave authorization into `v0.2.0–v1.0.0`</td></tr>
-              <tr><td>2</td><td><strong>Dispatch-to-Merge Timing</strong></td><td>Full engineering window `T_eng = 0.84h` (`50m 12s`) across 4 parallel Builder cars (`#18..#21`)</td><td>&lt; 1.5h wave</td><td><span class="badge badge-green">PASS</span></td><td>Keep each wave bounded to &lt;= 4 parallel file-disjoint cars</td></tr>
+              <tr><td>2</td><td><strong>Dispatch-to-Merge Timing</strong></td><td>Full engineering window `T_eng = 0.66h` (`39m 45s` `t2→t7`; `50m 12s` `t1→t7`) across 4 parallel Builder cars (`#18..#21`)</td><td>&lt; 1.5h wave</td><td><span class="badge badge-green">PASS</span></td><td>Keep each wave bounded to &lt;= 4 parallel file-disjoint cars</td></tr>
               <tr><td>3</td><td><strong>Active vs Allowed Builders &amp; Parallelism</strong></td><td>100% Builder utilization across `Ariadne-Lane-A`, `B`, `C`, and `D` (`4/4` lanes active)</td><td>100% utilization</td><td><span class="badge badge-green">PASS</span></td><td>Maintain 4-lane track assignment in `v0.2.0` (`#2, #3, #6, #10`)</td></tr>
               <tr><td>4</td><td><strong>Forced Re-Syncs / Rebases When <code>main</code> Moves</strong></td><td><code>0</code> source-file conflicts across `PR #18..#21` thanks to disjoint source envelopes</td><td>0 source conflicts</td><td><span class="badge badge-green">PASS</span></td><td>Enforce `Envelope(A) ∩ Envelope(B) = ∅` on source files in every wave charter</td></tr>
               <tr><td>5</td><td><strong>Open PR Age Since Current <code>main</code></strong></td><td>All 4 feature PRs (`#18..#21`) merged within 38 minutes of first PR opening; `0` stale PRs</td><td>0 stale PRs</td><td><span class="badge badge-green">PASS</span></td><td>Serialize merges via `Ariadne-INT` as soon as Dual-Gate clears</td></tr>
@@ -1572,7 +1572,7 @@
               <tr><td>12</td><td><strong>Unlabelled PRs, Dirty Clones &amp; Worktrees</strong></td><td>All merged `v0.1.0` branches retired after `tc branch check`; worktrees clean</td><td>0 orphan clones</td><td><span class="badge badge-green">PASS</span></td><td>Run `tc branch check` before retiring any merged feature branch</td></tr>
               <tr><td>13</td><td><strong>Release-Status Lag &amp; Finish-Line Honesty</strong></td><td>Tag `v0.1.0` published at `101d16c` (`PR #21`) after all 4 Milestone #1 issues closed</td><td>100% honesty</td><td><span class="badge badge-green">PASS</span></td><td>Publish updated roadmap + sprint report after every release tag</td></tr>
               <tr><td>14</td><td><strong>Conflict Resolution Time</strong></td><td><code>0m</code> source-file conflict resolution time across all 4 feature cars (`CHANGELOG.md` only)</td><td>&lt; 5m sync time</td><td><span class="badge badge-green">PASS</span></td><td>Use auto-mounted `src/routes/*.ts` loader for all Wave 2–4 routes</td></tr>
-              <tr><td>15</td><td><strong>Wakes, Tokens &amp; Turns by Role &amp; Model</strong></td><td><code>~3.2M</code> tokens across 9 lanes (`$2.07` allocated subscription cost; `$0.00` marginal API fee)</td><td>0 API lockouts</td><td><span class="badge badge-green">PASS</span></td><td>Cache GitHub API responses in SQLite (`github_snapshots`) in `#3`</td></tr>
+              <tr><td>15</td><td><strong>Wakes, Tokens &amp; Turns by Role &amp; Model</strong></td><td><code>~3.2M</code> tokens across 9 lanes (`$1.63` allocated subscription cost; `$0.00` marginal API fee)</td><td>0 API lockouts</td><td><span class="badge badge-green">PASS</span></td><td>Cache GitHub API responses in SQLite (`github_snapshots`) in `#3`</td></tr>
               <tr><td>16</td><td><strong>4 End-of-Sprint Maintenance Gates</strong></td><td>All 4 Maintenance Gates (`R-Gate`, `A-Gate`, `I-Gate` + Tag `v0.1.0`, `O-Gate` Canonical HTML Report + Validator) green</td><td>4 / 4 Gates green</td><td><span class="badge badge-green">PASS</span></td><td>Run `validate-sprint-report.py --all` at every wave closeout</td></tr>
             </tbody>
           </table>

@@ -141,6 +141,65 @@ class TestValidateSprintReport(unittest.TestCase):
         self.assertTrue(any("Timestamp chronology violation" in e for e in errs), f"Expected chronology error, got {errs}")
         self.assertTrue(any("Rendered #ade-efficiency-card banner text does not match canonical JSON" in e for e in errs), f"Expected banner/JSON mismatch error, got {errs}")
 
+    def test_11_rejects_t1_to_t7_substituted_for_t2_to_t7_and_overlap_mismatch(self):
+        v020_path = os.path.join(REPORTS_DIR, "v0.2.0", "index.html")
+        v020_html = pathlib.Path(v020_path).read_text(encoding="utf-8")
+        v020_json = validator.extract_embedded_json(v020_path)
+        self.assertEqual(validator.validate_report(v020_path, "v0.2.0"), [])
+
+        bad = copy.deepcopy(v020_json)
+        # Substitute t1->t7 (0.56h) and t1->prev_t7 overlap (0.18h) instead of contract t2->t7 (0.40h) and 47s (0.01h)
+        bad["durations"]["full_engineering_window_hrs"] = 0.56
+        bad["durations"]["pipeline_overlap_hrs"] = 0.18
+        bad["durations"]["pipeline_overlap_pct"] = 32.1
+        mut_html = replace_embedded_json(v020_html, bad)
+        errs = validator.validate_report_content(mut_html, "v0.2.0", enforce_registry_match=False)
+        self.assertTrue(
+            any("contract T_eng = (t7 - t2)" in e for e in errs),
+            f"Expected contract T_eng = (t7 - t2) error, got {errs}",
+        )
+        self.assertTrue(
+            any("pipeline_overlap_hrs" in e for e in errs),
+            f"Expected pipeline_overlap_hrs error, got {errs}",
+        )
+
+    def test_12_rejects_early_rounded_t_eng_derived_metrics(self):
+        v020_path = os.path.join(REPORTS_DIR, "v0.2.0", "index.html")
+        v020_html = pathlib.Path(v020_path).read_text(encoding="utf-8")
+        v020_json = validator.extract_embedded_json(v020_path)
+
+        bad_v020 = copy.deepcopy(v020_json)
+        # Mutate v0.2.0 back to early-rounded 0.40h figures (10.00/hr, $0.25/issue, ADE 10.20) instead of exact 1427s
+        bad_v020["efficiency"]["throughput_closed_per_eng_hr"] = 10.00
+        bad_v020["efficiency"]["unit_allocated_cost_per_closed_issue_usd"] = 0.25
+        bad_v020["efficiency"]["legacy_ade_v1_closed"] = 10.20
+        mut_v020 = replace_embedded_json(v020_html, bad_v020)
+        errs_v020 = validator.validate_report_content(mut_v020, "v0.2.0", enforce_registry_match=False)
+        self.assertTrue(
+            any("throughput_closed_per_eng_hr (10.00) != round(state_c / T_eng_exact, 2) (10.09)" in e for e in errs_v020),
+            f"Expected exact-second throughput rejection on v0.2.0, got {errs_v020}",
+        )
+        self.assertTrue(
+            any("legacy_ade_v1_closed (10.20) != round(state_c / (T_eng_exact * C_alloc_exact), 2) (10.35)" in e for e in errs_v020),
+            f"Expected exact-second ADE rejection on v0.2.0, got {errs_v020}",
+        )
+
+        # Mutate v0.1.0 back to early-rounded 0.66h figures (6.06/hr, $1.62 pool, ADE 3.74) instead of exact 2385s
+        bad_v010 = copy.deepcopy(self.v010_json)
+        bad_v010["economics"]["tier2_allocated_subscription_usd"] = 1.62
+        bad_v010["efficiency"]["throughput_closed_per_eng_hr"] = 6.06
+        bad_v010["efficiency"]["legacy_ade_v1_closed"] = 3.74
+        mut_v010 = replace_embedded_json(self.v010_html, bad_v010)
+        errs_v010 = validator.validate_report_content(mut_v010, "v0.1.0", enforce_registry_match=False)
+        self.assertTrue(
+            any("throughput_closed_per_eng_hr (6.06) != round(state_c / T_eng_exact, 2) (6.04)" in e for e in errs_v010),
+            f"Expected exact-second throughput rejection on v0.1.0, got {errs_v010}",
+        )
+        self.assertTrue(
+            any("legacy_ade_v1_closed (3.74) != round(state_c / (T_eng_exact * C_alloc_exact), 2) (3.70)" in e for e in errs_v010),
+            f"Expected exact-second ADE rejection on v0.1.0, got {errs_v010}",
+        )
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
