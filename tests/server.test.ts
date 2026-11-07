@@ -289,11 +289,15 @@ describe('static aliases and report publication', () => {
     }
   });
 
-  test('the default aliases expose only the logo, never sprint-reports/', () => {
-    assert.deepEqual(DEFAULT_STATIC_ALIASES.map((a) => a.path), ['/tangleclaw-logo.png']);
+  test('the default aliases expose only the logos, never sprint-reports/', () => {
+    assert.deepEqual(DEFAULT_STATIC_ALIASES.map((a) => a.path), ['/tangleclaw-logo.png', '/ariadne-logo.png']);
     assert.equal(
       resolveAliasedFile(DEFAULT_STATIC_ALIASES, '/tangleclaw-logo.png'),
       join(REPO_ROOT, 'roadmap-board', 'tangleclaw-logo.png'),
+    );
+    assert.equal(
+      resolveAliasedFile(DEFAULT_STATIC_ALIASES, '/ariadne-logo.png'),
+      join(REPO_ROOT, 'roadmap-board', 'ariadne-logo.png'),
     );
     for (const path of ['/reports/v0.1.0/', '/reports/v0.1.0/index.html', '/reports/scripts/sync-live-sprint.py']) {
       assert.equal(resolveAliasedFile(DEFAULT_STATIC_ALIASES, path), null, path);
