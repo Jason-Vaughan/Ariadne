@@ -8,6 +8,7 @@ export const KEY_ACTIONS = {
   3: 'view:3',
   4: 'view:4',
   q: 'qr',
+  a: 'qr:floating',
   s: 'seed',
   p: 'privacy',
   ' ': 'cycle',

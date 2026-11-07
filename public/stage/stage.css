@@ -55,18 +55,18 @@ header {
 .brand span { display: block; color: var(--gold); font-size: 13px; letter-spacing: 0.06em; text-align: center; }
 .brand-logo { display: block; height: 52px; width: auto; }
 
-nav.views, .controls { display: flex; gap: 8px; }
+nav.views, .controls { display: flex; gap: 6px; }
 .controls { margin-left: auto; }
 
 button {
   font: inherit;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 650;
   color: var(--fg);
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 10px;
-  padding: 9px 12px;
+  padding: 8px 10px;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -232,6 +232,20 @@ main { position: relative; overflow: hidden; }
 .qr-count { font-size: 40px; font-weight: 800; margin-top: 12px; }
 .qr-count strong { color: var(--green); }
 .qr-hint { color: var(--muted); font-size: 20px; margin-top: 10px; }
+
+/* Floating QR: persists across every view, dragged by its header */
+#qr-floating { position: absolute; left: 1470px; top: 560px; z-index: 8; width: 400px; background: rgba(6, 10, 20, 0.94); border: 2px solid var(--gold); border-radius: 18px; box-shadow: 0 0 30px rgba(250, 204, 21, 0.35); text-align: center; padding-bottom: 14px; }
+#qr-floating[hidden] { display: none; }
+#qr-floating.dragging { box-shadow: 0 0 44px rgba(250, 204, 21, 0.6); }
+.qr-float-handle { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 14px; background: var(--gold); color: #111; font-size: 18px; font-weight: 900; border-radius: 15px 15px 0 0; cursor: grab; user-select: none; touch-action: none; }
+#qr-floating.dragging .qr-float-handle { cursor: grabbing; }
+.qr-float-close { font-size: 22px; line-height: 1; padding: 0 8px; background: transparent; color: #111; border: 0; }
+.qr-float-frame { margin: 14px auto 8px; width: 300px; height: 300px; background: #fff; border-radius: 12px; display: grid; place-items: center; }
+.qr-float-frame img { width: 290px; height: 290px; image-rendering: pixelated; }
+.qr-float-frame .qr-missing { font-size: 16px; padding: 16px; }
+.qr-float-url { font-size: 17px; color: var(--cyan); }
+.qr-float-count { font-size: 22px; font-weight: 800; margin-top: 4px; }
+.qr-float-count strong { color: var(--green); }
 
 @media (prefers-reduced-motion: reduce) {
   .edge-one-sided, .ripple { animation: none; }

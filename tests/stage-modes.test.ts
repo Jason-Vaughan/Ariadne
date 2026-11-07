@@ -202,6 +202,24 @@ describe('pipeline (view 1)', () => {
     assert.doesNotMatch(JSON.stringify(privateMode.recent_events), /alice|bob/);
   });
 
+  test('worker events that carry only aliases gain the identity of builders shown on stage now', (t) => {
+    const db = freshDb(t);
+    addParticipant(db, 'Thread-0A01', 'alice', { consent: 1 });
+    addParticipant(db, 'Thread-0B02', 'bob', { consent: 0 });
+    db.prepare("UPDATE participants SET avatar_url = 'https://avatars.githubusercontent.com/u/1?v=4' WHERE github_username = 'alice'").run();
+    publishEvent(db, 'github.fetch.completed', { display_alias: 'Thread-0A01', repo_count: 3, evidence_count: 9 });
+    publishEvent(db, 'match.evaluated', { match_id: randomUUID(), display_alias_a: 'Thread-0A01', display_alias_b: 'Thread-0B02', composite_score: 77 });
+
+    const lines = buildStageSnapshot(db).recent_events.map((e) => describeEvent(e));
+    assert.deepEqual(lines, ['@alice: 3 repos → 9 evidence receipts', 'Scored @alice ↔ Thread-0B02: 77']);
+    const first = buildStageSnapshot(db).recent_events[0]?.payload as Record<string, unknown>;
+    assert.deepEqual(first.display, { stage_display_consent: true, github_username: 'alice', avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4' });
+    assert.doesNotMatch(JSON.stringify(buildStageSnapshot(db).recent_events), /bob/);
+
+    const privateMode = buildStageSnapshot(db, { privacyMode: true }).recent_events.map((e) => describeEvent(e));
+    assert.deepEqual(privateMode, ['Thread-0A01: 3 repos → 9 evidence receipts', 'Scored Thread-0A01 ↔ Thread-0B02: 77']);
+  });
+
   test('stageSafeEvent strips both sides of a pair independently', () => {
     const event = {
       seq_id: 1,
@@ -400,6 +418,10 @@ describe('operator controls', () => {
     assert.equal(actionForKey({ key: 'ArrowRight' }, '3'), null);
     assert.equal(actionForKey({ key: 'q', metaKey: true }, '3'), null, 'browser shortcuts pass through');
     assert.equal(actionForKey({ key: 'x' }, '3'), null);
+    for (const view of ['1', '2', '3', '4']) {
+      assert.equal(actionForKey({ key: 'a' }, view), 'qr:floating', `A in view ${view}`);
+      assert.equal(actionForKey({ key: 'A' }, view), 'qr:floating', `Shift+A in view ${view}`);
+    }
   });
 
   test('the HUD reports room fill, intake lock, channel and modes', () => {
