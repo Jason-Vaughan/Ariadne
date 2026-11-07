@@ -17,6 +17,22 @@ const REPO_ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 export const DEFAULT_ROUTES_DIR = join(REPO_ROOT, 'src', 'routes');
 export const DEFAULT_PUBLIC_DIR = join(REPO_ROOT, 'public');
 
+/**
+ * Static content served from outside `public/`, consulted only after `public/` misses.
+ * A `file` alias maps one exact URL to one file. A `dir` alias maps `<prefix><segment>/...` into
+ * `<dir>/<segment>/...` only when `<segment>` matches, and never lets a path climb out of that segment.
+ */
+export type StaticAlias =
+  | { path: string; file: string }
+  | { prefix: string; dir: string; segment: RegExp };
+
+// Generated sprint reports live in sprint-reports/<version>/; that directory also holds generator
+// scripts and caches, so only version-named subdirectories are exposed.
+export const DEFAULT_STATIC_ALIASES: readonly StaticAlias[] = [
+  { prefix: '/reports/', dir: join(REPO_ROOT, 'sprint-reports'), segment: /^v\d+\.\d+\.\d+$/ },
+  { path: '/tangleclaw-logo.png', file: join(REPO_ROOT, 'roadmap-board', 'tangleclaw-logo.png') },
+];
+
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
 export interface Logger {
@@ -49,6 +65,7 @@ export interface CreateServerOptions {
   db: DatabaseSync;
   routes: RouteDefinition[];
   publicDir?: string | null;
+  staticAliases?: readonly StaticAlias[];
   log?: Logger;
 }
 
@@ -58,6 +75,7 @@ export interface StartServerOptions {
   dbPath?: string;
   routesDir?: string;
   publicDir?: string | null;
+  staticAliases?: readonly StaticAlias[];
   log?: Logger;
 }
 
@@ -250,7 +268,49 @@ export function resolveStaticFile(publicDir: string, pathname: string): string |
 }
 
 /**
- * Creates the Ariadne HTTP server: API routes first, then static files from `public/`, else a JSON 404.
+ * Resolves a request path through the static aliases that back content outside `public/`.
+ * @param aliases - Alias table, checked in order.
+ * @param pathname - Raw request path.
+ * @returns The absolute file path, or `null` when no alias serves it.
+ */
+export function resolveAliasedFile(aliases: readonly StaticAlias[], pathname: string): string | null {
+  for (const alias of aliases) {
+    if ('file' in alias) {
+      if (pathname === alias.path && existsSync(alias.file) && statSync(alias.file).isFile()) return alias.file;
+      continue;
+    }
+    if (!pathname.startsWith(alias.prefix)) continue;
+    const rest = pathname.slice(alias.prefix.length);
+    const slash = rest.indexOf('/');
+    const segment = slash === -1 ? rest : rest.slice(0, slash);
+    if (!alias.segment.test(segment)) continue;
+    const file = resolveStaticFile(join(alias.dir, segment), slash === -1 ? '/' : rest.slice(slash));
+    if (file) return file;
+  }
+  return null;
+}
+
+/**
+ * Whether a resolved static file is a directory index reached without a trailing slash,
+ * in which case relative links on the page would resolve against the parent directory.
+ * @param file - Resolved file path.
+ * @param pathname - Raw request path.
+ * @returns True when the client should be redirected to `pathname + '/'`.
+ */
+function needsTrailingSlash(file: string, pathname: string): boolean {
+  return (
+    file.endsWith(`${sep}index.html`) &&
+    !pathname.endsWith('/') &&
+    !pathname.endsWith('index.html') &&
+    pathname.startsWith('/') &&
+    !pathname.startsWith('//') &&
+    !pathname.includes('\\')
+  );
+}
+
+/**
+ * Creates the Ariadne HTTP server: API routes first, then `public/`, then static aliases, else a JSON 404.
+ * A directory index reached without a trailing slash is redirected (301) so relative links resolve.
  * Handler errors become a generic JSON 500; stack traces are logged, never returned.
  * @param options - Database, routes, optional public directory and logger.
  * @returns An unstarted `http.Server`.
@@ -258,6 +318,7 @@ export function resolveStaticFile(publicDir: string, pathname: string): string |
 export function createServer(options: CreateServerOptions): Server {
   const { db, routes } = options;
   const publicDir = options.publicDir === undefined ? DEFAULT_PUBLIC_DIR : options.publicDir;
+  const staticAliases = options.staticAliases ?? DEFAULT_STATIC_ALIASES;
   const log = options.log ?? createConsoleLogger();
   const startedAt = Date.now();
 
@@ -270,8 +331,15 @@ export function createServer(options: CreateServerOptions): Server {
         await found.route.handler(req, res, { db, params: found.params, url, log, startedAt });
         return;
       }
-      if (publicDir && (method === 'GET' || method === 'HEAD')) {
-        const file = resolveStaticFile(publicDir, url.pathname);
+      if (method === 'GET' || method === 'HEAD') {
+        const file =
+          (publicDir ? resolveStaticFile(publicDir, url.pathname) : null) ??
+          resolveAliasedFile(staticAliases, url.pathname);
+        if (file && needsTrailingSlash(file, url.pathname)) {
+          res.writeHead(301, { location: `${url.pathname}/${url.search}` });
+          res.end();
+          return;
+        }
         if (file) {
           const body = readFileSync(file);
           res.writeHead(200, {
@@ -311,7 +379,7 @@ export async function startServer(options: StartServerOptions = {}): Promise<Run
   const { db, path, schemaApplied } = openDatabase({ path: options.dbPath, cwd: REPO_ROOT });
   try {
     const routes = await loadRoutes(options.routesDir ?? DEFAULT_ROUTES_DIR);
-    const server = createServer({ db, routes, publicDir: options.publicDir, log });
+    const server = createServer({ db, routes, publicDir: options.publicDir, staticAliases: options.staticAliases, log });
     await new Promise<void>((resolveListen, rejectListen) => {
       server.once('error', rejectListen);
       server.listen(port, host, () => {

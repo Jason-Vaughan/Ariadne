@@ -7,8 +7,17 @@ import { spawn, spawnSync } from 'node:child_process';
 import type { ChildProcess } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { checkDatabaseHealth, countQueuedJobs, DEFAULT_DB_PATH, openDatabase, resolveDbPath } from '../src/db/client.ts';
-import type { Logger, RouteDefinition, RunningServer } from '../src/server.ts';
-import { assertSafeBind, createServer, loadRoutes, matchRoute, resolveStaticFile, startServer } from '../src/server.ts';
+import type { Logger, RouteDefinition, RunningServer, StaticAlias } from '../src/server.ts';
+import {
+  assertSafeBind,
+  createServer,
+  DEFAULT_STATIC_ALIASES,
+  loadRoutes,
+  matchRoute,
+  resolveAliasedFile,
+  resolveStaticFile,
+  startServer,
+} from '../src/server.ts';
 
 const REPO_ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const silent: Logger = { info() {} };
@@ -173,6 +182,93 @@ describe('static files', () => {
     assert.equal(resolveStaticFile(pub, '/%2e%2e/secret.txt'), null);
     assert.equal(resolveStaticFile(pub, '/stage/%00'), null);
     assert.equal(resolveStaticFile(pub, '/missing.js'), null);
+  });
+});
+
+describe('static aliases', () => {
+  /**
+   * Builds a fake repo with a reports directory (a version subdir plus non-version clutter) and a logo.
+   * @returns The alias table pointing into it and the root directory.
+   */
+  function fixture(): { aliases: StaticAlias[]; root: string } {
+    const root = scratchDir('alias');
+    mkdirSync(join(root, 'sprint-reports', 'v0.1.0'), { recursive: true });
+    mkdirSync(join(root, 'sprint-reports', 'scripts'), { recursive: true });
+    mkdirSync(join(root, 'roadmap-board'), { recursive: true });
+    writeFileSync(join(root, 'sprint-reports', 'v0.1.0', 'index.html'), '<a href="../">hub</a>');
+    writeFileSync(join(root, 'sprint-reports', 'scripts', 'gen.py'), 'secret = 1');
+    writeFileSync(join(root, 'sprint-reports', 'index.html'), 'internal index');
+    writeFileSync(join(root, 'roadmap-board', 'tangleclaw-logo.png'), 'PNG');
+    writeFileSync(join(root, 'roadmap-board', 'other.png'), 'PNG');
+    return {
+      root,
+      aliases: [
+        { prefix: '/reports/', dir: join(root, 'sprint-reports'), segment: /^v\d+\.\d+\.\d+$/ },
+        { path: '/tangleclaw-logo.png', file: join(root, 'roadmap-board', 'tangleclaw-logo.png') },
+      ],
+    };
+  }
+
+  test('serves only version-named report directories and the one aliased logo file', () => {
+    const { aliases, root } = fixture();
+    const reportIndex = join(root, 'sprint-reports', 'v0.1.0', 'index.html');
+    assert.equal(resolveAliasedFile(aliases, '/reports/v0.1.0/'), reportIndex);
+    assert.equal(resolveAliasedFile(aliases, '/reports/v0.1.0'), reportIndex);
+    assert.equal(resolveAliasedFile(aliases, '/tangleclaw-logo.png'), join(root, 'roadmap-board', 'tangleclaw-logo.png'));
+    assert.equal(resolveAliasedFile(aliases, '/reports/scripts/gen.py'), null);
+    assert.equal(resolveAliasedFile(aliases, '/reports/'), null);
+    assert.equal(resolveAliasedFile(aliases, '/reports/index.html'), null);
+    assert.equal(resolveAliasedFile(aliases, '/other.png'), null);
+    assert.equal(resolveAliasedFile(aliases, '/tangleclaw-logo.png/'), null);
+  });
+
+  test('a report path can never climb out of its version directory', () => {
+    const { aliases } = fixture();
+    for (const path of [
+      '/reports/v0.1.0/../scripts/gen.py',
+      '/reports/v0.1.0/%2e%2e/scripts/gen.py',
+      '/reports/v0.1.0/%2e%2e/index.html',
+      '/reports/v0.1.0/..%2f..%2froadmap-board/other.png',
+    ]) {
+      assert.equal(resolveAliasedFile(aliases, path), null, path);
+    }
+  });
+
+  test('the default aliases point at the repository report and logo locations', () => {
+    assert.equal(
+      resolveAliasedFile(DEFAULT_STATIC_ALIASES, '/tangleclaw-logo.png'),
+      join(REPO_ROOT, 'roadmap-board', 'tangleclaw-logo.png'),
+    );
+    assert.equal(resolveAliasedFile(DEFAULT_STATIC_ALIASES, '/reports/scripts/sync-live-sprint.py'), null);
+  });
+
+  test('over HTTP: public/ wins, aliases fill in, and directory indexes redirect to a trailing slash', async () => {
+    const { aliases, root } = fixture();
+    const pub = join(root, 'public');
+    mkdirSync(join(pub, 'reports'), { recursive: true });
+    writeFileSync(join(pub, 'reports', 'index.html'), 'hub');
+    const dir = scratchDir('alias-db');
+    const { db } = openDatabase({ path: 'a.db', cwd: dir, schemaPath: null });
+    const server = createServer({ db, routes: [], publicDir: pub, staticAliases: aliases, log: silent });
+    await new Promise<void>((done) => server.listen(0, '127.0.0.1', done));
+    const base = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
+    try {
+      assert.equal(await (await fetch(`${base}/reports/`)).text(), 'hub');
+      const redirect = await fetch(`${base}/reports/v0.1.0?x=1`, { redirect: 'manual' });
+      assert.equal(redirect.status, 301);
+      assert.equal(redirect.headers.get('location'), '/reports/v0.1.0/?x=1');
+      const report = await fetch(`${base}/reports/v0.1.0/`);
+      assert.equal(report.status, 200);
+      assert.equal(await report.text(), '<a href="../">hub</a>');
+      const logo = await fetch(`${base}/tangleclaw-logo.png`);
+      assert.equal(logo.headers.get('content-type'), 'image/png');
+      assert.equal((await fetch(`${base}/reports/scripts/gen.py`)).status, 404);
+      assert.equal((await fetch(`${base}/reports/v0.1.0/index.html`, { redirect: 'manual' })).status, 200);
+    } finally {
+      server.closeAllConnections();
+      await new Promise<void>((done) => server.close(() => done()));
+      db.close();
+    }
   });
 });
 
