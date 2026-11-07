@@ -143,8 +143,14 @@
       el('p', { className: 'note muted', text: match.confidence_limitations }),
       el('div', { className: 'pills' }, match.evidence.map(evidencePill)),
     ]);
-    if (match.their_interest && !match.my_interest) card.appendChild(el('p', { className: 'note alert', text: `${who} is interested in meeting you!` }));
-    card.appendChild(el('div', { className: 'actions' }, [interested, pass]));
+    if (match.their_interest && !match.my_interest) {
+      card.appendChild(el('p', { className: 'note alert', text: `⚡ ${who} wants to connect with you! Tap Interested to unlock your Intro Room` }));
+    }
+    if (match.intro_state === 'completed') {
+      card.appendChild(el('a', { className: 'pill', text: '🔓 Open Intro Room', attrs: { href: `/me/matches/${encodeURIComponent(match.id)}` } }));
+    } else {
+      card.appendChild(el('div', { className: 'actions' }, [interested, pass]));
+    }
     card.appendChild(note);
     return card;
   }
@@ -255,7 +261,7 @@
   }
 
   /**
-   * Sends an Interested/Pass decision (the endpoint belongs to the introductions service).
+   * Sends an Interested/Pass decision; the tap that completes a mutual intro opens the room.
    * @param {string} matchId - Match id.
    * @param {'interested'|'pass'} decision - Decision.
    * @param {HTMLElement} note - Where to report the outcome.
@@ -270,13 +276,13 @@
         credentials: 'same-origin',
         body: JSON.stringify({ decision }),
       });
-      if (res.status === 404) {
-        note.textContent = 'Introductions open shortly — please try again in a moment.';
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        note.textContent = body.message || 'That did not go through — please try again.';
         return;
       }
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        note.textContent = body.message || 'That did not go through — please try again.';
+      if (body.room) {
+        window.location.assign(body.room);
         return;
       }
       await load();

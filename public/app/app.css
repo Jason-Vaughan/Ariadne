@@ -39,3 +39,8 @@ button:disabled { opacity: .55; }
 .note { font-size: .9rem; margin: 8px 0 0; }
 .alert { color: var(--good); font-weight: 650; }
 [hidden] { display: none !important; }
+.chat { list-style: none; padding: 0; margin: 10px 0; display: grid; gap: 6px; }
+.chat li { padding: 8px 10px; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); }
+.chat .chat-me { justify-self: end; border-color: var(--bar); }
+form#chat-form, form#venue-form, form#contact-form { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 10px; }
+form#chat-form input, form#venue-form input, form#contact-form input { font-size: 1rem; padding: 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); }

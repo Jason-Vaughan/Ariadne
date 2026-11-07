@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark light">
+  <title>Intro Room — Ariadne</title>
+  <link rel="stylesheet" href="/app/app.css">
+</head>
+<body>
+  <main>
+    <p><a href="/me" class="muted">← My matches</a></p>
+
+    <section id="locked" class="card" hidden>
+      <h1>Intro Room locked</h1>
+      <p class="muted" id="locked-message">This room opens once you both tap Interested.</p>
+    </section>
+
+    <section id="room" hidden>
+      <h1 id="title">You're connected!</h1>
+      <section class="card">
+        <strong>Contact</strong>
+        <p id="counterpart"></p>
+        <div class="pills" id="links"></div>
+        <p class="note" id="contact-card"></p>
+        <div class="actions">
+          <a class="pill" id="vcard" download>📇 Save Contact (vCard)</a>
+          <button type="button" class="secondary" id="copy">📋 Copy Intro</button>
+        </div>
+        <p class="note muted" id="copy-status" aria-live="polite"></p>
+      </section>
+
+      <section class="card">
+        <strong>Share my contact</strong>
+        <p class="note muted">Only people you've both said yes to can see this (X, LinkedIn, email, phone…).</p>
+        <form id="contact-form">
+          <input type="text" id="my-contact" maxlength="280" placeholder="X @me · me@example.com · +1 415 555 0134" aria-label="My contact details">
+          <button type="submit" class="secondary">Save</button>
+        </form>
+        <p class="note muted" id="contact-status" aria-live="polite"></p>
+      </section>
+
+      <section class="card">
+        <strong>First 3 minutes</strong>
+        <p id="first-collab"></p>
+        <p class="muted" id="thesis"></p>
+        <div class="pills" id="projects"></div>
+      </section>
+
+      <section class="card">
+        <strong>Where are you in the room?</strong>
+        <div class="pills" id="venues"></div>
+        <form id="venue-form">
+          <input type="text" id="venue-note" maxlength="120" placeholder="I'm by the front left table" aria-label="Your location">
+          <button type="submit" class="secondary">📍 Share</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <strong>Chat</strong>
+        <ol class="chat" id="notes"></ol>
+        <form id="chat-form">
+          <input type="text" id="chat-input" maxlength="1000" placeholder="Say hi…" aria-label="Message">
+          <button type="submit" class="primary">Send</button>
+        </form>
+        <p class="note muted" id="chat-status" aria-live="polite"></p>
+      </section>
+    </section>
+  </main>
+  <script src="/app/intro-room.js" defer></script>
+</body>
+</html>
