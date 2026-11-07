@@ -6,15 +6,23 @@
   const submit = document.getElementById('submit');
   const status = document.getElementById('status');
   const fields = ['github', 'website_url', 'goal', 'consent_processing'];
+  let guestEntry = false;
 
   /**
-   * Shows the capacity notice in place of the form.
+   * Shows the capacity notice in place of the form, unless a pre-registered guest has asked for the form.
    * @param {string} message - Notice text from the server.
    */
   function showCapacity(message) {
     capacityMessage.textContent = message;
     capacity.hidden = false;
-    form.hidden = true;
+    form.hidden = !guestEntry;
+  }
+
+  /** Opens the form under the capacity notice for pre-registered (pre-warmed) judges and guests. */
+  function openGuestEntry() {
+    guestEntry = true;
+    form.hidden = false;
+    document.getElementById('github').focus();
   }
 
   /** Shows the form again. */
@@ -78,6 +86,7 @@
       }
       if (body.error === 'room_at_capacity') {
         showCapacity(body.message);
+        if (guestEntry) status.textContent = `${body.message} That handle is not on the pre-registered list.`;
       } else if (body.field && fields.includes(body.field)) {
         document.getElementById(`${body.field}-error`).textContent = body.message;
         status.textContent = '';
@@ -93,5 +102,6 @@
 
   form.addEventListener('submit', onSubmit);
   document.getElementById('retry').addEventListener('click', checkAdmission);
+  document.getElementById('prewarm-entry').addEventListener('click', openGuestEntry);
   checkAdmission();
 })();

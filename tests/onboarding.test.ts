@@ -1,11 +1,12 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import type { Server } from 'node:http';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import type { DatabaseSync } from 'node:sqlite';
 import { after, afterEach, before, beforeEach, describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { runInNewContext } from 'node:vm';
 import {
   createSessionToken,
   parseCookies,
@@ -129,6 +130,122 @@ describe('session tokens', () => {
   });
 });
 
+describe('join page behaviour', () => {
+  const script = readFileSync(join(REPO_ROOT, 'public', 'app', 'join.js'), 'utf8');
+  const ids = [
+    'join-form', 'capacity', 'capacity-message', 'submit', 'status', 'github', 'website_url', 'goal',
+    'consent_processing', 'stage_display_consent', 'retry', 'prewarm-entry',
+    'github-error', 'website_url-error', 'goal-error', 'consent_processing-error',
+  ];
+
+  interface FakeElement {
+    hidden: boolean;
+    textContent: string;
+    value: string;
+    checked: boolean;
+    disabled: boolean;
+    listeners: Record<string, (event?: unknown) => unknown>;
+    addEventListener(type: string, fn: (event?: unknown) => unknown): void;
+    focus(): void;
+  }
+
+  /**
+   * Loads join.js against a fake DOM whose `fetch` answers from the given handlers.
+   * @param answer - Returns `[status, body]` for each request.
+   * @returns The elements, recorded requests and redirect target.
+   */
+  async function loadPage(answer: (url: string, init?: { method?: string; body?: string }) => [number, unknown]) {
+    const elements: Record<string, FakeElement> = {};
+    for (const id of ids) {
+      elements[id] = {
+        hidden: false, textContent: '', value: '', checked: false, disabled: false, listeners: {},
+        addEventListener(type, fn) { this.listeners[type] = fn; },
+        focus() {},
+      };
+    }
+    elements.capacity!.hidden = true;
+    const requests: Array<{ url: string; body: unknown }> = [];
+    const page = { redirectedTo: null as string | null };
+    runInNewContext(script, {
+      document: { getElementById: (id: string) => elements[id] },
+      window: { location: { assign: (to: string) => { page.redirectedTo = to; } } },
+      fetch: async (url: string, init?: { method?: string; body?: string }) => {
+        requests.push({ url, body: init?.body ? JSON.parse(init.body) : null });
+        const [status, body] = answer(url, init);
+        return { ok: status >= 200 && status < 300, status, json: async () => body };
+      },
+    });
+    await settle();
+    return { elements, requests, page };
+  }
+
+  /** Lets pending promise callbacks run. */
+  async function settle(): Promise<void> {
+    for (let i = 0; i < 5; i += 1) await new Promise((done) => setImmediate(done));
+  }
+
+  /**
+   * Submits the form as a user would.
+   * @param elements - Page elements.
+   */
+  async function submitForm(elements: Record<string, FakeElement>): Promise<void> {
+    await elements['join-form']!.listeners.submit!({ preventDefault() {} });
+    await settle();
+  }
+
+  const fullRoom = { open: false, active: 30, max: 30, locked: false, message: '🚧 System is currently at capacity (30/30) — please try back later!' };
+
+  it('shows the form when the room is open', async () => {
+    const { elements } = await loadPage(() => [200, { open: true, active: 1, max: 30, locked: false, message: null }]);
+    assert.equal(elements['join-form']!.hidden, false);
+    assert.equal(elements.capacity!.hidden, true);
+  });
+
+  it('replaces the form with the capacity notice when the room is full', async () => {
+    const { elements } = await loadPage(() => [200, fullRoom]);
+    assert.equal(elements.capacity!.hidden, false);
+    assert.equal(elements['capacity-message']!.textContent, fullRoom.message);
+    assert.equal(elements['join-form']!.hidden, true);
+  });
+
+  it('lets a pre-registered judge enter their handle and join while the room is full', async () => {
+    const { elements, requests, page } = await loadPage((url) =>
+      url.endsWith('/admission') ? [200, fullRoom] : [201, { participant: {}, redirect: '/me' }],
+    );
+    elements['prewarm-entry']!.listeners.click!();
+    assert.equal(elements['join-form']!.hidden, false);
+    assert.equal(elements.capacity!.hidden, false);
+
+    elements.github!.value = 'judge-one';
+    elements.consent_processing!.checked = true;
+    await submitForm(elements);
+    const post = requests.find((r) => r.url === '/api/participants');
+    assert.equal((post?.body as { github: string }).github, 'judge-one');
+    assert.equal(page.redirectedTo, '/me');
+  });
+
+  it('keeps the guest form open and explains when the handle is not pre-registered', async () => {
+    const { elements, page } = await loadPage((url) =>
+      url.endsWith('/admission') ? [200, fullRoom] : [429, { error: 'room_at_capacity', message: fullRoom.message }],
+    );
+    elements['prewarm-entry']!.listeners.click!();
+    elements.github!.value = 'walk-in';
+    elements.consent_processing!.checked = true;
+    await submitForm(elements);
+    assert.equal(elements['join-form']!.hidden, false);
+    assert.match(elements.status!.textContent, /not on the pre-registered list/);
+    assert.equal(page.redirectedTo, null);
+  });
+
+  it('blocks submission until processing consent is ticked', async () => {
+    const { elements, requests } = await loadPage(() => [200, { open: true, active: 0, max: 30, locked: false, message: null }]);
+    elements.github!.value = 'octocat';
+    await submitForm(elements);
+    assert.equal(requests.some((r) => r.url === '/api/participants'), false);
+    assert.match(elements['consent_processing-error']!.textContent, /tick this box/);
+  });
+});
+
 describe('onboarding API', () => {
   let dir: string;
   let db: DatabaseSync;
@@ -200,6 +317,7 @@ describe('onboarding API', () => {
     assert.match(html, /⚡ REQUIRES GITHUB PROFILE/);
     assert.match(html, /Display my @github handle on the 16:9 stage visualizer/);
     assert.match(html, /must be publicly accessible with no login required/);
+    assert.match(html, /id="prewarm-entry"/);
   });
 
   it('registers a participant, starts a session, emits participant.registered and queues analysis', async () => {

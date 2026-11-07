@@ -34,6 +34,7 @@
     button { width: 100%; margin-top: 20px; font-size: 1.1rem; font-weight: 750; padding: 14px; border: 0; border-radius: 12px;
       background: var(--accent); color: var(--accent-ink); }
     button:disabled { opacity: .55; }
+    button.secondary { background: transparent; color: var(--text); border: 1px solid var(--line); margin-top: 10px; }
     .notice { text-align: center; }
     .notice p { font-size: 1.15rem; margin: 6px 0 14px; }
     .status { margin-top: 12px; text-align: center; color: var(--muted); }
@@ -49,6 +50,7 @@
     <section id="capacity" class="notice" hidden aria-live="polite">
       <p id="capacity-message">🚧 System is currently at capacity — please try back later!</p>
       <button type="button" id="retry">🔄 Try Again</button>
+      <button type="button" id="prewarm-entry" class="secondary">🎟️ I'm a pre-registered judge or guest</button>
     </section>
 
     <form id="join-form" novalidate>
