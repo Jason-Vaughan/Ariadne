@@ -16,17 +16,17 @@
       "issues_closed": 4,
       "issues_addressed": 4,
       "loc": 5132,
-      "cost": 1.62,
-      "throughput_closed": 6.06,
-      "throughput_addressed": 6.06,
+      "cost": 1.63,
+      "throughput_closed": 6.04,
+      "throughput_addressed": 6.04,
       "cost_per_issue": 0.41,
       "cost_per_addressed": 0.41,
       "cost_per_kloc": 0.32,
-      "ade_score": 3.74,
-      "ade_addressed": 3.74,
+      "ade_score": 3.7,
+      "ade_addressed": 3.7,
       "est_tokens_m": 3.2,
       "api_shadow_cost": 25.0,
-      "savings_mult": 15.4,
+      "savings_mult": 15.3,
       "detailed": {
         "schema_version": "2.0.0",
         "slug": "v0.1.0",
@@ -157,7 +157,7 @@
           "tier1_measured_marginal_api_usd": 0.0,
           "tier1_measured_marginal_electricity_usd": 0.02,
           "tier1_evidence_class": "measured",
-          "tier2_allocated_subscription_usd": 1.62,
+          "tier2_allocated_subscription_usd": 1.63,
           "tier2_hourly_rate_usd": 2.46,
           "tier2_calendar_hour_subscription_usd": 0.4,
           "tier2_calendar_hourly_rate_usd": 0.611,
@@ -167,13 +167,13 @@
           "tier3_evidence_class": "hypothetical_estimate"
         },
         "efficiency": {
-          "throughput_closed_per_eng_hr": 6.06,
-          "throughput_addressed_per_eng_hr": 6.06,
+          "throughput_closed_per_eng_hr": 6.04,
+          "throughput_addressed_per_eng_hr": 6.04,
           "unit_allocated_cost_per_closed_issue_usd": 0.41,
           "unit_allocated_cost_per_addressed_issue_usd": 0.41,
           "unit_allocated_cost_per_kloc_usd": 0.32,
-          "legacy_ade_v1_closed": 3.74,
-          "legacy_ade_v1_addressed": 3.74
+          "legacy_ade_v1_closed": 3.7,
+          "legacy_ade_v1_addressed": 3.7
         }
       }
     },
@@ -184,13 +184,13 @@
       "issues_addressed": 4,
       "loc": 6682,
       "cost": 0.98,
-      "throughput_closed": 10.0,
-      "throughput_addressed": 10.0,
-      "cost_per_issue": 0.25,
-      "cost_per_addressed": 0.25,
+      "throughput_closed": 10.09,
+      "throughput_addressed": 10.09,
+      "cost_per_issue": 0.24,
+      "cost_per_addressed": 0.24,
       "cost_per_kloc": 0.15,
-      "ade_score": 10.2,
-      "ade_addressed": 10.2,
+      "ade_score": 10.35,
+      "ade_addressed": 10.35,
       "est_tokens_m": 3.8,
       "api_shadow_cost": 29.6,
       "savings_mult": 30.2,
@@ -334,13 +334,13 @@
           "tier3_evidence_class": "hypothetical_estimate"
         },
         "efficiency": {
-          "throughput_closed_per_eng_hr": 10.0,
-          "throughput_addressed_per_eng_hr": 10.0,
-          "unit_allocated_cost_per_closed_issue_usd": 0.25,
-          "unit_allocated_cost_per_addressed_issue_usd": 0.25,
+          "throughput_closed_per_eng_hr": 10.09,
+          "throughput_addressed_per_eng_hr": 10.09,
+          "unit_allocated_cost_per_closed_issue_usd": 0.24,
+          "unit_allocated_cost_per_addressed_issue_usd": 0.24,
           "unit_allocated_cost_per_kloc_usd": 0.15,
-          "legacy_ade_v1_closed": 10.2,
-          "legacy_ade_v1_addressed": 10.2
+          "legacy_ade_v1_closed": 10.35,
+          "legacy_ade_v1_addressed": 10.35
         }
       }
     }
@@ -476,7 +476,7 @@
         "tier1_measured_marginal_api_usd": 0.0,
         "tier1_measured_marginal_electricity_usd": 0.02,
         "tier1_evidence_class": "measured",
-        "tier2_allocated_subscription_usd": 1.62,
+        "tier2_allocated_subscription_usd": 1.63,
         "tier2_hourly_rate_usd": 2.46,
         "tier2_calendar_hour_subscription_usd": 0.4,
         "tier2_calendar_hourly_rate_usd": 0.611,
@@ -486,13 +486,13 @@
         "tier3_evidence_class": "hypothetical_estimate"
       },
       "efficiency": {
-        "throughput_closed_per_eng_hr": 6.06,
-        "throughput_addressed_per_eng_hr": 6.06,
+        "throughput_closed_per_eng_hr": 6.04,
+        "throughput_addressed_per_eng_hr": 6.04,
         "unit_allocated_cost_per_closed_issue_usd": 0.41,
         "unit_allocated_cost_per_addressed_issue_usd": 0.41,
         "unit_allocated_cost_per_kloc_usd": 0.32,
-        "legacy_ade_v1_closed": 3.74,
-        "legacy_ade_v1_addressed": 3.74
+        "legacy_ade_v1_closed": 3.7,
+        "legacy_ade_v1_addressed": 3.7
       }
     },
     "v0.2.0": {
@@ -635,13 +635,13 @@
         "tier3_evidence_class": "hypothetical_estimate"
       },
       "efficiency": {
-        "throughput_closed_per_eng_hr": 10.0,
-        "throughput_addressed_per_eng_hr": 10.0,
-        "unit_allocated_cost_per_closed_issue_usd": 0.25,
-        "unit_allocated_cost_per_addressed_issue_usd": 0.25,
+        "throughput_closed_per_eng_hr": 10.09,
+        "throughput_addressed_per_eng_hr": 10.09,
+        "unit_allocated_cost_per_closed_issue_usd": 0.24,
+        "unit_allocated_cost_per_addressed_issue_usd": 0.24,
         "unit_allocated_cost_per_kloc_usd": 0.15,
-        "legacy_ade_v1_closed": 10.2,
-        "legacy_ade_v1_addressed": 10.2
+        "legacy_ade_v1_closed": 10.35,
+        "legacy_ade_v1_addressed": 10.35
       }
     }
   }

@@ -587,14 +587,14 @@
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Allocated Sprint Cost (Tier 2)</div>
-          <div class="kpi-value" style="color:var(--green)">$1.62 Pool</div>
+          <div class="kpi-value" style="color:var(--green)">$1.63 Pool</div>
           <div class="kpi-sub"><code>$0.00</code> marginal API fee · <code>$0.41/issue</code> · <code>~$25</code> API shadow</div>
         </div>
         <!-- TANGLECLAW_ADE_KPI_START -->
         <div class="kpi-card">
           <div class="kpi-label">Autonomous Delivery Efficiency (ADE)</div>
-          <div class="kpi-value" style="color:var(--cyan,#38bdf8)">6.06/hr · ADE 3.74</div>
-          <div class="kpi-meta kpi-sub">Throughput: <code>6.06 closed/hr</code> (<code>T_eng=0.66h</code>) · Allocated: <code>$0.41/issue</code> (<code>$1.62</code> pool · <code>$0.32/kLOC</code>) · Legacy ADE_v1: <code>3.74</code></div>
+          <div class="kpi-value" style="color:var(--cyan,#38bdf8)">6.04/hr · ADE 3.70</div>
+          <div class="kpi-meta kpi-sub">Throughput: <code>6.04 closed/hr</code> (<code>T_eng=0.66h</code>) · Allocated: <code>$0.41/issue</code> (<code>$1.63</code> pool · <code>$0.32/kLOC</code>) · Legacy ADE_v1: <code>3.70</code></div>
         </div>
         <!-- TANGLECLAW_ADE_KPI_END -->
       </div>
@@ -799,12 +799,12 @@
       <div id="ade-efficiency-card" class="subcard" style="margin:18px 0;padding:18px 22px;border:1.5px solid rgba(56,189,248,0.45);background:linear-gradient(135deg,rgba(15,23,42,0.95),rgba(14,116,144,0.16));border-radius:12px;">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
           <span style="color:#38bdf8;font-weight:700;font-size:0.82rem;letter-spacing:0.06em;">📐 AUTONOMOUS DELIVERY EFFICIENCY (ADE) · ORTHOGONAL THROUGHPUT, ALLOCATED COST &amp; LEGACY ADE_v1</span>
-          <span class="badge badge-green" style="font-size:0.78rem;">Throughput = 6.06 Issues/Hr · Allocated = $0.41/Issue ($0.32/kLOC) · Legacy ADE_v1 = 3.74</span>
+          <span class="badge badge-green" style="font-size:0.78rem;">Throughput = 6.04 Issues/Hr · Allocated = $0.41/Issue ($0.32/kLOC) · Legacy ADE_v1 = 3.70</span>
         </div>
         <div style="font-size:0.90rem;color:#e2e8f0;line-height:1.56;">
-          <strong>1. Orthogonal Efficiency Metrics (Primary Standard):</strong> <strong>Throughput</strong> = <code>W_closed / T_eng = 4 / 0.66h = <strong>6.06 closed issues/hr</strong></code> · <strong>Unit Allocated Cost</strong> = <code>C_alloc / W_closed = $1.62 / 4 = <strong>$0.41/closed issue</strong></code> (<code>$0.32/kLOC</code> across <code>+5,132</code> insertions) · <strong>Quality</strong> = <code>100% True Merges, 0 Post-Merge Defects</code>.<br/>
-          <strong>2. Disclosed Legacy Composite Index (<code>ADE_v1</code>):</strong> <code>ADE_v1 = W_closed / (T_eng × C_alloc) = 4 / (0.66h × $1.62) = <strong>3.74</strong></code>. <em>Dimensional Note:</em> Because <code>C_alloc = $2.46/hr × T_eng</code>, <code>ADE_v1 = W / (2.46 × T_eng²)</code> scales as <code>1/T²</code> (units: <code>issues · hr⁻² · $⁻¹</code>); therefore <code>ADE_v1</code> is always evaluated on the full engineering window (<code>T_eng = 0.66h</code>, never a pipelined merge tail) alongside scale-invariant Throughput (<code>6.06 issues/hr</code>).<br/>
-          <strong>3. 3-Tier Operating Cost Basis:</strong> <strong>Tier 1 (Measured Marginal Cash):</strong> <code>$0.00</code> per-run API fee + <code>~$0.02</code> M3 Ultra wall power · <strong>Tier 2 (Allocated Subscription Pool):</strong> <code>$1.62</code> pro-rata allocation (<code>$440/mo ÷ 178.8 active hrs = $2.46/hr × 0.66h</code>; calendar-hour reference <code>$0.40</code> @ <code>$0.611/hr</code>) · <strong>Tier 3 (Hypothetical API Shadow Estimate):</strong> <code>~$25</code> (unmetered estimate across <code>~3.2M</code> tokens → <code>15.4×</code> subscription compression).
+          <strong>1. Orthogonal Efficiency Metrics (Primary Standard):</strong> <strong>Throughput</strong> = <code>W_closed / T_eng = 4 / 0.66h = <strong>6.04 closed issues/hr</strong></code> · <strong>Unit Allocated Cost</strong> = <code>C_alloc / W_closed = $1.63 / 4 = <strong>$0.41/closed issue</strong></code> (<code>$0.32/kLOC</code> across <code>+5,132</code> insertions) · <strong>Quality</strong> = <code>100% True Merges, 0 Post-Merge Defects</code>.<br/>
+          <strong>2. Disclosed Legacy Composite Index (<code>ADE_v1</code>):</strong> <code>ADE_v1 = W_closed / (T_eng × C_alloc) = 4 / (0.66h × $1.63) = <strong>3.70</strong></code>. <em>Dimensional Note:</em> Because <code>C_alloc = $2.46/hr × T_eng</code>, <code>ADE_v1 = W / (2.46 × T_eng²)</code> scales as <code>1/T²</code> (units: <code>issues · hr⁻² · $⁻¹</code>); therefore <code>ADE_v1</code> is always evaluated on the full engineering window (<code>T_eng = 0.66h</code>, never a pipelined merge tail) alongside scale-invariant Throughput (<code>6.04 issues/hr</code>).<br/>
+          <strong>3. 3-Tier Operating Cost Basis:</strong> <strong>Tier 1 (Measured Marginal Cash):</strong> <code>$0.00</code> per-run API fee + <code>~$0.02</code> M3 Ultra wall power · <strong>Tier 2 (Allocated Subscription Pool):</strong> <code>$1.63</code> pro-rata allocation (<code>$440/mo ÷ 178.8 active hrs = $2.46/hr × 0.66h</code>; calendar-hour reference <code>$0.40</code> @ <code>$0.611/hr</code>) · <strong>Tier 3 (Hypothetical API Shadow Estimate):</strong> <code>~$25</code> (unmetered estimate across <code>~3.2M</code> tokens → <code>15.3×</code> subscription compression).
         </div>
       </div>
       <!-- TANGLECLAW_ADE_BANNER_END -->
@@ -903,9 +903,9 @@
             <h4 style="margin:0 0 8px;color:var(--amber);font-size:0.94rem;">3. 3-Tier Operating Cost &amp; Orthogonal Efficiency Accounting</h4>
             <ul style="margin:0;padding-left:18px;font-size:0.85rem;line-height:1.55;color:var(--text-muted);">
               <li><strong>Tier 1 — Measured Marginal Cash Expenditure (<code>measured</code>):</strong> <strong><code>$0.00</code> incremental model/API fee</strong> (covered by fixed monthly CLI subscriptions) + <strong><code>~$0.02</code></strong> measured Mac Studio M3 Ultra wall-power (<code>~$0.025/hr × 0.66h</code>).</li>
-              <li><strong>Tier 2 — Allocated Subscription &amp; Compute Amortization (<code>allocated_estimate</code>):</strong> <strong><code>$1.62</code></strong> on full engineering window <code>T_eng = 0.66h</code> at <code>$2.46/active fleet-hr</code> (<code>$440/mo ÷ 178.8 active hrs/mo</code>; 24/7 calendar-hour reference: <code>$0.40</code> @ <code>$0.611/hr</code>) → <strong><code>$0.41 / closed issue</code></strong> (<code>$0.41 / addressed issue</code>, <code>$0.32 / kLOC</code>).</li>
+              <li><strong>Tier 2 — Allocated Subscription &amp; Compute Amortization (<code>allocated_estimate</code>):</strong> <strong><code>$1.63</code></strong> on full engineering window <code>T_eng = 0.66h</code> at <code>$2.46/active fleet-hr</code> (<code>$440/mo ÷ 178.8 active hrs/mo</code>; 24/7 calendar-hour reference: <code>$0.40</code> @ <code>$0.611/hr</code>) → <strong><code>$0.41 / closed issue</code></strong> (<code>$0.41 / addressed issue</code>, <code>$0.32 / kLOC</code>).</li>
               <li><strong>Tier 3 — Hypothetical Public API Shadow Estimate (<code>hypothetical_estimate</code>):</strong> <strong><code>~$25</code></strong> order-of-magnitude shadow estimate across <code>~3.2M</code> estimated CLI tokens (unmetered in SQLite; never co-mingled with Tier 1/2).</li>
-              <li><strong>Scale-Invariant Throughput vs. Legacy <code>ADE_v1</code>:</strong> Throughput = <strong><code>6.06 closed issues/hr</code></strong> (<code>6.06 addressed/hr</code>); Legacy <code>ADE_v1</code> = <strong><code>3.74</code></strong> (closed) / <strong><code>3.74</code></strong> (addressed).</li>
+              <li><strong>Scale-Invariant Throughput vs. Legacy <code>ADE_v1</code>:</strong> Throughput = <strong><code>6.04 closed issues/hr</code></strong> (<code>6.04 addressed/hr</code>); Legacy <code>ADE_v1</code> = <strong><code>3.70</code></strong> (closed) / <strong><code>3.70</code></strong> (addressed).</li>
             </ul>
           </div>
 
@@ -1051,7 +1051,7 @@
     "tier1_measured_marginal_api_usd": 0.0,
     "tier1_measured_marginal_electricity_usd": 0.02,
     "tier1_evidence_class": "measured",
-    "tier2_allocated_subscription_usd": 1.62,
+    "tier2_allocated_subscription_usd": 1.63,
     "tier2_hourly_rate_usd": 2.46,
     "tier2_calendar_hour_subscription_usd": 0.4,
     "tier2_calendar_hourly_rate_usd": 0.611,
@@ -1061,13 +1061,13 @@
     "tier3_evidence_class": "hypothetical_estimate"
   },
   "efficiency": {
-    "throughput_closed_per_eng_hr": 6.06,
-    "throughput_addressed_per_eng_hr": 6.06,
+    "throughput_closed_per_eng_hr": 6.04,
+    "throughput_addressed_per_eng_hr": 6.04,
     "unit_allocated_cost_per_closed_issue_usd": 0.41,
     "unit_allocated_cost_per_addressed_issue_usd": 0.41,
     "unit_allocated_cost_per_kloc_usd": 0.32,
-    "legacy_ade_v1_closed": 3.74,
-    "legacy_ade_v1_addressed": 3.74
+    "legacy_ade_v1_closed": 3.7,
+    "legacy_ade_v1_addressed": 3.7
   }
 }
       </script>
@@ -1294,7 +1294,7 @@
               </tr>
               <tr>
                 <td><strong>Commits / PR &amp; Token Efficiency</strong></td>
-                <td><strong><code>~3.2M</code> Tokens · <code>$1.62</code> Pool</strong></td>
+                <td><strong><code>~3.2M</code> Tokens · <code>$1.63</code> Pool</strong></td>
                 <td><code>~3.8M</code> Est. Tokens</td>
                 <td><code>~3.8M</code> Est. Tokens</td>
                 <td><code>~3.0M</code> Est. Tokens</td>
@@ -1572,7 +1572,7 @@
               <tr><td>12</td><td><strong>Unlabelled PRs, Dirty Clones &amp; Worktrees</strong></td><td>All merged `v0.1.0` branches retired after `tc branch check`; worktrees clean</td><td>0 orphan clones</td><td><span class="badge badge-green">PASS</span></td><td>Run `tc branch check` before retiring any merged feature branch</td></tr>
               <tr><td>13</td><td><strong>Release-Status Lag &amp; Finish-Line Honesty</strong></td><td>Tag `v0.1.0` published at `101d16c` (`PR #21`) after all 4 Milestone #1 issues closed</td><td>100% honesty</td><td><span class="badge badge-green">PASS</span></td><td>Publish updated roadmap + sprint report after every release tag</td></tr>
               <tr><td>14</td><td><strong>Conflict Resolution Time</strong></td><td><code>0m</code> source-file conflict resolution time across all 4 feature cars (`CHANGELOG.md` only)</td><td>&lt; 5m sync time</td><td><span class="badge badge-green">PASS</span></td><td>Use auto-mounted `src/routes/*.ts` loader for all Wave 2–4 routes</td></tr>
-              <tr><td>15</td><td><strong>Wakes, Tokens &amp; Turns by Role &amp; Model</strong></td><td><code>~3.2M</code> tokens across 9 lanes (`$1.62` allocated subscription cost; `$0.00` marginal API fee)</td><td>0 API lockouts</td><td><span class="badge badge-green">PASS</span></td><td>Cache GitHub API responses in SQLite (`github_snapshots`) in `#3`</td></tr>
+              <tr><td>15</td><td><strong>Wakes, Tokens &amp; Turns by Role &amp; Model</strong></td><td><code>~3.2M</code> tokens across 9 lanes (`$1.63` allocated subscription cost; `$0.00` marginal API fee)</td><td>0 API lockouts</td><td><span class="badge badge-green">PASS</span></td><td>Cache GitHub API responses in SQLite (`github_snapshots`) in `#3`</td></tr>
               <tr><td>16</td><td><strong>4 End-of-Sprint Maintenance Gates</strong></td><td>All 4 Maintenance Gates (`R-Gate`, `A-Gate`, `I-Gate` + Tag `v0.1.0`, `O-Gate` Canonical HTML Report + Validator) green</td><td>4 / 4 Gates green</td><td><span class="badge badge-green">PASS</span></td><td>Run `validate-sprint-report.py --all` at every wave closeout</td></tr>
             </tbody>
           </table>

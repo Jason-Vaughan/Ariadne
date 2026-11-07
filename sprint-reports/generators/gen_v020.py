@@ -156,7 +156,7 @@ html_part1 = f'''<!DOCTYPE html>
         <div class="kpi-card">
           <div class="kpi-label">Allocated Sprint Cost (Tier 2)</div>
           <div class="kpi-value" style="color:var(--green)">$0.98 Pool</div>
-          <div class="kpi-sub"><code>$0.00</code> marginal API fee · <code>$0.25/issue</code> · <code>~$30</code> API shadow</div>
+          <div class="kpi-sub"><code>$0.00</code> marginal API fee · <code>$0.24/issue</code> · <code>~$30</code> API shadow</div>
         </div>
 {ade_kpi_html}
       </div>
@@ -584,7 +584,7 @@ html_part3 = f'''
               </tr>
               <tr>
                 <td><strong>Commits / PR &amp; Token Efficiency</strong></td>
-                <td><code>~3.2M</code> Tokens · <code>$1.62</code> Pool</td>
+                <td><code>~3.2M</code> Tokens · <code>$1.63</code> Pool</td>
                 <td><strong><code>~3.8M</code> Tokens · <code>$0.98</code> Pool</strong></td>
                 <td><code>~3.8M</code> Est. Tokens</td>
                 <td><code>~3.0M</code> Est. Tokens</td>
@@ -695,7 +695,7 @@ html_part3 = f'''
               <text x="20" y="64" fill="#34d399" font-size="11" font-weight="700">1. Wave 1 (v0.1.0 · Shipped) + Wave 2 (v0.2.0 · Shipped): 8 Cars Merged Across PRs #18..#26</text>
               <rect x="20" y="74" width="714" height="44" rx="6" fill="#10b981" fill-opacity="0.35" stroke="#34d399" stroke-width="1.6"/>
               <text x="32" y="94" fill="#d1fae5" font-size="10" font-weight="700">v0.1.0 (#1, #13, #9, #14) → v0.2.0: PR #23 (#3 GitHub) · PR #22 (#2 /join) · PR #24 (#10 /stage) · PR #26 (#6 Scorer)</text>
-              <text x="32" y="110" fill="#a7f3d0" font-size="10">Tag v0.2.0 @ {REL_MERGE_SHORT} · 342/342 Tests Green · Throughput 10.00 Issues/Hr</text>
+              <text x="32" y="110" fill="#a7f3d0" font-size="10">Tag v0.2.0 @ {REL_MERGE_SHORT} · 342/342 Tests Green · Throughput 10.09 Issues/Hr</text>
 
               <text x="20" y="154" fill="#38bdf8" font-size="11" font-weight="700">2. Waves 3–4 (v0.3.0 → v0.4.0): AI Agents, /me Dashboard, Double-Opt-In Intros &amp; Async Worker</text>
               <rect x="20" y="164" width="714" height="44" rx="6" fill="#0284c7" fill-opacity="0.30" stroke="#38bdf8"/>

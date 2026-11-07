@@ -155,7 +155,7 @@ html_part1 = f'''<!DOCTYPE html>
         </div>
         <div class="kpi-card">
           <div class="kpi-label">Allocated Sprint Cost (Tier 2)</div>
-          <div class="kpi-value" style="color:var(--green)">$1.62 Pool</div>
+          <div class="kpi-value" style="color:var(--green)">$1.63 Pool</div>
           <div class="kpi-sub"><code>$0.00</code> marginal API fee · <code>$0.41/issue</code> · <code>~$25</code> API shadow</div>
         </div>
 {ade_kpi_html}
@@ -585,7 +585,7 @@ html_part3 = f'''
               </tr>
               <tr>
                 <td><strong>Commits / PR &amp; Token Efficiency</strong></td>
-                <td><strong><code>~3.2M</code> Tokens · <code>$1.62</code> Pool</strong></td>
+                <td><strong><code>~3.2M</code> Tokens · <code>$1.63</code> Pool</strong></td>
                 <td><code>~3.8M</code> Est. Tokens</td>
                 <td><code>~3.8M</code> Est. Tokens</td>
                 <td><code>~3.0M</code> Est. Tokens</td>
@@ -863,7 +863,7 @@ html_part3 = f'''
               <tr><td>12</td><td><strong>Unlabelled PRs, Dirty Clones &amp; Worktrees</strong></td><td>All merged `v0.1.0` branches retired after `tc branch check`; worktrees clean</td><td>0 orphan clones</td><td><span class="badge badge-green">PASS</span></td><td>Run `tc branch check` before retiring any merged feature branch</td></tr>
               <tr><td>13</td><td><strong>Release-Status Lag &amp; Finish-Line Honesty</strong></td><td>Tag `v0.1.0` published at `{REL_MERGE_SHORT}` (`PR #21`) after all 4 Milestone #1 issues closed</td><td>100% honesty</td><td><span class="badge badge-green">PASS</span></td><td>Publish updated roadmap + sprint report after every release tag</td></tr>
               <tr><td>14</td><td><strong>Conflict Resolution Time</strong></td><td><code>0m</code> source-file conflict resolution time across all 4 feature cars (`CHANGELOG.md` only)</td><td>&lt; 5m sync time</td><td><span class="badge badge-green">PASS</span></td><td>Use auto-mounted `src/routes/*.ts` loader for all Wave 2–4 routes</td></tr>
-              <tr><td>15</td><td><strong>Wakes, Tokens &amp; Turns by Role &amp; Model</strong></td><td><code>~3.2M</code> tokens across 9 lanes (`$1.62` allocated subscription cost; `$0.00` marginal API fee)</td><td>0 API lockouts</td><td><span class="badge badge-green">PASS</span></td><td>Cache GitHub API responses in SQLite (`github_snapshots`) in `#3`</td></tr>
+              <tr><td>15</td><td><strong>Wakes, Tokens &amp; Turns by Role &amp; Model</strong></td><td><code>~3.2M</code> tokens across 9 lanes (`$1.63` allocated subscription cost; `$0.00` marginal API fee)</td><td>0 API lockouts</td><td><span class="badge badge-green">PASS</span></td><td>Cache GitHub API responses in SQLite (`github_snapshots`) in `#3`</td></tr>
               <tr><td>16</td><td><strong>4 End-of-Sprint Maintenance Gates</strong></td><td>All 4 Maintenance Gates (`R-Gate`, `A-Gate`, `I-Gate` + Tag `v0.1.0`, `O-Gate` Canonical HTML Report + Validator) green</td><td>4 / 4 Gates green</td><td><span class="badge badge-green">PASS</span></td><td>Run `validate-sprint-report.py --all` at every wave closeout</td></tr>
             </tbody>
           </table>

@@ -132,7 +132,7 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
             "tier1_measured_marginal_api_usd": 0.00,
             "tier1_measured_marginal_electricity_usd": 0.02,
             "tier1_evidence_class": "measured",
-            "tier2_allocated_subscription_usd": 1.62,
+            "tier2_allocated_subscription_usd": 1.63,
             "tier2_hourly_rate_usd": 2.46,
             "tier2_calendar_hour_subscription_usd": 0.40,
             "tier2_calendar_hourly_rate_usd": 0.611,
@@ -142,13 +142,13 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
             "tier3_evidence_class": "hypothetical_estimate",
         },
         "efficiency": {
-            "throughput_closed_per_eng_hr": 6.06,
-            "throughput_addressed_per_eng_hr": 6.06,
+            "throughput_closed_per_eng_hr": 6.04,
+            "throughput_addressed_per_eng_hr": 6.04,
             "unit_allocated_cost_per_closed_issue_usd": 0.41,
             "unit_allocated_cost_per_addressed_issue_usd": 0.41,
             "unit_allocated_cost_per_kloc_usd": 0.32,
-            "legacy_ade_v1_closed": 3.74,
-            "legacy_ade_v1_addressed": 3.74,
+            "legacy_ade_v1_closed": 3.70,
+            "legacy_ade_v1_addressed": 3.70,
         },
     },
     "v0.2.0": {
@@ -244,13 +244,13 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
             "tier3_evidence_class": "hypothetical_estimate",
         },
         "efficiency": {
-            "throughput_closed_per_eng_hr": 10.00,
-            "throughput_addressed_per_eng_hr": 10.00,
-            "unit_allocated_cost_per_closed_issue_usd": 0.25,
-            "unit_allocated_cost_per_addressed_issue_usd": 0.25,
+            "throughput_closed_per_eng_hr": 10.09,
+            "throughput_addressed_per_eng_hr": 10.09,
+            "unit_allocated_cost_per_closed_issue_usd": 0.24,
+            "unit_allocated_cost_per_addressed_issue_usd": 0.24,
             "unit_allocated_cost_per_kloc_usd": 0.15,
-            "legacy_ade_v1_closed": 10.20,
-            "legacy_ade_v1_addressed": 10.20,
+            "legacy_ade_v1_closed": 10.35,
+            "legacy_ade_v1_addressed": 10.35,
         },
     },
 }
@@ -259,8 +259,8 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
 # Longitudinal Canonical Registry: (full_engineering_window_hrs, verified_closed_issues, net_insertions_loc)
 # ---------------------------------------------------------------------------
 CANONICAL_METRICS: Dict[str, Tuple[float, int, int]] = {
-    "v0.1.0": (0.66, 4, 5132),
-    "v0.2.0": (0.40, 4, 6682),
+    "v0.1.0": (0.6625, 4, 5132),
+    "v0.2.0": (1427.0 / 3600.0, 4, 6682),
 }
 
 
