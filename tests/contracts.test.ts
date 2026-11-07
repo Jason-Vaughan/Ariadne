@@ -1,8 +1,9 @@
+import assert from 'node:assert/strict';
 import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { DatabaseSync } from 'node:sqlite';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, it } from 'node:test';
 import {
   CapabilityClaimSchema,
   EVENT_TYPES,
@@ -16,8 +17,9 @@ import {
   canTransitionIntroState,
   classifyIntroTransition,
   compositeScore,
+  type EventType,
   type IntroductionState,
-} from '../src/contracts';
+} from '../src/contracts/index.ts';
 
 const A = '11111111-1111-4111-8111-111111111111';
 const B = '22222222-2222-4222-8222-222222222222';
@@ -83,26 +85,28 @@ function envelope(type: string, payload: Record<string, unknown>) {
 describe('Participant', () => {
   it('accepts a valid participant and defaults consent flags to false', () => {
     const p = ParticipantSchema.parse(participant());
-    expect(p.public_display_consent).toBe(false);
-    expect(p.ownership_verified).toBe(false);
+    assert.equal(p.public_display_consent, false);
+    assert.equal(p.ownership_verified, false);
   });
 
   it('accepts an optional https website_url and null', () => {
-    expect(ParticipantSchema.parse(participant({ website_url: 'https://jasonvaughan.com' })).website_url).toBe(
-      'https://jasonvaughan.com',
-    );
-    expect(ParticipantSchema.safeParse(participant({ website_url: null })).success).toBe(true);
+    const p = ParticipantSchema.parse(participant({ website_url: 'https://jasonvaughan.com' }));
+    assert.equal(p.website_url, 'https://jasonvaughan.com');
+    assert.equal(ParticipantSchema.safeParse(participant({ website_url: null })).success, true);
   });
 
-  it.each([
+  const rejected: Array<[string, Record<string, unknown>]> = [
     ['http website', { website_url: 'http://jasonvaughan.com' }],
     ['uppercase login', { github_username: 'OctoCat' }],
     ['identifying pseudonym', { pseudonym: 'octo-cat' }],
     ['unknown consent', { consent_status: 'maybe' }],
     ['unknown key', { access_token: 'ghp_secret' }],
-  ])('rejects %s', (_name, over) => {
-    expect(ParticipantSchema.safeParse(participant(over)).success).toBe(false);
-  });
+  ];
+  for (const [name, over] of rejected) {
+    it(`rejects ${name}`, () => {
+      assert.equal(ParticipantSchema.safeParse(participant(over)).success, false);
+    });
+  }
 });
 
 describe('EvidenceReceipt', () => {
@@ -118,23 +122,22 @@ describe('EvidenceReceipt', () => {
   };
 
   it('accepts GitHub evidence and public_website evidence', () => {
-    expect(EvidenceReceiptSchema.safeParse(base).success).toBe(true);
-    expect(
-      EvidenceReceiptSchema.safeParse({
-        ...base,
-        source_type: 'public_website',
-        source_url: 'https://jasonvaughan.com/about',
-        repo_full_name: null,
-      }).success,
-    ).toBe(true);
+    assert.equal(EvidenceReceiptSchema.safeParse(base).success, true);
+    const website = {
+      ...base,
+      source_type: 'public_website',
+      source_url: 'https://jasonvaughan.com/about',
+      repo_full_name: null,
+    };
+    assert.equal(EvidenceReceiptSchema.safeParse(website).success, true);
   });
 
   it('rejects GitHub evidence citing a non-GitHub host', () => {
-    expect(EvidenceReceiptSchema.safeParse({ ...base, source_url: 'https://example.com/x' }).success).toBe(false);
+    assert.equal(EvidenceReceiptSchema.safeParse({ ...base, source_url: 'https://example.com/x' }).success, false);
   });
 
   it('rejects summaries over 280 characters', () => {
-    expect(EvidenceReceiptSchema.safeParse({ ...base, title_or_summary: 'x'.repeat(281) }).success).toBe(false);
+    assert.equal(EvidenceReceiptSchema.safeParse({ ...base, title_or_summary: 'x'.repeat(281) }).success, false);
   });
 });
 
@@ -152,20 +155,18 @@ describe('CapabilityClaim', () => {
   };
 
   it('accepts a confident observed fact without a note', () => {
-    expect(CapabilityClaimSchema.parse(base).dismissed_by_user).toBe(false);
+    assert.equal(CapabilityClaimSchema.parse(base).dismissed_by_user, false);
   });
 
   it('requires an uncertainty note for low confidence or AI inference', () => {
-    expect(CapabilityClaimSchema.safeParse({ ...base, confidence: 0.6 }).success).toBe(false);
-    expect(CapabilityClaimSchema.safeParse({ ...base, epistemic_type: 'AI_INFERENCE' }).success).toBe(false);
-    expect(
-      CapabilityClaimSchema.safeParse({ ...base, epistemic_type: 'AI_INFERENCE', uncertainty_note: 'From README.' })
-        .success,
-    ).toBe(true);
+    assert.equal(CapabilityClaimSchema.safeParse({ ...base, confidence: 0.6 }).success, false);
+    assert.equal(CapabilityClaimSchema.safeParse({ ...base, epistemic_type: 'AI_INFERENCE' }).success, false);
+    const noted = { ...base, epistemic_type: 'AI_INFERENCE', uncertainty_note: 'From README.' };
+    assert.equal(CapabilityClaimSchema.safeParse(noted).success, true);
   });
 
   it('requires at least one evidence receipt', () => {
-    expect(CapabilityClaimSchema.safeParse({ ...base, evidence_receipt_ids: [] }).success).toBe(false);
+    assert.equal(CapabilityClaimSchema.safeParse({ ...base, evidence_receipt_ids: [] }).success, false);
   });
 });
 
@@ -182,25 +183,30 @@ describe('OpportunityNeed', () => {
       uncertainty_note: 'Issue is 30 days old.',
       evidence_receipt_ids: [E1],
     });
-    expect(need.label).toBe('Potential Opportunity (AI Inference)');
+    assert.equal(need.label, 'Potential Opportunity (AI Inference)');
   });
 });
 
 describe('MatchProposal', () => {
   it('accepts a valid candidate match', () => {
-    expect(MatchProposalSchema.parse(match()).shared_intro_notes).toEqual([]);
+    assert.deepEqual(MatchProposalSchema.parse(match()).shared_intro_notes, []);
   });
 
   it('computes the composite score as the rounded sum', () => {
-    expect(compositeScore({ complementary_skills: 10.4, project_relevance: 10, evidence_strength: 10, recency: 0 })).toBe(
-      30,
-    );
+    const score = compositeScore({ complementary_skills: 10.4, project_relevance: 10, evidence_strength: 10, recency: 0 });
+    assert.equal(score, 30);
   });
 
-  it.each([
+  const rejected: Array<[string, Record<string, unknown>]> = [
     ['unordered participants', { participant_a_id: B, participant_b_id: A }],
     ['composite not matching breakdown', { composite_score: 90 }],
-    ['breakdown out of range', { score_breakdown: { complementary_skills: 41, project_relevance: 24, evidence_strength: 17, recency: 9 }, composite_score: 91 }],
+    [
+      'breakdown out of range',
+      {
+        score_breakdown: { complementary_skills: 41, project_relevance: 24, evidence_strength: 17, recency: 9 },
+        composite_score: 91,
+      },
+    ],
     ['fewer than two receipts', { evidence_receipt_ids: [E1] }],
     [
       'notes before completion',
@@ -213,13 +219,16 @@ describe('MatchProposal', () => {
         shared_intro_notes: [{ id: E1, author_participant_id: E2, body: 'hi', created_at: NOW }],
       },
     ],
-  ])('rejects %s', (_name, over) => {
-    expect(MatchProposalSchema.safeParse(match(over)).success).toBe(false);
-  });
+  ];
+  for (const [name, over] of rejected) {
+    it(`rejects ${name}`, () => {
+      assert.equal(MatchProposalSchema.safeParse(match(over)).success, false);
+    });
+  }
 });
 
 describe('PublicEventEnvelope', () => {
-  const samplePayloads: Record<(typeof EVENT_TYPES)[number], Record<string, unknown>> = {
+  const samplePayloads: Record<EventType, Record<string, unknown>> = {
     'participant.registered': { participant_pseudonym: 'Thread-7C4E' },
     'github.fetch.started': { participant_pseudonym: 'Thread-7C4E' },
     'github.fetch.completed': { participant_pseudonym: 'Thread-7C4E', repo_count: 6, evidence_count: 14 },
@@ -235,59 +244,52 @@ describe('PublicEventEnvelope', () => {
   };
 
   it('defines exactly the 12 canonical event types', () => {
-    expect(EVENT_TYPES).toHaveLength(12);
+    assert.equal(EVENT_TYPES.length, 12);
   });
 
-  it.each(EVENT_TYPES)('accepts a valid %s envelope', (type) => {
-    expect(PublicEventEnvelopeSchema.safeParse(envelope(type, samplePayloads[type])).success).toBe(true);
-  });
+  for (const type of EVENT_TYPES) {
+    it(`accepts a valid ${type} envelope`, () => {
+      assert.equal(PublicEventEnvelopeSchema.safeParse(envelope(type, samplePayloads[type])).success, true);
+    });
+  }
 
   it('rejects an unknown event type', () => {
-    expect(PublicEventEnvelopeSchema.safeParse(envelope('participant.deleted', {})).success).toBe(false);
+    assert.equal(PublicEventEnvelopeSchema.safeParse(envelope('participant.deleted', {})).success, false);
   });
 
   it('admits identity only with explicit public display consent', () => {
     const display = { public_display_consent: true, github_username: 'octo-cat', avatar_url: null };
-    expect(
-      PublicEventEnvelopeSchema.safeParse(
-        envelope('participant.registered', { participant_pseudonym: 'Thread-7C4E', display }),
-      ).success,
-    ).toBe(true);
-    expect(
-      PublicEventEnvelopeSchema.safeParse(
-        envelope('participant.registered', {
-          participant_pseudonym: 'Thread-7C4E',
-          display: { ...display, public_display_consent: false },
-        }),
-      ).success,
-    ).toBe(false);
+    const consented = envelope('participant.registered', { participant_pseudonym: 'Thread-7C4E', display });
+    assert.equal(PublicEventEnvelopeSchema.safeParse(consented).success, true);
+    const unconsented = envelope('participant.registered', {
+      participant_pseudonym: 'Thread-7C4E',
+      display: { ...display, public_display_consent: false },
+    });
+    assert.equal(PublicEventEnvelopeSchema.safeParse(unconsented).success, false);
   });
 
-  it.each([
+  const leaks: Array<[string, Record<string, unknown>]> = [
     ['raw github_username', { github_username: 'octo-cat' }],
     ['contact card', { contact_card: '@octo on Signal' }],
     ['token', { token: 'ghp_abc123' }],
-  ])('rejects a payload leaking a %s', (_name, extra) => {
-    expect(
-      PublicEventEnvelopeSchema.safeParse(
-        envelope('introduction.completed', { ...samplePayloads['introduction.completed'], ...extra }),
-      ).success,
-    ).toBe(false);
-  });
+  ];
+  for (const [name, extra] of leaks) {
+    it(`rejects a payload leaking a ${name}`, () => {
+      const leaky = envelope('introduction.completed', { ...samplePayloads['introduction.completed'], ...extra });
+      assert.equal(PublicEventEnvelopeSchema.safeParse(leaky).success, false);
+    });
+  }
 
   it('carries only an aggregate count for declined introductions', () => {
-    expect(
-      PublicEventEnvelopeSchema.safeParse(
-        envelope('introduction.declined', { declined_total: 1, match_id: M }),
-      ).success,
-    ).toBe(false);
+    const declined = envelope('introduction.declined', { declined_total: 1, match_id: M });
+    assert.equal(PublicEventEnvelopeSchema.safeParse(declined).success, false);
   });
 
   it('validates the poll response cursor', () => {
-    const ev = envelope('participant.registered', samplePayloads['participant.registered']);
-    expect(EventPollResponseSchema.safeParse({ events: [{ ...ev, seq_id: 7 }], latest_seq_id: 7 }).success).toBe(true);
-    expect(EventPollResponseSchema.safeParse({ events: [{ ...ev, seq_id: 7 }], latest_seq_id: 6 }).success).toBe(false);
-    expect(EventPollResponseSchema.safeParse({ events: [], latest_seq_id: 0 }).success).toBe(true);
+    const ev = { ...envelope('participant.registered', samplePayloads['participant.registered']), seq_id: 7 };
+    assert.equal(EventPollResponseSchema.safeParse({ events: [ev], latest_seq_id: 7 }).success, true);
+    assert.equal(EventPollResponseSchema.safeParse({ events: [ev], latest_seq_id: 6 }).success, false);
+    assert.equal(EventPollResponseSchema.safeParse({ events: [], latest_seq_id: 0 }).success, true);
   });
 });
 
@@ -305,41 +307,43 @@ describe('introduction state machine', () => {
   const isAllowed = (from: IntroductionState, to: IntroductionState) =>
     allowed.some(([f, t]) => f === from && t === to);
 
-  it.each(allowed)('allows %s -> %s for a verified actor', (from, to) => {
-    expect(canTransitionIntroState(from, to, true)).toBe(true);
-  });
+  for (const [from, to] of allowed) {
+    it(`allows ${from} -> ${to} for a verified actor`, () => {
+      assert.equal(canTransitionIntroState(from, to, true), true);
+    });
+  }
 
   it('forbids every edge outside the diagram', () => {
     for (const from of INTRODUCTION_STATES) {
       for (const to of INTRODUCTION_STATES) {
         if (from === to || isAllowed(from, to)) continue;
-        expect(classifyIntroTransition(from, to, true), `${from} -> ${to}`).toBe('forbidden');
+        assert.equal(classifyIntroTransition(from, to, true), 'forbidden', `${from} -> ${to}`);
       }
     }
   });
 
   it('treats a repeated decision as an idempotent no-op', () => {
     for (const state of INTRODUCTION_STATES) {
-      expect(classifyIntroTransition(state, state, true)).toBe('noop');
-      expect(canTransitionIntroState(state, state, true)).toBe(false);
+      assert.equal(classifyIntroTransition(state, state, true), 'noop');
+      assert.equal(canTransitionIntroState(state, state, true), false);
     }
   });
 
   it('requires verified ownership to propose or accept', () => {
-    expect(classifyIntroTransition('candidate', 'proposed_by_a', false)).toBe('unverified');
-    expect(classifyIntroTransition('proposed_by_b', 'mutual_accepted', false)).toBe('unverified');
-    expect(canTransitionIntroState('candidate', 'proposed_by_b', false)).toBe(false);
+    assert.equal(classifyIntroTransition('candidate', 'proposed_by_a', false), 'unverified');
+    assert.equal(classifyIntroTransition('proposed_by_b', 'mutual_accepted', false), 'unverified');
+    assert.equal(canTransitionIntroState('candidate', 'proposed_by_b', false), false);
   });
 
   it('lets an unverified participant pass and the system complete', () => {
-    expect(canTransitionIntroState('candidate', 'declined', false)).toBe(true);
-    expect(canTransitionIntroState('mutual_accepted', 'completed', false)).toBe(true);
+    assert.equal(canTransitionIntroState('candidate', 'declined', false), true);
+    assert.equal(canTransitionIntroState('mutual_accepted', 'completed', false), true);
   });
 
   it('never leaves a terminal state', () => {
     for (const to of INTRODUCTION_STATES) {
-      expect(canTransitionIntroState('completed', to, true)).toBe(false);
-      expect(canTransitionIntroState('declined', to, true)).toBe(false);
+      assert.equal(canTransitionIntroState('completed', to, true), false);
+      assert.equal(canTransitionIntroState('declined', to, true), false);
     }
   });
 });
@@ -361,7 +365,7 @@ describe('SQLite schema', () => {
   });
 
   /**
-   * Insert a participant row with the given id and login.
+   * Insert a participant row.
    * @param id - Participant id.
    * @param login - GitHub login.
    * @param pseudonym - Stage handle.
@@ -373,12 +377,21 @@ describe('SQLite schema', () => {
     ).run(id, pseudonym, login, NOW, NOW, NOW);
   }
 
+  /**
+   * Read a single row as a plain object (node:sqlite rows have a null prototype).
+   * @param sql - Query returning one row.
+   * @returns The row's columns.
+   */
+  function row(sql: string): Record<string, unknown> {
+    return { ...db.prepare(sql).get() };
+  }
+
   it('creates all eight tables in WAL mode and re-applies idempotently', () => {
     const tables = db
       .prepare(`SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name`)
       .all()
       .map((r) => (r as { name: string }).name);
-    expect(tables).toEqual([
+    assert.deepEqual(tables, [
       'async_jobs',
       'capability_claims',
       'domain_events',
@@ -388,14 +401,16 @@ describe('SQLite schema', () => {
       'opportunity_needs',
       'participants',
     ]);
-    expect((db.prepare('PRAGMA journal_mode').get() as { journal_mode: string }).journal_mode).toBe('wal');
-    expect(() => db.exec(schema)).not.toThrow();
+    assert.equal(row('PRAGMA journal_mode').journal_mode, 'wal');
+    assert.doesNotThrow(() => db.exec(schema));
   });
 
   it('defaults privacy flags to 0', () => {
     insertParticipant(A, 'octo-cat', 'Thread-7C4E');
-    const row = db.prepare('SELECT public_display_consent, ownership_verified FROM participants').get();
-    expect(row).toEqual({ public_display_consent: 0, ownership_verified: 0 });
+    assert.deepEqual(row('SELECT public_display_consent, ownership_verified FROM participants'), {
+      public_display_consent: 0,
+      ownership_verified: 0,
+    });
   });
 
   it('enforces canonical match ordering and valid intro states', () => {
@@ -408,9 +423,9 @@ describe('SQLite schema', () => {
        VALUES (?, ?, ?, 84, '{}', 's', '[]', 'c', 'l', ?, ?, ?, ?)`,
     );
     const receipts = JSON.stringify([E1, E2]);
-    expect(() => insert.run(M, A, B, receipts, 'candidate', NOW, NOW)).not.toThrow();
-    expect(() => insert.run(E1, B, A, receipts, 'candidate', NOW, NOW)).toThrow();
-    expect(() => insert.run(E2, A, B, receipts, 'accepted', NOW, NOW)).toThrow();
+    assert.doesNotThrow(() => insert.run(M, A, B, receipts, 'candidate', NOW, NOW));
+    assert.throws(() => insert.run(E1, B, A, receipts, 'candidate', NOW, NOW));
+    assert.throws(() => insert.run(E2, A, B, receipts, 'accepted', NOW, NOW));
   });
 
   it('assigns increasing seq_ids and blocks duplicate idempotency keys', () => {
@@ -419,9 +434,9 @@ describe('SQLite schema', () => {
     );
     const first = insert.run(E1, 'introduction.proposed', `${M}:a:interested`, NOW);
     const second = insert.run(E2, 'participant.registered', null, NOW);
-    expect(Number(second.lastInsertRowid)).toBeGreaterThan(Number(first.lastInsertRowid));
-    expect(() => insert.run(M, 'introduction.proposed', `${M}:a:interested`, NOW)).toThrow();
-    expect(() => insert.run(A, 'participant.deleted', null, NOW)).toThrow();
+    assert.ok(Number(second.lastInsertRowid) > Number(first.lastInsertRowid));
+    assert.throws(() => insert.run(M, 'introduction.proposed', `${M}:a:interested`, NOW));
+    assert.throws(() => insert.run(A, 'participant.deleted', null, NOW));
   });
 
   it('purges a participant and everything derived from them', () => {
@@ -431,18 +446,15 @@ describe('SQLite schema', () => {
        VALUES (?, ?, 'public_website', 'https://jasonvaughan.com', 'Portfolio', ?, ?)`,
     ).run(E1, A, NOW, NOW);
     db.prepare('DELETE FROM participants WHERE id = ?').run(A);
-    expect(db.prepare('SELECT count(*) AS n FROM evidence_receipts').get()).toEqual({ n: 0 });
+    assert.deepEqual(row('SELECT count(*) AS n FROM evidence_receipts'), { n: 0 });
   });
 
   it('rejects GitHub evidence citing a non-GitHub URL', () => {
     insertParticipant(A, 'octo-cat', 'Thread-7C4E');
-    expect(() =>
-      db
-        .prepare(
-          `INSERT INTO evidence_receipts (id, participant_id, source_type, source_url, title_or_summary, source_updated_at, fetched_at)
-           VALUES (?, ?, 'repo_metadata', 'https://example.com/x', 't', ?, ?)`,
-        )
-        .run(E1, A, NOW, NOW),
-    ).toThrow();
+    const insert = db.prepare(
+      `INSERT INTO evidence_receipts (id, participant_id, source_type, source_url, title_or_summary, source_updated_at, fetched_at)
+       VALUES (?, ?, 'repo_metadata', 'https://example.com/x', 't', ?, ?)`,
+    );
+    assert.throws(() => insert.run(E1, A, NOW, NOW));
   });
 });

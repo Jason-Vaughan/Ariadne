@@ -1,2 +1,2 @@
-export * from './types';
-export * from './events';
+export * from './types.ts';
+export * from './events.ts';

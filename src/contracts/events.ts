@@ -6,7 +6,7 @@ import {
   OpportunityTypeSchema,
   PseudonymSchema,
   TimestampSchema,
-} from './types';
+} from './types.ts';
 
 /** Canonical event catalog (DATA_AND_EVENTS_CONTRACT.md §3), in lifecycle order. */
 export const EVENT_TYPES = [

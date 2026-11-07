@@ -4,10 +4,10 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=22.13.0"
+    "node": ">=22.18.0"
   },
   "scripts": {
-    "test": "vitest run",
+    "test": "node --test \"tests/**/*.test.ts\"",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -15,7 +15,6 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.0",
-    "typescript": "~5.9.3",
-    "vitest": "^5.1.0"
+    "typescript": "~5.9.3"
   }
 }

@@ -10,7 +10,7 @@ All notable changes to Ariadne-PM are documented in this file.
   - Public event payloads are pseudonymous and strict: GitHub identity appears only inside a `display` object that requires `public_display_consent: true`; tokens, contact cards and raw usernames are rejected.
   - `canTransitionIntroState` / `classifyIntroTransition` implement the mutual-introduction state machine, including verified-ownership gating and idempotent same-state no-ops.
   - Idempotent SQLite WAL schema for `participants`, `github_snapshots`, `evidence_receipts`, `capability_claims`, `opportunity_needs`, `matches`, `domain_events` and `async_jobs`, with privacy defaults of 0, canonical match ordering, cascading participant purge and event idempotency keys.
-  - Root `package.json` / `tsconfig.json` (Node 22, TypeScript 5.9, Zod 4, Vitest 5): `npm test`, `npm run typecheck`.
+  - Root `package.json` / `tsconfig.json` (Node >=22.18 native type stripping, TypeScript 5.9, Zod 4): `npm test` runs `node --test`, matching the Testament bridge; `npm run typecheck`.
 - **Added `node --test` Discovery to Testament Suite (`tests/test_ariadne_suite.py`) & Explicitly Added Shared `CHANGELOG.md` to Car Envelopes (`ARIADNE_ROADMAP.md`):**
   - Updated `tests/test_ariadne_suite.py` so `/Users/jasonvaughan/.local/bin/testament run --json` automatically discovers and executes every `tests/*.test.ts` and `tests/*.test.js` file via `node --test`.
   - Updated `ARIADNE_ROADMAP.md` to explicitly list shared `CHANGELOG.md` (and `package.json`/`tsconfig.json` for Foundation Cars) in the Car envelopes and aligned GitHub issue numbers (`#13 = A-014`, `#14 = A-015`).
