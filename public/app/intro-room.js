@@ -4,6 +4,7 @@
   const matchId = decodeURIComponent(window.location.pathname.split('/').filter(Boolean).pop() || '');
   const api = `/api/matches/${encodeURIComponent(matchId)}`;
   let room = null;
+  let contactPrefilled = false;
   let pollTimer = null;
 
   /**
@@ -62,6 +63,10 @@
     document.getElementById('links').replaceChildren(...links);
     document.getElementById('contact-card').textContent = c.contact_card ? `Contact: ${c.contact_card}` : '';
     document.getElementById('vcard').setAttribute('href', `${api}/vcard`);
+    if (!contactPrefilled) {
+      document.getElementById('my-contact').value = data.me.contact_card || '';
+      contactPrefilled = true;
+    }
     document.getElementById('first-collab').textContent = data.icebreaker.suggested_first_collaboration;
     document.getElementById('thesis').textContent = data.icebreaker.complementary_summary;
     document.getElementById('projects').replaceChildren(
@@ -151,6 +156,23 @@
     const input = document.getElementById('venue-note');
     if (!input.value.trim()) return;
     if (await post({ venue: 'custom', venue_note: input.value })) input.value = '';
+  });
+
+  document.getElementById('contact-form').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const status = document.getElementById('contact-status');
+    try {
+      const res = await fetch('/api/me/contact-card', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ contact_card: document.getElementById('my-contact').value }),
+      });
+      const body = await res.json().catch(() => ({}));
+      status.textContent = res.ok ? 'Saved — your match can see it now.' : body.message || 'Could not save — please try again.';
+    } catch {
+      status.textContent = 'Network trouble — please try again.';
+    }
   });
 
   document.getElementById('copy').addEventListener('click', async () => {

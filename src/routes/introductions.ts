@@ -4,7 +4,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import type { DatabaseSync } from 'node:sqlite';
 import { fileURLToPath } from 'node:url';
 import { readSession } from '../auth/session.ts';
-import { canRevealContact, IntroRoomMessageSchema } from '../contracts/index.ts';
+import { canRevealContact, IntroRoomMessageSchema, ParticipantSchema } from '../contracts/index.ts';
 import type { IntroRoomMessage, IntroductionState } from '../contracts/index.ts';
 import { applyDecision, requiresVerifiedOwnership } from '../matching/intro-state-machine.ts';
 import type { Decision, Side } from '../matching/intro-state-machine.ts';
@@ -162,7 +162,7 @@ function roomView(db: DatabaseSync, match: MatchRow, side: Side) {
   }
   return {
     match_id: match.id,
-    me: { display_alias: me.display_alias, github_username: me.github_username },
+    me: { display_alias: me.display_alias, github_username: me.github_username, contact_card: me.contact_card },
     counterpart: {
       display_alias: other.display_alias,
       github_username: other.github_username,
@@ -196,6 +196,25 @@ export function escapeVcard(value: string): string {
 }
 
 /**
+ * Email addresses and phone numbers mentioned in a free-text contact card.
+ * @param card - Contact card text.
+ * @returns Distinct emails and phone numbers (phones normalized to `+` and digits).
+ */
+export function contactPoints(card: string | null): { emails: string[]; phones: string[] } {
+  if (!card) return { emails: [], phones: [] };
+  const emails = [...new Set(card.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi) ?? [])];
+  const withoutEmails = emails.reduce((text, email) => text.split(email).join(' '), card);
+  const phones = [
+    ...new Set(
+      (withoutEmails.match(/\+?\d[\d\s().-]{5,}\d/g) ?? [])
+        .map((raw) => `${raw.trim().startsWith('+') ? '+' : ''}${raw.replace(/\D/g, '')}`)
+        .filter((phone) => phone.replace('+', '').length >= 7 && phone.replace('+', '').length <= 15),
+    ),
+  ];
+  return { emails, phones };
+}
+
+/**
  * vCard 3.0 for the counterpart, with CRLF line endings.
  * @param person - Counterpart identity.
  * @returns The `.vcf` text.
@@ -209,6 +228,9 @@ export function buildVcard(person: PersonRow): string {
     `URL;TYPE=github:https://github.com/${escapeVcard(person.github_username)}`,
   ];
   if (person.website_url?.startsWith('https://')) lines.push(`URL;TYPE=website:${escapeVcard(person.website_url)}`);
+  const points = contactPoints(person.contact_card);
+  for (const email of points.emails) lines.push(`EMAIL;TYPE=INTERNET:${escapeVcard(email)}`);
+  for (const phone of points.phones) lines.push(`TEL;TYPE=CELL:${escapeVcard(phone)}`);
   lines.push(`NOTE:${escapeVcard(['Met via Ariadne', person.contact_card].filter(Boolean).join(' — '))}`);
   lines.push('END:VCARD');
   return `${lines.join('\r\n')}\r\n`;
@@ -309,6 +331,28 @@ async function postToRoom(req: IncomingMessage, res: ServerResponse, db: Databas
   sendJson(res, 201, result.room);
 }
 
+/**
+ * `PUT /api/me/contact-card` — the signed-in participant sets or clears their own contact card, which
+ * only their completed-intro counterparts ever see.
+ * @param req - Incoming request.
+ * @param res - Response.
+ * @param db - Database handle.
+ */
+async function saveContactCard(req: IncomingMessage, res: ServerResponse, db: DatabaseSync): Promise<void> {
+  const viewerId = readSession(req);
+  const exists = viewerId ? db.prepare('SELECT 1 FROM participants WHERE id = ?').get(viewerId) : undefined;
+  if (!viewerId || !exists) return sendJson(res, 401, { error: 'not_signed_in' });
+  const body = await readJson(req);
+  const raw = body?.contact_card;
+  const value = typeof raw === 'string' ? raw.trim() || null : raw === null ? null : undefined;
+  const parsed = ParticipantSchema.shape.contact_card.safeParse(value);
+  if (value === undefined || !parsed.success) {
+    return sendJson(res, 400, { error: 'invalid_contact_card', message: 'Keep your contact note to 280 characters.' });
+  }
+  db.prepare('UPDATE participants SET contact_card = ?, updated_at = ? WHERE id = ?').run(parsed.data, new Date().toISOString(), viewerId);
+  sendJson(res, 200, { contact_card: parsed.data });
+}
+
 export const routes: RouteDefinition[] = [
   {
     method: 'POST',
@@ -354,6 +398,12 @@ export const routes: RouteDefinition[] = [
       });
       res.end(card);
     },
+  },
+  {
+    method: 'PUT',
+    path: '/api/me/contact-card',
+    /** Sets or clears the caller's own contact card (see `saveContactCard`). */
+    handler: (req, res, ctx) => saveContactCard(req, res, ctx.db),
   },
   {
     method: 'GET',

@@ -10,7 +10,7 @@ import { runInNewContext } from 'node:vm';
 import { MatchProposalSchema, PublicEventEnvelopeSchema } from '../src/contracts/index.ts';
 import { openDatabase } from '../src/db/client.ts';
 import { requestedState } from '../src/matching/intro-state-machine.ts';
-import { buildVcard, escapeVcard } from '../src/routes/introductions.ts';
+import { buildVcard, contactPoints, escapeVcard } from '../src/routes/introductions.ts';
 import { resetRateLimits, setAdmissionPolicy } from '../src/routes/onboarding.ts';
 import type { Logger } from '../src/server.ts';
 import { createServer, loadRoutes } from '../src/server.ts';
@@ -50,6 +50,17 @@ describe('vCard', () => {
       'BEGIN:VCARD\r\nVERSION:3.0\r\nFN:@hubot\r\nNICKNAME:Loom-0002\r\nURL;TYPE=github:https://github.com/hubot\r\n' +
         'URL;TYPE=website:https://hubot.dev\r\nNOTE:Met via Ariadne — Signal: @hubot\\; DM me\r\nEND:VCARD\r\n',
     );
+  });
+});
+
+describe('contactPoints', () => {
+  it('pulls emails and phone numbers out of a free-text card', () => {
+    assert.deepEqual(contactPoints('Email me: Jane.Doe@example.com · call +1 (415) 555-0134 · X @jane · 2026'), {
+      emails: ['Jane.Doe@example.com'],
+      phones: ['+14155550134'],
+    });
+    assert.deepEqual(contactPoints('Signal: @hubot; DM me'), { emails: [], phones: [] });
+    assert.deepEqual(contactPoints(null), { emails: [], phones: [] });
   });
 });
 
@@ -322,6 +333,49 @@ describe('introductions API', () => {
     assert.match(card, /NOTE:Met via Ariadne — Signal: @hubot\r\nEND:VCARD\r\n$/);
   });
 
+  /**
+   * PUTs a contact card as a participant.
+   * @param who - Participant key, or `null` for no session.
+   * @param value - Body value.
+   * @returns Response.
+   */
+  function putCard(who: 'a' | 'b' | 'c' | null, value: unknown): Promise<Response> {
+    return fetch(`${base}/api/me/contact-card`, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json', ...(who ? { cookie: people[who].cookie } : {}) },
+      body: JSON.stringify({ contact_card: value }),
+    });
+  }
+
+  it('lets a participant share their own contact card with completed-intro counterparts', async () => {
+    await decide('a', 'interested');
+    await decide('b', 'interested');
+    const saved = await putCard('a', '  X @octo · octo@example.com · +1 415 555 0134  ');
+    assert.equal(saved.status, 200);
+    assert.deepEqual(await saved.json(), { contact_card: 'X @octo · octo@example.com · +1 415 555 0134' });
+
+    const forB = (await (await get('b', 'room')).json()) as Record<string, any>;
+    assert.equal(forB.counterpart.contact_card, 'X @octo · octo@example.com · +1 415 555 0134');
+    const forA = (await (await get('a', 'room')).json()) as Record<string, any>;
+    assert.equal(forA.me.contact_card, 'X @octo · octo@example.com · +1 415 555 0134');
+
+    const card = await (await get('b', 'vcard')).text();
+    assert.match(card, /\r\nEMAIL;TYPE=INTERNET:octo@example\.com\r\n/);
+    assert.match(card, /\r\nTEL;TYPE=CELL:\+14155550134\r\n/);
+
+    assert.equal((await putCard('a', null)).status, 200);
+    assert.equal(((await (await get('b', 'room')).json()) as Record<string, any>).counterpart.contact_card, null);
+  });
+
+  it('validates contact cards and requires a session', async () => {
+    assert.equal((await putCard('a', 'x'.repeat(281))).status, 400);
+    assert.equal((await putCard('a', 42)).status, 400);
+    assert.equal((await putCard(null, 'hi')).status, 401);
+    assert.equal((await putCard('a', '   ')).status, 200, 'blank clears the card');
+    const row = db.prepare('SELECT contact_card FROM participants WHERE id = ?').get(people.a.id);
+    assert.deepEqual({ ...row }, { contact_card: null });
+  });
+
   it('declines on Pass with only the public counter, and refuses later interest', async () => {
     const res = await decide('c', 'pass', MATCH_AC);
     assert.equal(res.status, 200);
@@ -367,7 +421,8 @@ describe('introductions API', () => {
 describe('intro room page behaviour', () => {
   const script = readFileSync(join(REPO_ROOT, 'public', 'app', 'intro-room.js'), 'utf8');
   const IDS = ['locked', 'locked-message', 'room', 'title', 'counterpart', 'links', 'contact-card', 'vcard', 'copy', 'copy-status',
-    'first-collab', 'thesis', 'projects', 'venues', 'venue-form', 'venue-note', 'notes', 'chat-form', 'chat-input', 'chat-status'];
+    'first-collab', 'thesis', 'projects', 'venues', 'venue-form', 'venue-note', 'notes', 'chat-form', 'chat-input', 'chat-status',
+    'contact-form', 'my-contact', 'contact-status'];
 
   class FakeNode {
     tagName: string;
@@ -390,7 +445,7 @@ describe('intro room page behaviour', () => {
 
   const unlockedRoom = {
     match_id: 'm1',
-    me: { display_alias: 'Thread-7C4E', github_username: 'octocat' },
+    me: { display_alias: 'Thread-7C4E', github_username: 'octocat', contact_card: 'X @octo' },
     counterpart: {
       display_alias: 'Loom-0002', github_username: 'hubot', github_url: 'https://github.com/hubot', avatar_url: null,
       website_url: 'javascript:alert(1)', contact_card: '<img src=x onerror=alert(1)>',
@@ -449,6 +504,19 @@ describe('intro room page behaviour', () => {
     assert.equal(elements['contact-card']!.textContent, 'Contact: <img src=x onerror=alert(1)>');
     assert.equal(elements.vcard!.attributes.href, '/api/matches/m1/vcard');
     assert.match(elements.notes!.textContent, /@hubot: Hi!/);
+  });
+
+  it('prefills and saves my contact card', async () => {
+    const { elements, requests } = await loadRoom((url, init) =>
+      init?.method === 'PUT' ? [200, { contact_card: 'X @octo · octo@example.com' }] : [200, unlockedRoom],
+    );
+    assert.equal(elements['my-contact']!.value, 'X @octo');
+    elements['my-contact']!.value = 'X @octo · octo@example.com';
+    await elements['contact-form']!.listeners.submit!({ preventDefault() {} });
+    const put = requests.find((r) => r.method === 'PUT');
+    assert.equal(put?.url, '/api/me/contact-card');
+    assert.deepEqual(put?.body, { contact_card: 'X @octo · octo@example.com' });
+    assert.match(elements['contact-status']!.textContent, /Saved/);
   });
 
   it('posts chat messages and venue pins', async () => {
