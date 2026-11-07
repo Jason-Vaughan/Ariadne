@@ -148,6 +148,71 @@ function topCapabilities(profile: ParticipantProfile): string[] {
     .map((c) => c.name);
 }
 
+/** What the private-detail scrub may leave in place: the pair's own evidence and repos. */
+interface ScrubContext {
+  allowedUrls: ReadonlySet<string>;
+  allowedRepos: readonly string[];
+  contactCards: readonly string[];
+}
+
+/**
+ * Builds the scrub context for a pair from its pills and both participants.
+ * @param pills - The pair's evidence pills.
+ * @param a - Participant A's profile.
+ * @param b - Participant B's profile.
+ * @returns The context.
+ */
+function scrubContext(pills: readonly EvidencePill[], a: ParticipantProfile, b: ParticipantProfile): ScrubContext {
+  return {
+    allowedUrls: new Set(pills.map((p) => p.url.toLowerCase())),
+    allowedRepos: [...new Set(pills.flatMap((p) => (p.repo ? [p.repo] : [])))].sort((x, y) => y.length - x.length),
+    contactCards: [a, b].map((p) => p.participant.contact_card).filter((v): v is string => !!v && v.trim().length > 0),
+  };
+}
+
+/**
+ * Escapes a string for literal use inside a RegExp.
+ * @param value - Text to escape.
+ * @returns The escaped pattern.
+ */
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
+ * Removes private details from text that reaches a match card or a model prompt: contact cards,
+ * emails and @handles become `[redacted]`, and any link (with or without a scheme, or a github.com
+ * path) that is not one of the pair's own evidence URLs becomes `[link removed]`. The pair's own
+ * repo names are left intact. Participant-controlled text (need summaries, capability names, goals)
+ * flows through here before it is stored or shown to the other participant.
+ * @param text - Text to clean.
+ * @param ctx - The pair's allowed evidence and contact cards.
+ * @returns The cleaned text.
+ */
+export function scrubPrivateDetails(text: string, ctx: ScrubContext): string {
+  let out = text;
+  for (const card of ctx.contactCards) out = out.replace(new RegExp(escapeRegExp(card), 'gi'), '[redacted]');
+  out = out.replace(/https?:\/\/[^\s)<>"'\]]+/gi, (url) => {
+    const trimmed = url.replace(/[.,;:!?]+$/, '');
+    return ctx.allowedUrls.has(trimmed.toLowerCase()) ? url : `[link removed]${url.slice(trimmed.length)}`;
+  });
+  out = out.replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[redacted]');
+  out = out.replace(/(^|[^A-Za-z0-9._%+-])@[A-Za-z0-9-]{1,39}\b/g, '$1[redacted]');
+  // Scrub schemeless links outside the pair's repo names (which may themselves contain dots).
+  const repoSplit = ctx.allowedRepos.length ? new RegExp(`(${ctx.allowedRepos.map(escapeRegExp).join('|')})`, 'gi') : null;
+  const parts = repoSplit ? out.split(repoSplit) : [out];
+  return parts
+    .map((part, i) => {
+      if (repoSplit && i % 2 === 1) return part;
+      let cleaned = part.replace(/(?:www\.)?github\.com\/[^\s)<>"']*/gi, '[link removed]');
+      for (const link of extractSchemelessLinks(cleaned)) {
+        cleaned = cleaned.replace(new RegExp(escapeRegExp(link), 'gi'), '[link removed]');
+      }
+      return cleaned;
+    })
+    .join('');
+}
+
 /**
  * Builds the deterministic Stage 1 card for a surfaceable pair: all seven spec §4 elements,
  * naming participants only by display alias.
@@ -188,19 +253,24 @@ export function buildStage1Explanation(pair: PairScore, a: ParticipantProfile, b
   ]
     .filter(Boolean)
     .join(' ');
-  const pairingText = pairing.join(' ');
-  const summary = bound([scoreLine(pair.composite_score, pair.score_breakdown), pairingText, why].filter(Boolean).join(' '));
+  const ctx = scrubContext(pills, a, b);
+  const pairingText = scrubPrivateDetails(pairing.join(' '), ctx);
+  const context = scrubPrivateDetails(why, ctx);
+  const summary = bound([scoreLine(pair.composite_score, pair.score_breakdown), pairingText, context].filter(Boolean).join(' '));
 
   const firstNeed = aForB.need ?? bForA.need;
   const helper = aForB.need ? aliasA : aliasB;
   const owner = aForB.need ? aliasB : aliasA;
   const firstCapability = (aForB.need ? aForB.capabilities : bForA.capabilities)[0];
   const collaboration = bound(
-    firstNeed && firstCapability
+    scrubPrivateDetails(
+      firstNeed && firstCapability
       ? `Spend 15 minutes on "${firstNeed.summary}" in ${firstNeed.project_repo}: ${owner} explains the problem, ${helper} sketches how ${firstCapability} would solve it, then pick one small step to try together today.`
       : `Spend 15 minutes comparing ${reposA[0] ?? `${aliasA}'s project`} and ${reposB[0] ?? `${aliasB}'s project`} and pick one small integration to prototype together today.`,
+      ctx,
+    ),
   );
-  const limitations = bound([...pair.limitations, WILLINGNESS_NOTE].join(' '));
+  const limitations = bound(scrubPrivateDetails([...pair.limitations, WILLINGNESS_NOTE].join(' '), ctx));
 
   const proposal = MatchProposalSchema.parse({
     id: pair.match_id,
@@ -215,7 +285,7 @@ export function buildStage1Explanation(pair: PairScore, a: ParticipantProfile, b
     evidence_receipt_ids: pills.map((p) => p.receipt_id),
     intro_state: 'candidate',
   });
-  return { proposal, pills, pairing: pairingText, context: why };
+  return { proposal, pills, pairing: pairingText, context };
 }
 
 /**
@@ -328,10 +398,11 @@ export function explainMatches(
  * @returns The prompt text.
  */
 export function buildEnrichmentPrompt(staged: StagedExplanation, a: ParticipantProfile, b: ParticipantProfile): string {
+  const ctx = scrubContext(staged.pills, a, b);
   const describe = (p: ParticipantProfile): string => {
     const caps = p.claims.filter((c) => !c.dismissed_by_user).map((c) => `${c.name} (${c.proficiency_signal})`).join(', ');
     const needs = p.needs.filter((n) => !n.dismissed_by_user).map((n) => n.summary).join('; ');
-    return `${p.participant.display_alias}: capabilities [${caps}]; needs [${needs || 'none stated'}]`;
+    return scrubPrivateDetails(`${p.participant.display_alias}: capabilities [${caps}]; needs [${needs || 'none stated'}]`, ctx);
   };
   const pills = staged.pills.map((p) => `- id=${p.receipt_id} side=${p.side} ${p.label} ${p.url}`).join('\n');
   return [

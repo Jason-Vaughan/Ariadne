@@ -298,6 +298,61 @@ describe('Stage 1', () => {
     assert.equal(p.intro_state, 'candidate');
   });
 
+  test('private details in participant-controlled text never reach the card, the stored row or the prompt', () => {
+    const [a0, b0] = pair();
+    const goal = 'Help with React, email me at alice@example.com or ping @alice, see evil.ru/x and https://evil.example/y';
+    const poison = (p: ParticipantProfile): ParticipantProfile => ({
+      ...p,
+      needs: p.needs.map((n) => ({ ...n, summary: goal })),
+      claims: p.claims.map((c, i) => (i === 0 ? { ...c, name: `${c.name} (bob@corp.io)` } : c)),
+    });
+    const a = poison(a0);
+    const b = poison(b0);
+    const db = dbWith([a, b]);
+    const scored = scorePair(a, b, { now: NOW });
+    const cards = explainMatches(new Map([[a.participant.id, [scored]]]), [a, b], { now: NOW, db });
+    const card = [...cards.values()][0]!;
+    const row = db.prepare('SELECT complementary_summary, suggested_first_collaboration, confidence_limitations, intro_state, approval_a, approval_b FROM matches').get() as Record<string, unknown>;
+    const prompt = buildEnrichmentPrompt(card, a, b);
+    const surfaces = [
+      card.proposal.complementary_summary,
+      card.proposal.suggested_first_collaboration,
+      card.proposal.confidence_limitations,
+      String(row.complementary_summary),
+      String(row.suggested_first_collaboration),
+      String(row.confidence_limitations),
+      prompt,
+    ];
+    for (const text of surfaces) {
+      for (const secret of ['alice@example.com', '@alice', 'evil.ru', 'evil.example', 'bob@corp.io', a.participant.contact_card!, b.participant.contact_card!]) {
+        assert.ok(!text.toLowerCase().includes(secret.toLowerCase()), `${secret} leaked into: ${text.slice(0, 120)}`);
+      }
+    }
+    assert.ok(surfaces.some((t) => t.includes('[redacted]')));
+    assert.ok(surfaces.some((t) => t.includes('[link removed]')));
+    // This is the pre-approval state /api/me serves to the counterpart.
+    assert.deepEqual([row.intro_state, row.approval_a, row.approval_b], ['candidate', 0, 0]);
+    db.close();
+  });
+
+  test('the scrub keeps the pair own repo names, including dotted ones', () => {
+    const [a0, b0] = pair();
+    const dotted = (p: ParticipantProfile): ParticipantProfile => ({
+      ...p,
+      evidence: p.evidence.map((r) => ({
+        ...r,
+        repo_full_name: `${r.repo_full_name}.io`,
+        source_url: r.source_type === 'repo_metadata' ? `${r.source_url}.io` : r.source_url.replace(/\/issues\//, '.io/issues/'),
+      })),
+      needs: p.needs.map((n) => ({ ...n, project_repo: `${n.project_repo}.io` })),
+    });
+    const a = dotted(a0);
+    const b = dotted(b0);
+    const card = buildStage1Explanation(scorePair(a, b, { now: NOW }), a, b);
+    for (const repo of card.proposal.relevant_projects) assert.ok(card.proposal.complementary_summary.includes(repo), repo);
+    assert.ok(!card.proposal.complementary_summary.includes('[link removed]'));
+  });
+
   test('refuses pairs that are not surfaceable or profiles in the wrong order', () => {
     const { a, b } = staged();
     const scored = scorePair(a, b, { now: NOW });
@@ -450,7 +505,8 @@ describe('Stage 2', () => {
       ['foreign_url', thesis(card, { why_you_match: 'Book a room on example.com first.' })],
       ['foreign_url', thesis(card, { why_you_match: 'Visit evil.ru today.' })],
       ['foreign_url', thesis(card, { why_you_match: 'Both of you know Rust/gitlab.com/x well.' })],
-      ['foreign_url', thesis(card, { why_you_match: 'see...gitlab.com/x and my_site.com/x' })],
+      ['foreign_url', thesis(card, { why_you_match: 'see...gitlab.com/x for the kit' })],
+      ['foreign_url', thesis(card, { why_you_match: 'their notes live on my_site.com/x' })],
       ['missing_element', thesis(card, { why_you_match: '   ' })],
       ['missing_element', thesis(card, { collaboration_angle: 'Spend 15 minutes wiring the worklet to the SFU.' })],
       ['private_detail', thesis(card, { why_you_match: `Ask ${b.participant.github_username} about the deck.` })],
