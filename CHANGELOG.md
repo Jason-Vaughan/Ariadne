@@ -5,6 +5,11 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Generated Roadmap Board (`/roadmap/`) & Sprint Reports Hub (`/reports/`) — Car 01-D, A-015 (#14):**
+  - `scripts/build-sprint-report.js` (Node 22, no dependencies) rebuilds `public/roadmap/index.html` and `public/reports/index.html` from `roadmap-board/roadmap2-data.json`, live GitHub issue state (`gh issue list`, or `--issues <file>` offline), and published reports under `sprint-reports/<slug>/index.html`.
+  - Roadmap: active release, MVP issues completed, workstreams completed, every release's workstreams with live per-issue state, deferred backlog, and the public-projection rules (withheld issues, excluded labels and title prefixes). Issues are matched to planning codes by title (`A-015` is GitHub `#14`).
+  - Reports hub: retrospective card first, then one card per release (published with headline figures, or pending), and a side-by-side comparison of published trains read from each report's embedded `tc-canonical-metrics` (or `tc-sprint-metrics-json`) block.
+  - Both pages carry the fixed static TangleClaw background watermark. Tests: `node --test tests/reports.test.ts`.
 - **Onboarded Prawduct Protocol (`.prawduct/`, No Internal PRR) + Testament Test Runner (`.testament.toml`, `tests/test_ariadne_suite.py`) + Dual-Reviewer Bottleneck Mitigation (`CLAUDE.md`, `AGENTS.md`):**
   - Scaffolded `.prawduct/` via `prawduct-hook init-product` across `Jason-Vaughan/Ariadne` so all 4 Opus 5.5 Builder lanes (`Ariadne-Lane-A..D`) run under Prawduct governance, while explicitly waiving Prawduct's internal `pr` gate (`.prawduct/.gates-waived`) so Builders never waste tokens/time running internal PRR (`Ariadne-PRR` `#1568` and `Ariadne-Arc` `#1563` perform external PRR).
   - Configured Dual-Reviewer load balancing (`Ariadne-Arc` `#1563` reviews `Car A/B`; `Ariadne-PRR` `#1568` reviews `Car C/D`) to eliminate single-PRR queueing bottlenecks across the 4 parallel Builders.

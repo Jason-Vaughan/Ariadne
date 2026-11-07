@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ariadne Sprint Reports</title>
+<meta name="description" content="Ariadne v2.0.0 sprint reports for every release train.">
+<style>
+:root{--bg:#f6f8fa;--panel:#fff;--fg:#1f2328;--muted:#59636e;--line:#d1d9e0;--accent:#0969da;--ok:#1a7f37;--ok-bg:#dafbe1;--wait:#9a6700;--wait-bg:#fff8c5;--off:#59636e;--off-bg:#eaeef2}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--panel:#161b22;--fg:#e6edf3;--muted:#8b949e;--line:#30363d;--accent:#58a6ff;--ok:#56d364;--ok-bg:#112d1c;--wait:#e3b341;--wait-bg:#332b13;--off:#8b949e;--off-bg:#21262d}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{position:relative;z-index:1;max-width:1180px;margin:auto;padding:2rem 16px 4rem}
+a{color:var(--accent)}
+h1{margin:.2rem 0 .4rem;font-size:1.7rem}
+.lede{color:var(--muted);max-width:78ch;margin:0}
+.links{display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;margin:1rem 0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.75rem;margin:1.2rem 0}
+.kpi,.card{background:var(--panel);border:1px solid var(--line);border-radius:.7rem;padding:.9rem 1rem}
+.kpi span{display:block;color:var(--muted);font-size:.85rem}
+.kpi strong{font-size:1.45rem}
+.pill{display:inline-block;border-radius:999px;padding:.05rem .55rem;font-size:.78rem;font-weight:700;white-space:nowrap}
+.state-closed,.pill-published{color:var(--ok);background:var(--ok-bg)}
+.state-open,.pill-pending{color:var(--wait);background:var(--wait-bg)}
+.state-dropped,.state-unfiled,.state-withheld{color:var(--off);background:var(--off-bg)}
+.table-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:.5rem;margin-top:.6rem}
+table{width:100%;border-collapse:collapse;background:var(--panel)}
+th,td{text-align:left;padding:.5rem .65rem;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{white-space:nowrap}
+.muted{color:var(--muted)}
+footer{color:var(--muted);font-size:.85rem;margin-top:2rem;padding-top:1rem;border-top:1px solid var(--line)}
+.tc-bg-watermark{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tc-bg-watermark img{width:min(82vw,860px);height:min(82vw,860px);object-fit:contain;opacity:.08;user-select:none;-webkit-user-drag:none}
+@media(prefers-color-scheme:dark){.tc-bg-watermark img{opacity:.10}}.reports{display:grid;grid-template-columns:repeat(auto-fit,minmax(16rem,1fr));gap:.9rem;margin-top:1.5rem}.report h2{margin:0;font-size:1.1rem}.highlight{border-color:var(--accent)}dl{display:grid;grid-template-columns:auto 1fr;gap:.2rem .8rem;margin:.8rem 0 0;font-size:.9rem}dt{color:var(--muted)}dd{margin:0}.report .pill{white-space:normal}</style>
+</head>
+<body>
+<div class="tc-bg-watermark" aria-hidden="true"><img src="/tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt=""></div>
+<main>
+<header>
+<p class="muted">Orchestrated by TangleClaw</p>
+<h1>Ariadne — Autonomous Sprint Reports Hub</h1>
+<p class="lede">One v2.0.0 sprint report per release train, generated and certified at each train boundary.</p>
+<nav class="links"><a href="/stage">← Live 16:9 Stage Visualizer</a><a href="/roadmap/">Roadmap Board</a><a href="/provenance">Provenance Ledger</a></nav>
+</header>
+<section aria-labelledby="compare"><h2 id="compare">Release trains side by side</h2><div class="table-scroll"><table><thead><tr><th>Report</th><th>Tag</th><th>Engineering window</th><th>Issues closed</th><th>PRs merged</th><th>Lines</th></tr></thead><tbody><tr><td><a href="/reports/v0.1.0/">v0.1.0</a></td><td>v0.1.0</td><td>1h 12m (09:30 → 10:42 PST)</td><td>4 / 4</td><td>5</td><td>+1480 / −24</td></tr></tbody></table></div></section>
+<section class="reports" aria-label="Reports"><article class="card report"><h2>v0.1.0-v1.0.0-retrospective</h2><p>v0.1.0 – v1.0.0 Hackathon Train Retrospective</p><span class="pill pill-pending">Pending — published at the train boundary</span></article>
+<article class="card report"><h2>v1.0.0</h2><p>Live QR Dogfooding, Stage Polish, Demo Rehearsal &amp; Final Judge Sprint Reports (13:00 – 17:45 PST)</p><span class="pill pill-pending">Pending — published at the train boundary</span></article>
+<article class="card report"><h2>v0.4.0</h2><p>Mutual Introduction Room, Opportunity Agent &amp; Async Rematch Worker (12:00 – 13:00 PST)</p><span class="pill pill-pending">Pending — published at the train boundary</span></article>
+<article class="card report"><h2>v0.3.0</h2><p>Capability AI Agent, Match Explanations, Mobile Match Cards &amp; Stage Spotlight (11:00 – 12:00 PST)</p><span class="pill pill-pending">Pending — published at the train boundary</span></article>
+<article class="card report"><h2>v0.2.0</h2><p>QR Onboarding, GitHub Connector, Deterministic Scorer &amp; Stage Network Graph (10:05 – 11:00 PST)</p><span class="pill pill-pending">Pending — published at the train boundary</span></article>
+<article class="card report"><h2><a href="/reports/v0.1.0/">v0.1.0</a></h2><p>v0.1.0 — Spine, Contracts, Event Stream &amp; Public Reports Hub</p><span class="pill pill-published">Published</span><dl><dt>Engineering window</dt><dd>1h 12m (09:30 → 10:42 PST)</dd><dt>Issues closed</dt><dd>4 / 4</dd><dt>PRs merged</dt><dd>5</dd><dt>Lines</dt><dd>+1480 / −24</dd></dl></article></section>
+<footer>Generated 2026-11-07T19:11:17.869Z by scripts/build-sprint-report.js.</footer>
+</main>
+</body>
+</html>

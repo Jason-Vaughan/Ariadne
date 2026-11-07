@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ariadne Roadmap Board</title>
+<meta name="description" content="Ariadne release trains, workstreams and live issue state.">
+<style>
+:root{--bg:#f6f8fa;--panel:#fff;--fg:#1f2328;--muted:#59636e;--line:#d1d9e0;--accent:#0969da;--ok:#1a7f37;--ok-bg:#dafbe1;--wait:#9a6700;--wait-bg:#fff8c5;--off:#59636e;--off-bg:#eaeef2}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--panel:#161b22;--fg:#e6edf3;--muted:#8b949e;--line:#30363d;--accent:#58a6ff;--ok:#56d364;--ok-bg:#112d1c;--wait:#e3b341;--wait-bg:#332b13;--off:#8b949e;--off-bg:#21262d}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{position:relative;z-index:1;max-width:1180px;margin:auto;padding:2rem 16px 4rem}
+a{color:var(--accent)}
+h1{margin:.2rem 0 .4rem;font-size:1.7rem}
+.lede{color:var(--muted);max-width:78ch;margin:0}
+.links{display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;margin:1rem 0}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:.75rem;margin:1.2rem 0}
+.kpi,.card{background:var(--panel);border:1px solid var(--line);border-radius:.7rem;padding:.9rem 1rem}
+.kpi span{display:block;color:var(--muted);font-size:.85rem}
+.kpi strong{font-size:1.45rem}
+.pill{display:inline-block;border-radius:999px;padding:.05rem .55rem;font-size:.78rem;font-weight:700;white-space:nowrap}
+.state-closed,.pill-published{color:var(--ok);background:var(--ok-bg)}
+.state-open,.pill-pending{color:var(--wait);background:var(--wait-bg)}
+.state-dropped,.state-unfiled,.state-withheld{color:var(--off);background:var(--off-bg)}
+.table-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:.5rem;margin-top:.6rem}
+table{width:100%;border-collapse:collapse;background:var(--panel)}
+th,td{text-align:left;padding:.5rem .65rem;border-bottom:1px solid var(--line);vertical-align:top}
+tbody tr:last-child td{border-bottom:0}
+td:first-child{white-space:nowrap}
+.muted{color:var(--muted)}
+footer{color:var(--muted);font-size:.85rem;margin-top:2rem;padding-top:1rem;border-top:1px solid var(--line)}
+.tc-bg-watermark{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tc-bg-watermark img{width:min(82vw,860px);height:min(82vw,860px);object-fit:contain;opacity:.08;user-select:none;-webkit-user-drag:none}
+@media(prefers-color-scheme:dark){.tc-bg-watermark img{opacity:.10}}.release{margin:1rem 0}.release>summary{cursor:pointer;font-weight:600;display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}.version{color:var(--accent)}h3{font-size:1rem;margin:1rem 0 0}</style>
+</head>
+<body>
+<div class="tc-bg-watermark" aria-hidden="true"><img src="/tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt=""></div>
+<main>
+<header>
+<p class="muted">Orchestrated by TangleClaw</p>
+<h1>ARIADNE — Autonomous Hackathon Roadmap Board</h1>
+<p class="lede">Every release train, its parallel workstreams, and the live state of each issue on GitHub.</p>
+<nav class="links"><a href="/stage">← Live 16:9 Stage Visualizer</a><a href="/reports/">Sprint Reports Hub</a><a href="/reports/v0.1.0/">Latest: v0.1.0 sprint report</a><a href="/provenance">Provenance Ledger</a></nav>
+</header>
+<section class="kpis" aria-label="Summary">
+<div class="kpi"><span>Active release train</span><strong>v0.1.0</strong></div>
+<div class="kpi"><span>MVP issues completed</span><strong>0 / 15</strong></div>
+<div class="kpi"><span>Workstreams completed</span><strong>0 / 15</strong></div>
+<div class="kpi"><span>Builder lanes</span><strong>4</strong></div>
+</section>
+<details class="card release" open>
+<summary><span class="version">v0.1.0</span> Foundation, Contracts, Auto-Loader Server &amp; Live Event Bus (09:30 – 10:05 PST) <span class="pill state-open">Active · 0/4</span></summary>
+<p class="muted">Staged for Saturday Nov 7 @ 09:30 AM PST Operator GO. 4 solo parallel workstreams with 0 shared files.</p>
+<p><a href="/reports/v0.1.0/">v0.1.0 sprint report</a></p>
+<h3>Contracts &amp; SQLite WAL Schema <span class="muted">· Ariadne-Lane-A</span></h3>
+<div class="table-scroll"><table><thead><tr><th>Code</th><th>Issue</th><th>State</th></tr></thead><tbody><tr><td>A-001</td><td><a href="https://github.com/Jason-Vaughan/Ariadne/issues/1">#1</a> A-001: Core architecture and data/event contracts</td><td><span class="pill state-open">Not started</span></td></tr></tbody></table></div>
+<h3>Self-Hosted :3420 Server &amp; Auto-Discovery Route Loader <span class="muted">· Ariadne-Lane-B</span></h3>
+<div class="table-scroll"><table><thead><tr><th>Code</th><th>Issue</th><th>State</th></tr></thead><tbody><tr><td>A-014</td><td><a href="https://github.com/Jason-Vaughan/Ariadne/issues/13">#13</a> A-014: Self-hosted server (:3420), SQLite WAL, narrow HTTPS tunnel &amp; resilience</td><td><span class="pill state-open">Not started</span></td></tr></tbody></table></div>
+<h3>SQLite Append-Only Event Stream (SSE + Polling Fallback) <span class="muted">· Ariadne-Lane-C</span></h3>
+<div class="table-scroll"><table><thead><tr><th>Code</th><th>Issue</th><th>State</th></tr></thead><tbody><tr><td>A-009</td><td><a href="https://github.com/Jason-Vaughan/Ariadne/issues/9">#9</a> A-009: SQLite append-only live event stream (SSE + polling fallback)</td><td><span class="pill state-open">Not started</span></td></tr></tbody></table></div>
+<h3>Interactive Roadmap &amp; v2.0.0 Sprint Reports Hub <span class="muted">· Ariadne-Lane-D</span></h3>
+<div class="table-scroll"><table><thead><tr><th>Code</th><th>Issue</th><th>State</th></tr></thead><tbody><tr><td>A-015</td><td><a href="https://github.com/Jason-Vaughan/Ariadne/issues/14">#14</a> A-015: Hackathon provenance &amp; Per-Version v2.0.0 Interactive Sprint Reports</td><td><span class="pill state-open">Not started</span></td></tr></tbody></table></div>
+</details>
+<details class="card release">
+<summary><span class="version">v0.2.0</span> QR Onboarding, GitHub Connector, Deterministic Scorer &amp; Stage Network Graph (10:05 – 11:00 PST) <span class="pill state-open">Upcoming · 0/4</span></summary>
+<p class="muted">Wave 2 — 4 solo issues running in parallel across 4 disjoint directories (public/app/join.*, src/github/*, src/matching/scorer.ts, public/stage/network-graph.js).</p>
+
+<h3>Mobile QR Onboarding &amp; Session Isolation <span class="muted">· Ariadne-Lane-A</span></h3>
+<div class="table-scroll"><table><thead><tr><th>Code</th><th>Issue</th><th>State</th></tr></thead><tbody><tr><td>A-002</td><td><a href="https://github.com/Jason-Vaughan/Ariadne/issues/2">#2</a> A-002: Public QR onboarding — Zero-OAuth 1-tap GitHub handle + optional public website entry</td><td><span class="pill state-open">Not started</span></td></tr></tbody></table></div>
+<h3>Bounded GitHub Public-Data Connector &amp; Cache <span class="muted">· Ariadne-Lane-B</span></h3>
+<div class="table-scroll"><table><thead><tr><th>Code</th><th>Issue</th><th>State</th></tr></thead><tbody><tr><td>A-003</td><td><a href="https://github.com/Jason-Vaughan/Ariadne/issues/3">#3</a> A-003: GitHub + optional public website connector, Multi-PAT pool, 24h SQLite cache &amp; VIP pre-warmer</td><td><span class="pill state-open">Not started</span></td></tr></tbody></table></div>
+<h3>Deterministic 4-Factor Match Scoring Engine (40/30/20/10) <span class="muted">· Ariadne-Lane-C</span></h3>
+<div class="table-scroll"><table><thead><tr><th>Code</th><th>Issue</th><th>State</th></tr></thead><tbody><tr><td>A-006</td><td><a href="https://github.com/Jason-Vaughan/Ariadne/issues/6">#6</a> A-006: Match scoring engine</td><td><span class="pill state-open">Not started</span></td></tr></tbody></table></div>
+<h3>16:9 Stage Visualizer — Network Graph &amp; KPI Ribbon <span class="muted">· Ariadne-Lane-D</span></h3>
+<div class="table-scroll"><table><thead><tr><th>Code</th><th>Issue</th><th>State</th></tr></thead><tbody><tr><td>A-010</td><td><a href="https://github.com/Jason-Vaughan/Ariadne/issues/10">#10</a> A-010: Interactive Stage Visualizer Shell, Top-3 Web of Connections, Golden Arcs &amp; Seed Pool Toggle</td><td><span class="pill state-open">Not started</span></td></tr></tbody></table></div>
+</details>
+<details class="card release">
+<summary><span class="version">v0.3.0</span> Capability AI Agent, Match Explanations, Mobile Match Cards &amp; Stage Spotlight (11:00 – 12:00 PST) <span class="pill state-open">Upcoming · 0/4</span></summary>
+<p class="muted">Wave 3 — Sequenced after v0.2.0 so shared subsystems (public/app/*, src/intelligence/*, src/matching/*, public/stage/*) have zero concurrent writers.</p>
+
+<h3>Mobile Profile &amp; Top-3 Match Results UI <span class="muted">· Ariadne-Lane-A</span></h3>
+<div class="table-scroll"><table><thead><tr><th>Code</th><th>Issue</th><th>State</th></tr></thead><tbody><tr><td>A-008</td><td><a href="https://github.com/Jason-Vaughan/Ariadne/issues/8">#8</a> A-008: Mobile participant Builder Fingerprint &amp; progressive Top-3 Match Cards UI</td><td><span class="pill state-open">Not started</span></td></tr></tbody></table></div>
+<h3>Evidence-Backed Capability Analysis Agent <span class="muted">· Ariadne-Lane-B</span></h3>
+<div class="table-scroll"><table><thead><tr><th>Code</th><th>Issue</th><th>State</th></tr></thead><tbody><tr><td>A-004</td><td><a href="https://github.com/Jason-Vaughan/Ariadne/issues/4">#4</a> A-004: Evidence-backed capability analysis &amp; 6-Axis Builder Fingerprint refinement (Gemini Flash + Deterministic Stage 1)</td><td><span class="pill state-open">Not started</span></td></tr></tbody></table></div>
+<h3>Match Research &amp; Proposal Explanation Agent <span class="muted">· Ariadne-Lane-C</span></h3>
+<div class="table-scroll"><table><thead><tr><th>Code</th><th>Issue</th><th>State</th></tr></thead><tbody><tr><td>A-007</td><td><a href="https://github.com/Jason-Vaughan/Ariadne/issues/7">#7</a> A-007: Two-stage match explanation &amp; collaboration thesis agent (Stage 1 Instant + Stage 2 Gemini Flash)</td><td><span class="pill state-open">Not started</span></td></tr></tbody></table></div>
+<h3>16:9 Stage Visualizer — Activity Feed &amp; Spotlight Modes <span class="muted">· Ariadne-Lane-D</span></h3>
+<div class="table-scroll"><table><thead><tr><th>Code</th><th>Issue</th><th>State</th></tr></thead><tbody><tr><td>A-011</td><td><a href="https://github.com/Jason-Vaughan/Ariadne/issues/11">#11</a> A-011: Stage Views 1, 2, 4 &amp; 5 — Narratable 4-Stage Pipeline, Builder Fingerprints, Match Spotlight &amp; Capacity Scaler</td><td><span class="pill state-open">Not started</span></td></tr></tbody></table></div>
+</details>
+<details class="card release">
+<summary><span class="version">v0.4.0</span> Mutual Introduction Room, Opportunity Agent &amp; Async Rematch Worker (12:00 – 13:00 PST) <span class="pill state-open">Upcoming · 0/3</span></summary>
+<p class="muted">Wave 4 — Completes all 15 Hackathon MVP issues by 1:00 PM PST via 3 disjoint solo dispatches, leaving 4h 45m for v1.0.0 dogfooding &amp; polish.</p>
+
+<h3>Web-Native Mutual Introduction Workflow &amp; Private Intro Room <span class="muted">· Ariadne-Lane-A</span></h3>
+<div class="table-scroll"><table><thead><tr><th>Code</th><th>Issue</th><th>State</th></tr></thead><tbody><tr><td>A-012</td><td><a href="https://github.com/Jason-Vaughan/Ariadne/issues/12">#12</a> A-012: Zero-blocker mutual-introduction workflow, Private Web Intro Room, Venue Locator &amp; Golden Arc trigger</td><td><span class="pill state-open">Not started</span></td></tr></tbody></table></div>
+<h3>Opportunity &amp; Bottleneck Discovery Agent <span class="muted">· Ariadne-Lane-B</span></h3>
+<div class="table-scroll"><table><thead><tr><th>Code</th><th>Issue</th><th>State</th></tr></thead><tbody><tr><td>A-005</td><td><a href="https://github.com/Jason-Vaughan/Ariadne/issues/5">#5</a> A-005: Opportunity and bottleneck discovery (Gemini Flash + Deterministic Stage 1)</td><td><span class="pill state-open">Not started</span></td></tr></tbody></table></div>
+<h3>In-Process Async SQLite Job Worker &amp; Continuous Rematching <span class="muted">· Ariadne-Lane-C</span></h3>
+<div class="table-scroll"><table><thead><tr><th>Code</th><th>Issue</th><th>State</th></tr></thead><tbody><tr><td>A-016</td><td><a href="https://github.com/Jason-Vaughan/Ariadne/issues/15">#15</a> A-016: Two-stage progressive pipeline, Parallel Gemini Flash worker pool &amp; Onsite Capacity Controller</td><td><span class="pill state-open">Not started</span></td></tr></tbody></table></div>
+</details>
+<details class="card release">
+<summary><span class="version">v1.0.0</span> Live QR Dogfooding, Stage Polish, Demo Rehearsal &amp; Final Judge Sprint Reports (13:00 – 17:45 PST) <span class="pill state-open">Upcoming · 0/0</span></summary>
+<p class="muted">4h 45m afternoon polish &amp; dogfooding runway prior to 18:00 PST Hackathon Stage Demo &amp; Judging.</p>
+
+
+</details>
+<details class="card release"><summary>Post-hackathon deferred work</summary><h3>Post-Hackathon V2 Integrations</h3><p class="muted">Explicitly moved out of H-Day MVP per Operator Web-Only Architecture Amendment.</p>
+<div class="table-scroll"><table><thead><tr><th>Code</th><th>Issue</th><th>State</th></tr></thead><tbody><tr><td>A-013</td><td><a href="https://github.com/Jason-Vaughan/Ariadne/issues/16">#16</a> A-013: [Deferred to V2] Discord event bot &amp; thread creation adapter</td><td><span class="pill state-dropped">Deferred</span></td></tr><tr><td>A-017</td><td><a href="https://github.com/Jason-Vaughan/Ariadne/issues/17">#17</a> A-017: [Deferred to V2] Medusa runtime coordination adapter</td><td><span class="pill state-dropped">Deferred</span></td></tr></tbody></table></div></details>
+<footer>Generated 2026-11-07T19:11:17.869Z by scripts/build-sprint-report.js from roadmap-board/roadmap2-data.json and GitHub issues of Jason-Vaughan/Ariadne.</footer>
+</main>
+</body>
+</html>
