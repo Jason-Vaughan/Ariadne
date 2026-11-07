@@ -115,6 +115,9 @@ All notable changes to Ariadne-PM are documented in this file.
   - Created `https://github.com/Jason-Vaughan/Ariadne`, labels, 4 Release Train milestones (`v0.1.0`..`v1.0.0`), all 15 active MVP issues (`#1`–`#15`), and the 2 deferred V2 holding issues (`#16` `A-013`, `#17` `A-017`, closed as `not_planned`).
   - Linked every card on the prepared Public Roadmap (`Ariadne-Public-Roadmap-preview.html` and `index.html`) directly to its live GitHub issue (`https://github.com/Jason-Vaughan/Ariadne/issues/1`..`17`) and published to GitHub Pages (`https://jason-vaughan.github.io/Ariadne/`) and PortHub `:3422`.
 
+### Fixed
+- **A-004 `persistAnalysis` now refuses withdrawn participants:** it fails closed, writing no claims or receipts and publishing no `profile.analysis.completed`, and returns `skipped: 'consent_withdrawn'` when `consent_status` is not `granted` or `analysis_state` is `withdrawn`. Before this, a queued analysis finishing after withdrawal could still store data and broadcast the stage identity. The guard matches A-005's `persistOpportunities`.
+
 ### Changed
 - **Configured All 4 Ariadne Builder Lanes (`#151..#154`) to Run `claude-opus-5-5` (`--effort high`) & Added 1-Line Fleet Batch Launcher (`FLEET_PROVISIONING_PACK.md`):**
   - Updated `~/.tangleclaw/engines/claude-fable-sprint.json` (the engine bound to `Ariadne-Lane-A..D`, `#151..#154`) to launch `claude --model claude-opus-5-5 --effort high` and added Step 5 (`POST /api/sessions/<name>` with `launchMode: "bypassPermissions"`) to `FLEET_PROVISIONING_PACK.md` so all 8 lanes (`#150..#157`) launch sequentially without navigating the dashboard tab away.
