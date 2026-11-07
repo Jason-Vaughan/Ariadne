@@ -389,6 +389,18 @@ describe('/me page behaviour', () => {
     for (let i = 0; i < 6; i += 1) await new Promise((done) => setImmediate(done));
   }
 
+  /**
+   * Waits until a condition holds, failing after two seconds.
+   * @param condition - Predicate to poll.
+   */
+  async function waitFor(condition: () => boolean): Promise<void> {
+    const deadline = Date.now() + 2000;
+    while (!condition()) {
+      if (Date.now() > deadline) throw new Error('condition not met within 2s');
+      await new Promise((done) => setTimeout(done, 20));
+    }
+  }
+
   const answerSample = (url: string): [number, unknown] => (url === '/api/me' ? [200, sample] : [404, {}]);
 
   it('renders the stepper, six fingerprint axes, offers and three match cards', async () => {
@@ -426,13 +438,13 @@ describe('/me page behaviour', () => {
     const meFetches = () => requests.filter((r) => r.url === '/api/me').length;
     const before = meFetches();
     page.source!.onmessage!({ data: JSON.stringify({ seq_id: 11, type: 'match.evaluated', payload: { display_alias_a: 'Loom-0009', display_alias_b: 'Loom-0008' } }) });
-    await new Promise((done) => setTimeout(done, 300));
-    await settle();
-    assert.equal(meFetches(), before);
+    await new Promise((done) => setTimeout(done, 400));
+    assert.equal(meFetches(), before, 'an event about other participants triggers no refresh');
     page.source!.onmessage!({ data: JSON.stringify({ seq_id: 12, type: 'match.evaluated', payload: { display_alias_a: 'Thread-7C4E', display_alias_b: 'Loom-0001' } }) });
-    await new Promise((done) => setTimeout(done, 300));
-    await settle();
-    assert.equal(meFetches(), before + 1);
+    page.source!.onmessage!({ data: JSON.stringify({ seq_id: 13, type: 'match.candidate.generated', payload: { display_alias_a: 'Thread-7C4E', display_alias_b: 'Loom-0002' } }) });
+    await waitFor(() => meFetches() > before);
+    await new Promise((done) => setTimeout(done, 400));
+    assert.equal(meFetches(), before + 1, 'a burst of events about this participant coalesces into one refresh');
   });
 
   it('explains that introductions are not open yet when the decision endpoint is missing', async () => {
