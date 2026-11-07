@@ -74,8 +74,8 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
             "t6_pst": "11:51:30 PST (Annotated tag v0.1.0 published @ 101d16c)",
             "t7_live_deploy_completed": "2026-11-07T19:52:00Z",
             "t7_pst": "11:52:00 PST (Live :3420 /api/health 200 OK & 183/183 tests green)",
-            "t8_observer_certification_completed": "2026-11-07T19:59:52Z",
-            "t8_pst": "11:59:52 PST (Ariadne-Obsr O-Gate PR #25 opened; final head PASS 20:17:50Z)",
+            "t8_observer_certification_completed": "2026-11-07T20:17:50Z",
+            "t8_pst": "12:17:50 PST (Ariadne-Obsr O-Gate PASS comment #6712507249 on PR #25)",
         },
         "durations": {
             "full_engineering_window_hrs": 0.66,
