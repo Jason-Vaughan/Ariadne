@@ -12,16 +12,16 @@
   <header>
     <div class="brand">ARIADNE<span>FIND YOUR THREAD</span></div>
     <nav class="views" aria-label="Stage views">
-      <button type="button" data-view="1">1: Under-the-Hood Pipeline</button>
-      <button type="button" data-view="2">2: Builder Fingerprints</button>
-      <button type="button" data-view="3">3: Web of Connections</button>
-      <button type="button" data-view="4">4: Match Spotlight</button>
+      <button type="button" data-view="1" data-action="view:1">1: Under-the-Hood Pipeline</button>
+      <button type="button" data-view="2" data-action="view:2">2: Builder Fingerprints</button>
+      <button type="button" data-view="3" data-action="view:3">3: Web of Connections</button>
+      <button type="button" data-view="4" data-action="view:4">4: Match Spotlight</button>
     </nav>
     <div class="controls">
-      <button type="button" id="qr-toggle" aria-pressed="false">📱 QR Overlay<kbd>Q</kbd></button>
-      <button type="button" id="seed-toggle" aria-pressed="false">🌱 Seed AI Devs: OFF<kbd>S</kbd></button>
-      <button type="button" id="privacy-toggle" aria-pressed="false">🔒 Privacy<kbd>P</kbd></button>
-      <button type="button" id="cycle-toggle" aria-pressed="false">⚡ Auto-Cycle<kbd>Space</kbd></button>
+      <button type="button" id="qr-toggle" data-action="qr" aria-pressed="false">📱 QR Overlay<kbd>Q</kbd></button>
+      <button type="button" id="seed-toggle" data-action="seed" aria-pressed="false">🌱 Seed AI Devs: OFF<kbd>S</kbd></button>
+      <button type="button" id="privacy-toggle" data-action="privacy" aria-pressed="false">🔒 Privacy<kbd>P</kbd></button>
+      <button type="button" id="cycle-toggle" data-action="cycle" aria-pressed="false">⚡ Auto-Cycle<kbd>Space</kbd></button>
     </div>
   </header>
 
@@ -36,15 +36,22 @@
 
   <main>
     <div id="golden-banner" role="status" hidden></div>
-    <section class="view" data-view="1"><div class="placeholder"><div><strong>Under-the-Hood Pipeline</strong>Crawl → Extract → Fingerprint → Match arrives with A-011.</div></div></section>
-    <section class="view" data-view="2"><div class="placeholder"><div><strong>Builder Fingerprints</strong>The 6-axis fingerprint gallery arrives with A-011.</div></div></section>
+    <section class="view" data-view="1"><div id="pipeline" class="pipeline" aria-label="Under-the-hood pipeline"></div></section>
+    <section class="view" data-view="2"><div id="gallery" class="gallery" aria-label="Builder fingerprints"></div></section>
     <section class="view" data-view="3">
       <svg id="graph" viewBox="0 0 1856 848" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Web of connections: each builder's top three matches"></svg>
       <div class="graph-empty" id="graph-empty">Waiting for builders to scan in…</div>
       <div class="legend"><span><i class="l-suggested"></i>Suggested top-3 match</span><span><i class="l-one-sided"></i>One-sided interest</span><span><i class="l-golden"></i>Golden thread (mutual)</span></div>
-      <div id="status">Connecting…</div>
     </section>
-    <section class="view" data-view="4"><div class="placeholder"><div><strong>Match Spotlight</strong>The side-by-side match deep-dive arrives with A-011.</div></div></section>
+    <section class="view" data-view="4">
+      <div id="spotlight" class="spotlight" aria-live="polite"></div>
+      <div class="spot-controls">
+        <button type="button" data-action="spotlight:prev">◀ Prev<kbd>←</kbd></button>
+        <button type="button" id="spot-auto" data-action="spotlight:auto" aria-pressed="true">⏯ Auto</button>
+        <button type="button" data-action="spotlight:next">Next ▶<kbd>→</kbd></button>
+      </div>
+    </section>
+    <div id="hud" class="hud" aria-label="Operator status">Connecting…</div>
   </main>
 
   <div id="qr-modal" hidden>
@@ -60,6 +67,10 @@
 
 <script type="module">
 import { findNewGoldenEdges, goldenBannerText, layoutGraph, renderGraph } from './network-graph.js';
+import { renderPipeline } from './activity-feed.js';
+import { renderFingerprintGallery } from './fingerprints.js';
+import { renderSpotlight, resolveIndex, SPOTLIGHT_ADVANCE_MS, stepIndex } from './spotlight.js';
+import { bindControls, hudItems, renderHud } from './operator-controls.js';
 
 const GRAPH_WIDTH = 1856;
 // Nodes stay above the legend strip along the bottom of the view.
@@ -80,6 +91,11 @@ const state = {
   goldenIds: null,
   refreshTimer: null,
   seedBusy: false,
+  channel: 'connecting',
+  spotIndex: 0,
+  spotId: null,
+  spotAuto: true,
+  spotTimer: null,
 };
 
 /** Scale the fixed 1920x1080 stage to fit the window, letterboxed and centred. */
@@ -97,6 +113,7 @@ function showView(view) {
   state.view = view;
   for (const el of document.querySelectorAll('.view')) el.classList.toggle('active', el.dataset.view === view);
   for (const el of document.querySelectorAll('nav.views button')) el.classList.toggle('active', el.dataset.view === view);
+  scheduleSpotlightAdvance();
 }
 
 /**
@@ -148,6 +165,11 @@ function renderQr(joinUrl) {
   }
 }
 
+/** Redraw the operator HUD from the latest snapshot and local modes. */
+function updateHud() {
+  if (state.snapshot) renderHud($('hud'), hudItems(state.snapshot, { channel: state.channel, cycling: Boolean(state.cycleTimer) }));
+}
+
 /**
  * Show the golden-thread celebration for a few seconds.
  * @param {string} text
@@ -160,8 +182,35 @@ function celebrate(text) {
   celebrate.timer = setTimeout(() => { banner.hidden = true; }, BANNER_MS);
 }
 
+/** Draw the current spotlight entry, keeping the same match on screen across refreshes. */
+function drawSpotlight() {
+  const entries = state.snapshot?.spotlight ?? [];
+  state.spotIndex = resolveIndex(entries, state.spotId, state.spotIndex);
+  state.spotId = entries[state.spotIndex]?.match_id ?? null;
+  renderSpotlight($('spotlight'), entries[state.spotIndex], state.spotIndex, entries.length);
+}
+
 /**
- * Apply a new snapshot: metrics, controls, graph, and a celebration for each new golden thread.
+ * Step the spotlight forward or back.
+ * @param {number} delta
+ */
+function stepSpotlight(delta) {
+  const entries = state.snapshot?.spotlight ?? [];
+  state.spotIndex = stepIndex(state.spotIndex, entries.length, delta);
+  state.spotId = entries[state.spotIndex]?.match_id ?? null;
+  drawSpotlight();
+  scheduleSpotlightAdvance();
+}
+
+/** Auto-advance the spotlight while View 4 is showing and auto mode is on. */
+function scheduleSpotlightAdvance() {
+  clearTimeout(state.spotTimer);
+  $('spot-auto').setAttribute('aria-pressed', String(state.spotAuto));
+  if (state.view === '4' && state.spotAuto) state.spotTimer = setTimeout(() => stepSpotlight(1), SPOTLIGHT_ADVANCE_MS);
+}
+
+/**
+ * Apply a new snapshot to every view.
  * @param {object} snapshot
  */
 function applySnapshot(snapshot) {
@@ -169,6 +218,7 @@ function applySnapshot(snapshot) {
   renderKpis(snapshot.kpis);
   renderSeedButton(snapshot);
   renderQr(snapshot.join_url);
+  updateHud();
 
   const fresh = state.goldenIds ? findNewGoldenEdges(state.goldenIds, snapshot.edges) : [];
   state.goldenIds = new Set(snapshot.edges.filter((e) => e.state === 'golden').map((e) => e.match_id));
@@ -183,6 +233,10 @@ function applySnapshot(snapshot) {
   });
   renderGraph($('graph'), snapshot, state.positions, new Set(fresh.map((e) => e.match_id)));
   $('graph-empty').hidden = snapshot.nodes.length > 0;
+
+  renderPipeline($('pipeline'), snapshot);
+  renderFingerprintGallery($('gallery'), snapshot.fingerprints);
+  drawSpotlight();
 }
 
 /** Fetch and apply the current stage snapshot. */
@@ -199,16 +253,17 @@ function scheduleRefresh() {
 }
 
 /**
- * Report the live-update channel in the corner of View 3.
- * @param {string} text
+ * Record which live-update channel is in use.
+ * @param {string} channel
  */
-function setStatus(text) {
-  $('status').textContent = text;
+function setChannel(channel) {
+  state.channel = channel;
+  updateHud();
 }
 
 /** Last resort when no event channel exists: re-read the snapshot on a timer. */
 function startSnapshotPolling() {
-  setStatus('Live: snapshot polling');
+  setChannel('snapshot polling');
   setInterval(() => refresh().catch(() => {}), SNAPSHOT_POLL_MS);
 }
 
@@ -218,7 +273,7 @@ function startSnapshotPolling() {
  */
 function startEventPolling(after) {
   let cursor = after;
-  setStatus('Live: event polling');
+  setChannel('event polling');
   const tick = async () => {
     try {
       const res = await fetch(`/api/events/poll?after=${cursor}`, { cache: 'no-store' });
@@ -245,13 +300,9 @@ function startLiveUpdates() {
     startEventPolling(state.snapshot?.latest_seq_id ?? 0);
     return;
   }
-  const source = new EventSource('/api/events/stream');
-  source.onopen = () => setStatus('Live: SSE');
+  const source = new EventSource(`/api/events/stream?after=${state.snapshot?.latest_seq_id ?? 0}`);
+  source.onopen = () => setChannel('SSE');
   source.onmessage = scheduleRefresh;
-  for (const type of ['participant.registered', 'profile.analysis.completed', 'match.candidate.generated', 'match.evaluated',
-    'introduction.proposed', 'introduction.accepted', 'introduction.declined', 'introduction.completed', 'analysis.failed']) {
-    source.addEventListener(type, scheduleRefresh);
-  }
   source.onerror = () => {
     source.close();
     startEventPolling(state.snapshot?.latest_seq_id ?? 0);
@@ -300,36 +351,34 @@ function toggleCycle() {
     state.cycleTimer = setInterval(() => showView(String((Number(state.view) % 4) + 1)), CYCLE_MS);
   }
   $('cycle-toggle').setAttribute('aria-pressed', String(Boolean(state.cycleTimer)));
+  updateHud();
 }
 
 /**
- * Stage hotkeys: 1–4 views, Q QR, S seeds, P privacy, Space auto-cycle.
- * @param {KeyboardEvent} event
+ * Run one operator action from a button or hotkey.
+ * @param {string} action
  */
-function onKey(event) {
-  if (event.metaKey || event.ctrlKey || event.altKey) return;
-  const key = event.key.toLowerCase();
-  if (['1', '2', '3', '4'].includes(key)) showView(key);
-  else if (key === 'q') toggleQr();
-  else if (key === 's') toggleSeeds();
-  else if (key === 'p') togglePrivacy();
-  else if (key === ' ') toggleCycle();
-  else return;
-  event.preventDefault();
+function dispatch(action) {
+  if (action.startsWith('view:')) showView(action.slice(5));
+  else if (action === 'qr') toggleQr();
+  else if (action === 'seed') toggleSeeds();
+  else if (action === 'privacy') togglePrivacy();
+  else if (action === 'cycle') toggleCycle();
+  else if (action === 'spotlight:next') stepSpotlight(1);
+  else if (action === 'spotlight:prev') stepSpotlight(-1);
+  else if (action === 'spotlight:auto') {
+    state.spotAuto = !state.spotAuto;
+    scheduleSpotlightAdvance();
+  }
 }
 
-for (const button of document.querySelectorAll('nav.views button')) button.addEventListener('click', () => showView(button.dataset.view));
-$('qr-toggle').addEventListener('click', toggleQr);
-$('seed-toggle').addEventListener('click', toggleSeeds);
-$('privacy-toggle').addEventListener('click', togglePrivacy);
-$('cycle-toggle').addEventListener('click', toggleCycle);
-document.addEventListener('keydown', onKey);
+bindControls(document, () => state.view, dispatch);
 window.addEventListener('resize', fitStage);
 
 fitStage();
 showView(state.view);
 refresh()
-  .catch(() => setStatus('Snapshot unavailable — retrying'))
+  .catch(() => setChannel('snapshot unavailable, retrying'))
   .finally(startLiveUpdates);
 </script>
 </body>
