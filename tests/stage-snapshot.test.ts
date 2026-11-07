@@ -404,6 +404,10 @@ describe('stage routes', () => {
 
       assert.equal((await call(port, 'POST', '/api/stage/seed-toggle', { body: '{"enabled":"yes"}' })).status, 400);
       assert.equal((await call(port, 'POST', '/api/stage/seed-toggle', { body: '{oops' })).status, 400);
+      for (const body of ['null', '[]', '"on"', '7']) {
+        assert.equal((await call(port, 'POST', '/api/stage/seed-toggle', { body })).status, 400, body);
+      }
+      assert.equal(buildStageSnapshot(db).kpis.seed_builders, 0, 'rejected bodies change nothing');
     });
   });
 

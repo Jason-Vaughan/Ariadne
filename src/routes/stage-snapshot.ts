@@ -707,6 +707,10 @@ async function postSeedToggle(
     sendJson(res, 400, { error: 'invalid_body' });
     return;
   }
+  if (body === null || typeof body !== 'object' || Array.isArray(body)) {
+    sendJson(res, 400, { error: 'invalid_body', message: 'Body must be a JSON object' });
+    return;
+  }
   const requested = (body as { enabled?: unknown }).enabled;
   if (requested !== undefined && typeof requested !== 'boolean') {
     sendJson(res, 400, { error: 'invalid_body', message: '"enabled" must be a boolean' });
