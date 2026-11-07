@@ -6,7 +6,16 @@ import { join, resolve } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import type { ChildProcess } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { checkDatabaseHealth, countQueuedJobs, DEFAULT_DB_PATH, openDatabase, resolveDbPath } from '../src/db/client.ts';
+import type { DatabaseSync } from 'node:sqlite';
+import {
+  checkDatabaseHealth,
+  checkSchemaReadiness,
+  countQueuedJobs,
+  DEFAULT_DB_PATH,
+  openDatabase,
+  REQUIRED_TABLES,
+  resolveDbPath,
+} from '../src/db/client.ts';
 import type { Logger, RouteDefinition, RunningServer, StaticAlias } from '../src/server.ts';
 import {
   assertSafeBind,
@@ -34,6 +43,25 @@ function scratchDir(prefix: string): string {
 }
 
 const QUEUE_SCHEMA = `CREATE TABLE IF NOT EXISTS async_jobs (id TEXT PRIMARY KEY, status TEXT NOT NULL);`;
+const FULL_SCHEMA = REQUIRED_TABLES.map((name) =>
+  name === 'async_jobs' ? QUEUE_SCHEMA : `CREATE TABLE IF NOT EXISTS ${name} (id TEXT PRIMARY KEY);`,
+).join('\n');
+
+/**
+ * Serves the repository routes over a given database on an ephemeral loopback port.
+ * @param db - Database handle the routes receive.
+ * @param run - Callback given the base URL while the server is up.
+ */
+async function withRepoRoutes(db: DatabaseSync, run: (base: string) => Promise<void>): Promise<void> {
+  const server = createServer({ db, routes: await loadRoutes(join(REPO_ROOT, 'src', 'routes')), publicDir: null, log: silent });
+  await new Promise<void>((done) => server.listen(0, '127.0.0.1', done));
+  try {
+    await run(`http://127.0.0.1:${(server.address() as { port: number }).port}`);
+  } finally {
+    server.closeAllConnections();
+    await new Promise<void>((done) => server.close(() => done()));
+  }
+}
 
 describe('db client', () => {
   test('opens in WAL mode with a 5s busy timeout and creates the parent directory', () => {
@@ -92,6 +120,20 @@ describe('db client', () => {
       db.exec(QUEUE_SCHEMA);
       db.exec("INSERT INTO async_jobs VALUES ('1','queued'),('2','queued'),('3','running'),('4','done');");
       assert.equal(countQueuedJobs(db), 2);
+    } finally {
+      db.close();
+    }
+  });
+
+  test('schema readiness names every missing required table', () => {
+    const dir = scratchDir('readiness');
+    const { db } = openDatabase({ path: 'r.db', cwd: dir, schemaPath: null });
+    try {
+      assert.deepEqual(checkSchemaReadiness(db), { ready: false, missingTables: [...REQUIRED_TABLES] });
+      db.exec(QUEUE_SCHEMA);
+      assert.deepEqual(checkSchemaReadiness(db).missingTables, REQUIRED_TABLES.filter((t) => t !== 'async_jobs'));
+      db.exec(FULL_SCHEMA);
+      assert.deepEqual(checkSchemaReadiness(db), { ready: true, missingTables: [] });
     } finally {
       db.close();
     }
@@ -275,6 +317,7 @@ describe('static aliases', () => {
 describe('running server', () => {
   let running: RunningServer;
   let publicDir: string;
+  let schemaFile: string;
   const logged: string[] = [];
   const savedToken = process.env.ARIADNE_GITHUB_TOKEN;
 
@@ -300,9 +343,12 @@ describe('running server', () => {
         { method: 'GET', path: '/api/boom', async handler() { throw new Error('secret stack detail'); } },
       ];`,
     );
+    schemaFile = join(root, 'schema.sql');
+    writeFileSync(schemaFile, FULL_SCHEMA);
     running = await startServer({
       port: 0,
       dbPath: join(root, 'data', 'ariadne.db'),
+      schemaPath: schemaFile,
       routesDir,
       publicDir,
       log: { info: (message, fields) => logged.push(`${message} ${JSON.stringify(fields ?? {})}`) },
@@ -319,14 +365,34 @@ describe('running server', () => {
     assert.match(running.url, /^http:\/\/127\.0\.0\.1:\d+$/);
   });
 
-  test('GET /api/health reports WAL readiness, queue depth and GitHub status', async () => {
+  test('GET /api/health is 200 ok once WAL and the full schema are in place', async () => {
     const response = await fetch(`${running.url}/api/health`);
     assert.equal(response.status, 200);
     const body = await response.json();
     assert.equal(body.status, 'ok');
     assert.deepEqual(body.database, { ok: true, journalMode: 'wal', busyTimeoutMs: 5000 });
-    assert.equal(typeof body.queue.depth === 'number' || body.queue.depth === null, true);
+    assert.deepEqual(body.schema, { ready: true, missingTables: [] });
+    assert.equal(body.queue.depth, 0);
     assert.deepEqual(body.github, { tokenConfigured: true, rateLimit: null });
+  });
+
+  test('health is 503 not_ready on a WAL database whose schema is incomplete', async () => {
+    const dir = scratchDir('partial');
+    const { db } = openDatabase({ path: 'p.db', cwd: dir, schemaPath: null });
+    db.exec(QUEUE_SCHEMA);
+    try {
+      await withRepoRoutes(db, async (base) => {
+        const response = await fetch(`${base}/api/health`);
+        assert.equal(response.status, 503);
+        const body = await response.json();
+        assert.equal(body.status, 'not_ready');
+        assert.equal(body.database.ok, true);
+        assert.deepEqual(body.schema.missingTables, REQUIRED_TABLES.filter((t) => t !== 'async_jobs'));
+        assert.equal(body.queue.depth, 0);
+      });
+    } finally {
+      db.close();
+    }
   });
 
   test('health leaks no secret, path or TangleClaw/Medusa detail', async () => {
@@ -340,20 +406,15 @@ describe('running server', () => {
     const dir = scratchDir('degraded');
     const { db } = openDatabase({ path: 'd.db', cwd: dir, schemaPath: null });
     db.close();
-    const server = createServer({ db, routes: await loadRoutes(join(REPO_ROOT, 'src', 'routes')), publicDir: null, log: silent });
-    await new Promise<void>((done) => server.listen(0, '127.0.0.1', done));
-    try {
-      const { port } = server.address() as { port: number };
-      const response = await fetch(`http://127.0.0.1:${port}/api/health`);
+    await withRepoRoutes(db, async (base) => {
+      const response = await fetch(`${base}/api/health`);
       assert.equal(response.status, 503);
       const body = await response.json();
       assert.equal(body.status, 'degraded');
       assert.deepEqual(body.database, { ok: false, journalMode: null, busyTimeoutMs: null, error: 'database unavailable' });
+      assert.deepEqual(body.schema, { ready: false, missingTables: null });
       assert.equal(body.queue.depth, null);
-    } finally {
-      server.closeAllConnections();
-      await new Promise<void>((done) => server.close(() => done()));
-    }
+    });
   });
 
   test('mounted routes receive path params and the parsed URL', async () => {
@@ -390,7 +451,14 @@ describe('running server', () => {
     running.db.exec("CREATE TABLE IF NOT EXISTS restart_probe (v TEXT); INSERT INTO restart_probe VALUES ('survived');");
     const dbPath = (running.db.prepare('PRAGMA database_list').get() as { file: string }).file;
     await running.close();
-    running = await startServer({ port: 0, dbPath, routesDir: join(REPO_ROOT, 'src', 'routes'), publicDir, log: silent });
+    running = await startServer({
+      port: 0,
+      dbPath,
+      schemaPath: schemaFile,
+      routesDir: join(REPO_ROOT, 'src', 'routes'),
+      publicDir,
+      log: silent,
+    });
     assert.deepEqual({ ...running.db.prepare('SELECT v FROM restart_probe').get() }, { v: 'survived' });
     assert.equal((await fetch(`${running.url}/api/health`)).status, 200);
   });
@@ -429,13 +497,17 @@ describe('entry point', () => {
     });
   }
 
-  test('node src/server.ts boots, mounts the repository routes and shuts down on SIGTERM', async () => {
+  test('node src/server.ts boots without a schema, reports not_ready and shuts down on SIGTERM', async () => {
     const dir = scratchDir('entry');
     const { child, first } = await launch({ ARIADNE_PORT: '0', ARIADNE_DB_PATH: join(dir, 'e.db') });
     try {
       assert.equal(first.message, 'ariadne server listening');
+      assert.equal(first.schemaReady, false);
       const response = await fetch(`${first.url}/api/health`);
-      assert.equal(response.status, 200);
+      assert.equal(response.status, 503);
+      const body = await response.json();
+      assert.equal(body.status, 'not_ready');
+      assert.deepEqual(body.schema.missingTables, [...REQUIRED_TABLES]);
     } finally {
       const exited = new Promise<number | null>((done) => child.once('exit', (code) => done(code)));
       child.kill('SIGTERM');
@@ -462,6 +534,34 @@ describe('tunnel script', () => {
   function runTunnel(args: string[], env: Record<string, string> = {}) {
     return spawnSync('bash', [script, ...args], { encoding: 'utf8', env: { PATH: '/usr/bin:/bin', HOME: tmpdir(), ...env } });
   }
+
+  /**
+   * Builds a bin directory with stub `curl` (exits with `$STUB_CURL_EXIT`, as `curl --fail` does on a 503)
+   * and stub `cloudflared` (prints its arguments instead of opening a tunnel).
+   * @returns The directory to put first on PATH.
+   */
+  function stubBin(): string {
+    const bin = scratchDir('bin');
+    writeFileSync(join(bin, 'curl'), '#!/bin/sh\necho "curl $*" >&2\nexit "${STUB_CURL_EXIT:-0}"\n', { mode: 0o755 });
+    writeFileSync(join(bin, 'cloudflared'), '#!/bin/sh\necho "cloudflared-started $*"\n', { mode: 0o755 });
+    return bin;
+  }
+
+  test('does not open the tunnel when /api/health is not 2xx (e.g. 503 not_ready)', () => {
+    const bin = stubBin();
+    const result = runTunnel([], { PATH: `${bin}:/usr/bin:/bin`, STUB_CURL_EXIT: '22' });
+    assert.equal(result.status, 69);
+    assert.match(result.stderr, /not ready at http:\/\/127\.0\.0\.1:3420\/api\/health/);
+    assert.match(result.stderr, /curl --silent --fail .*http:\/\/127\.0\.0\.1:3420\/api\/health/);
+    assert.ok(!result.stdout.includes('cloudflared-started'));
+  });
+
+  test('opens the tunnel to 127.0.0.1:3420 only after a 2xx health probe', () => {
+    const bin = stubBin();
+    const result = runTunnel([], { PATH: `${bin}:/usr/bin:/bin`, STUB_CURL_EXIT: '0' });
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(result.stdout, /^cloudflared-started tunnel --no-autoupdate --url http:\/\/127\.0\.0\.1:3420$/m);
+  });
 
   test('--check targets only 127.0.0.1:3420 by default', () => {
     const result = runTunnel(['--check']);

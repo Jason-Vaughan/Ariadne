@@ -4,7 +4,7 @@ import type { DatabaseSync } from 'node:sqlite';
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { openDatabase } from './db/client.ts';
+import { checkSchemaReadiness, openDatabase } from './db/client.ts';
 
 export const DEFAULT_HOST = '127.0.0.1';
 export const DEFAULT_PORT = 3420;
@@ -73,6 +73,8 @@ export interface StartServerOptions {
   host?: string;
   port?: number;
   dbPath?: string;
+  /** Schema file applied on open; defaults to `src/db/schema.sql`, `null` skips it. */
+  schemaPath?: string | null;
   routesDir?: string;
   publicDir?: string | null;
   staticAliases?: readonly StaticAlias[];
@@ -376,7 +378,7 @@ export async function startServer(options: StartServerOptions = {}): Promise<Run
   assertSafeBind(host, port);
   const log = options.log ?? createConsoleLogger();
 
-  const { db, path, schemaApplied } = openDatabase({ path: options.dbPath, cwd: REPO_ROOT });
+  const { db, path, schemaApplied } = openDatabase({ path: options.dbPath, schemaPath: options.schemaPath, cwd: REPO_ROOT });
   try {
     const routes = await loadRoutes(options.routesDir ?? DEFAULT_ROUTES_DIR);
     const server = createServer({ db, routes, publicDir: options.publicDir, staticAliases: options.staticAliases, log });
@@ -390,7 +392,11 @@ export async function startServer(options: StartServerOptions = {}): Promise<Run
     const address = server.address();
     const boundPort = typeof address === 'object' && address ? address.port : port;
     const url = `http://${host.includes(':') ? `[${host}]` : host}:${boundPort}`;
-    log.info('ariadne server listening', { url, routes: routes.length, schemaApplied, database: path });
+    const schema = checkSchemaReadiness(db);
+    log.info('ariadne server listening', { url, routes: routes.length, schemaApplied, schemaReady: schema.ready, database: path });
+    if (!schema.ready) {
+      log.info('schema not ready: /api/health returns 503 until these tables exist', { missingTables: schema.missingTables });
+    }
 
     return {
       server,

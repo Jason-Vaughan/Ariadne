@@ -46,8 +46,9 @@ if ! command -v "$PROVIDER" >/dev/null 2>&1; then
 fi
 
 if [[ "${ARIADNE_SKIP_HEALTH:-0}" != 1 ]]; then
+  # /api/health is 200 only for a WAL database with the full schema; --fail rejects its 503s.
   if ! curl --silent --fail --max-time 3 "${TARGET}/api/health" >/dev/null; then
-    echo "tunnel.sh: Ariadne is not healthy at ${TARGET}/api/health — start it first (node src/server.ts)" >&2
+    echo "tunnel.sh: Ariadne is not ready at ${TARGET}/api/health (needs 200: running server, WAL database, full schema)" >&2
     exit 69
   fi
 fi

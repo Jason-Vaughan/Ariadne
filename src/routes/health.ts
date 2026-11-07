@@ -1,6 +1,7 @@
 import type { RouteDefinition } from '../server.ts';
 import { sendJson } from '../server.ts';
-import { checkDatabaseHealth, countQueuedJobs } from '../db/client.ts';
+import { checkDatabaseHealth, checkSchemaReadiness, countQueuedJobs } from '../db/client.ts';
+import type { SchemaReadiness } from '../db/client.ts';
 
 /**
  * Reports whether a GitHub token is configured. The token value itself is never read into the response,
@@ -17,24 +18,30 @@ export const routes: RouteDefinition[] = [
     method: 'GET',
     path: '/api/health',
     /**
-     * `GET /api/health`: 200 when the database is a responsive WAL store, 503 otherwise.
+     * `GET /api/health` is a readiness check: 200 only when the database is a responsive WAL store
+     * and every required table exists. `scripts/tunnel.sh` refuses to expose the app on anything else.
+     * 503 `degraded` means the database is unavailable; 503 `not_ready` means the schema is incomplete.
      * Carries no paths, secrets or stack traces.
      */
     handler(_req, res, ctx) {
       const database = checkDatabaseHealth(ctx.db);
+      let schema: SchemaReadiness | null = null;
       let queueDepth: number | null = null;
       if (database.ok) {
         try {
+          schema = checkSchemaReadiness(ctx.db);
           queueDepth = countQueuedJobs(ctx.db);
         } catch {
           queueDepth = null;
         }
       }
-      sendJson(res, database.ok ? 200 : 503, {
-        status: database.ok ? 'ok' : 'degraded',
+      const status = !database.ok ? 'degraded' : schema?.ready ? 'ok' : 'not_ready';
+      sendJson(res, status === 'ok' ? 200 : 503, {
+        status,
         service: 'ariadne',
         uptimeSeconds: Math.round((Date.now() - ctx.startedAt) / 1000),
         database,
+        schema: schema ?? { ready: false, missingTables: null },
         queue: { depth: queueDepth },
         github: githubStatus(),
         time: new Date().toISOString(),

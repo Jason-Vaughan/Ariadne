@@ -6,6 +6,22 @@ import { dirname, resolve } from 'node:path';
 export const DEFAULT_DB_PATH = 'data/ariadne.db';
 export const DEFAULT_SCHEMA_PATH = 'src/db/schema.sql';
 export const BUSY_TIMEOUT_MS = 5000;
+/** Tables the A-001 schema must create before Ariadne counts as ready to serve traffic. */
+export const REQUIRED_TABLES: readonly string[] = [
+  'participants',
+  'github_snapshots',
+  'evidence_receipts',
+  'capability_claims',
+  'opportunity_needs',
+  'matches',
+  'domain_events',
+  'async_jobs',
+];
+
+export interface SchemaReadiness {
+  ready: boolean;
+  missingTables: string[];
+}
 
 export interface OpenDatabaseOptions {
   /** Database file path; relative paths resolve against `cwd`. */
@@ -90,6 +106,19 @@ export function checkDatabaseHealth(db: DatabaseSync): DatabaseHealth {
   } catch {
     return { ok: false, journalMode: null, busyTimeoutMs: null, error: 'database unavailable' };
   }
+}
+
+/**
+ * Checks that every table the application depends on exists.
+ * @param db - An open database handle.
+ * @param required - Table names to look for; defaults to `REQUIRED_TABLES`.
+ * @returns Whether the schema is complete, and which required tables are absent.
+ */
+export function checkSchemaReadiness(db: DatabaseSync, required: readonly string[] = REQUIRED_TABLES): SchemaReadiness {
+  const rows = db.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all() as { name: string }[];
+  const present = new Set(rows.map((row) => row.name));
+  const missingTables = required.filter((name) => !present.has(name));
+  return { ready: missingTables.length === 0, missingTables };
 }
 
 /**
