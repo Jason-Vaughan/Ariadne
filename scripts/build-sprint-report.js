@@ -146,17 +146,19 @@ export function reportSlots(roadmap) {
  * @param {{releases:Array<{version:string,name:string}>}} roadmap
  * @param {string} reportsDir directory holding `<slug>/index.html` reports
  * @param {Set<string>} releasedTags release tags that exist on the repository
- * @returns {Array<{slug:string,title:string,retrospective:boolean,tag:string,href:string,published:boolean,metrics:object|null}>}
+ * @returns {Array<{slug:string,title:string,retrospective:boolean,tag:string,href:string,published:boolean,staged:boolean,metrics:object|null}>}
+ *   staged: a report file exists but its release tag does not yet
  */
 export function loadReports(roadmap, reportsDir, releasedTags) {
   return reportSlots(roadmap).map((slot) => {
     const file = path.join(reportsDir, slot.slug, 'index.html');
-    const metrics = fs.existsSync(file) ? extractMetrics(fs.readFileSync(file, 'utf8')) : null;
+    const exists = fs.existsSync(file);
+    const metrics = exists ? extractMetrics(fs.readFileSync(file, 'utf8')) : null;
     const published = metrics !== null && metrics.release_tag === slot.tag && releasedTags.has(slot.tag);
-    if (fs.existsSync(file) && !published) {
-      console.info(`[build-sprint-report] ${slot.slug}: report on disk is not backed by release tag ${slot.tag}; shown as pending`);
+    if (exists && !published) {
+      console.info(`[build-sprint-report] ${slot.slug}: report on disk is not backed by release tag ${slot.tag}; shown as pre-staged`);
     }
-    return { ...slot, href: `/reports/${slot.slug}/`, published, metrics: published ? metrics : null };
+    return { ...slot, href: `/reports/${slot.slug}/`, published, staged: exists && !published, metrics: published ? metrics : null };
   });
 }
 
@@ -413,12 +415,15 @@ export function reportFigures(metrics) {
 
 /**
  * Render one hub card: published (with figures) or pending.
- * @param {{slug:string,title:string,href:string,published:boolean,metrics:object|null,retrospective:boolean}} report
+ * @param {{slug:string,title:string,tag?:string,href:string,published:boolean,staged?:boolean,metrics:object|null,retrospective:boolean}} report
  * @returns {string}
  */
 function renderReportCard(report) {
   if (!report.published) {
-    return `<article class="card report"><h2>${escapeHtml(report.slug)}</h2><p>${escapeHtml(report.title)}</p><span class="pill pill-pending">Pending — published at the train boundary</span></article>`;
+    const status = report.staged
+      ? `Pre-staged / In progress — awaiting the ${report.tag} tag`
+      : 'Pending — published at the train boundary';
+    return `<article class="card report"><h2>${escapeHtml(report.slug)}</h2><p>${escapeHtml(report.title)}</p><span class="pill pill-pending">${escapeHtml(status)}</span></article>`;
   }
   const f = reportFigures(report.metrics);
   const figures = `<dl><dt>Engineering window</dt><dd>${escapeHtml(f.window)}</dd><dt>Issues closed</dt><dd>${escapeHtml(f.issues)}</dd><dt>PRs merged</dt><dd>${escapeHtml(f.prs)}</dd><dt>Lines</dt><dd>${escapeHtml(f.lines)}</dd></dl>`;
