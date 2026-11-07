@@ -1,4 +1,3 @@
-import { execFileSync } from 'node:child_process';
 import { createServer as createHttpServer } from 'node:http';
 import type { IncomingMessage, Server, ServerResponse } from 'node:http';
 import type { DatabaseSync } from 'node:sqlite';
@@ -19,38 +18,18 @@ export const DEFAULT_ROUTES_DIR = join(REPO_ROOT, 'src', 'routes');
 export const DEFAULT_PUBLIC_DIR = join(REPO_ROOT, 'public');
 
 /**
- * Static content served from outside `public/`, consulted only after `public/` misses.
- * A `file` alias maps one exact URL to one file. A `dir` alias maps `<prefix><segment>/...` into
- * `<dir>/<segment>/...` only when `<segment>` matches and `allow(segment)` (if given) is true, and never
- * lets a path climb out of that segment.
+ * One exact URL served from one file outside `public/`, consulted only after `public/` misses.
  */
-export type StaticAlias =
-  | { path: string; file: string }
-  | { prefix: string; dir: string; segment: RegExp; allow?: (segment: string) => boolean };
-
-/**
- * Whether a git tag exists in the repository. Checked per request so a report goes live the moment
- * its release tag is cut; any git failure counts as "no tag" so the gate fails closed.
- * @param tag - Tag name; callers pass only values already matched against a strict version pattern.
- * @returns True when `refs/tags/<tag>` resolves.
- */
-export function gitTagExists(tag: string): boolean {
-  try {
-    execFileSync('git', ['-C', REPO_ROOT, 'rev-parse', '--quiet', '--verify', `refs/tags/${tag}`], {
-      stdio: 'ignore',
-      timeout: 2000,
-    });
-    return true;
-  } catch {
-    return false;
-  }
+export interface StaticAlias {
+  path: string;
+  file: string;
 }
 
-// sprint-reports/ holds generator scripts and pre-staged drafts as well as reports, so only a
-// version directory whose release tag exists is public — a draft written ahead of its release
-// must not be served as if it were certified.
+// Sprint reports are deliberately NOT aliased from sprint-reports/: that directory holds pre-staged
+// drafts that describe releases before they happen. A report becomes public only when the certifying
+// publish step copies it into public/reports/<version>/, so no repository state (tags included) can
+// expose a draft.
 export const DEFAULT_STATIC_ALIASES: readonly StaticAlias[] = [
-  { prefix: '/reports/', dir: join(REPO_ROOT, 'sprint-reports'), segment: /^v\d+\.\d+\.\d+$/, allow: gitTagExists },
   { path: '/tangleclaw-logo.png', file: join(REPO_ROOT, 'roadmap-board', 'tangleclaw-logo.png') },
 ];
 
@@ -298,18 +277,7 @@ export function resolveStaticFile(publicDir: string, pathname: string): string |
  */
 export function resolveAliasedFile(aliases: readonly StaticAlias[], pathname: string): string | null {
   for (const alias of aliases) {
-    if ('file' in alias) {
-      if (pathname === alias.path && existsSync(alias.file) && statSync(alias.file).isFile()) return alias.file;
-      continue;
-    }
-    if (!pathname.startsWith(alias.prefix)) continue;
-    const rest = pathname.slice(alias.prefix.length);
-    const slash = rest.indexOf('/');
-    const segment = slash === -1 ? rest : rest.slice(0, slash);
-    if (!alias.segment.test(segment)) continue;
-    if (alias.allow && !alias.allow(segment)) continue;
-    const file = resolveStaticFile(join(alias.dir, segment), slash === -1 ? '/' : rest.slice(slash));
-    if (file) return file;
+    if (pathname === alias.path && existsSync(alias.file) && statSync(alias.file).isFile()) return alias.file;
   }
   return null;
 }

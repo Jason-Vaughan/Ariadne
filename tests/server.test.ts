@@ -26,7 +26,6 @@ import {
   assertSafeBind,
   createServer,
   DEFAULT_STATIC_ALIASES,
-  gitTagExists,
   loadRoutes,
   matchRoute,
   resolveAliasedFile,
@@ -279,104 +278,68 @@ describe('static files', () => {
   });
 });
 
-describe('static aliases', () => {
-  /**
-   * Builds a fake repo with a reports directory (a version subdir plus non-version clutter) and a logo.
-   * @returns The alias table pointing into it and the root directory.
-   */
-  function fixture(): { aliases: StaticAlias[]; root: string } {
+describe('static aliases and report publication', () => {
+  test('a file alias serves exactly one URL and nothing near it', () => {
     const root = scratchDir('alias');
-    mkdirSync(join(root, 'sprint-reports', 'v0.1.0'), { recursive: true });
-    mkdirSync(join(root, 'sprint-reports', 'scripts'), { recursive: true });
-    mkdirSync(join(root, 'roadmap-board'), { recursive: true });
-    writeFileSync(join(root, 'sprint-reports', 'v0.1.0', 'index.html'), '<a href="../">hub</a>');
-    writeFileSync(join(root, 'sprint-reports', 'scripts', 'gen.py'), 'secret = 1');
-    writeFileSync(join(root, 'sprint-reports', 'index.html'), 'internal index');
-    writeFileSync(join(root, 'roadmap-board', 'tangleclaw-logo.png'), 'PNG');
-    writeFileSync(join(root, 'roadmap-board', 'other.png'), 'PNG');
-    return {
-      root,
-      aliases: [
-        { prefix: '/reports/', dir: join(root, 'sprint-reports'), segment: /^v\d+\.\d+\.\d+$/ },
-        { path: '/tangleclaw-logo.png', file: join(root, 'roadmap-board', 'tangleclaw-logo.png') },
-      ],
-    };
-  }
-
-  test('serves only version-named report directories and the one aliased logo file', () => {
-    const { aliases, root } = fixture();
-    const reportIndex = join(root, 'sprint-reports', 'v0.1.0', 'index.html');
-    assert.equal(resolveAliasedFile(aliases, '/reports/v0.1.0/'), reportIndex);
-    assert.equal(resolveAliasedFile(aliases, '/reports/v0.1.0'), reportIndex);
-    assert.equal(resolveAliasedFile(aliases, '/tangleclaw-logo.png'), join(root, 'roadmap-board', 'tangleclaw-logo.png'));
-    assert.equal(resolveAliasedFile(aliases, '/reports/scripts/gen.py'), null);
-    assert.equal(resolveAliasedFile(aliases, '/reports/'), null);
-    assert.equal(resolveAliasedFile(aliases, '/reports/index.html'), null);
-    assert.equal(resolveAliasedFile(aliases, '/other.png'), null);
-    assert.equal(resolveAliasedFile(aliases, '/tangleclaw-logo.png/'), null);
-  });
-
-  test('a report path can never climb out of its version directory', () => {
-    const { aliases } = fixture();
-    for (const path of [
-      '/reports/v0.1.0/../scripts/gen.py',
-      '/reports/v0.1.0/%2e%2e/scripts/gen.py',
-      '/reports/v0.1.0/%2e%2e/index.html',
-      '/reports/v0.1.0/..%2f..%2froadmap-board/other.png',
-    ]) {
+    writeFileSync(join(root, 'logo.png'), 'PNG');
+    const aliases: StaticAlias[] = [{ path: '/tangleclaw-logo.png', file: join(root, 'logo.png') }];
+    assert.equal(resolveAliasedFile(aliases, '/tangleclaw-logo.png'), join(root, 'logo.png'));
+    for (const path of ['/tangleclaw-logo.png/', '/TANGLECLAW-LOGO.PNG', '/x/tangleclaw-logo.png', '/logo.png']) {
       assert.equal(resolveAliasedFile(aliases, path), null, path);
     }
   });
 
-  test('the default aliases point at the repository report and logo locations', () => {
+  test('the default aliases expose only the logo, never sprint-reports/', () => {
+    assert.deepEqual(DEFAULT_STATIC_ALIASES.map((a) => a.path), ['/tangleclaw-logo.png']);
     assert.equal(
       resolveAliasedFile(DEFAULT_STATIC_ALIASES, '/tangleclaw-logo.png'),
       join(REPO_ROOT, 'roadmap-board', 'tangleclaw-logo.png'),
     );
-    assert.equal(resolveAliasedFile(DEFAULT_STATIC_ALIASES, '/reports/scripts/sync-live-sprint.py'), null);
+    for (const path of ['/reports/v0.1.0/', '/reports/v0.1.0/index.html', '/reports/scripts/sync-live-sprint.py']) {
+      assert.equal(resolveAliasedFile(DEFAULT_STATIC_ALIASES, path), null, path);
+    }
   });
 
-  test('a report directory is withheld until its gate allows that version', () => {
-    const { aliases, root } = fixture();
-    const reports = aliases[0] as Extract<StaticAlias, { prefix: string }>;
-    const released = new Set<string>();
-    const gated: StaticAlias[] = [{ ...reports, allow: (version) => released.has(version) }];
-    assert.equal(resolveAliasedFile(gated, '/reports/v0.1.0/'), null);
-    released.add('v0.1.0');
-    assert.equal(resolveAliasedFile(gated, '/reports/v0.1.0/'), join(root, 'sprint-reports', 'v0.1.0', 'index.html'));
-  });
-
-  test('the repository draft report is public only once its git tag exists', () => {
+  test('the committed draft report is unreachable over HTTP, whatever tags exist', async () => {
+    // Serving involves no git lookup at all, so neither a local nor a pushed v0.1.0 tag can change this.
     const draft = join(REPO_ROOT, 'sprint-reports', 'v0.1.0', 'index.html');
     assert.ok(existsSync(draft), 'fixture precondition: the pre-staged v0.1.0 draft is committed');
-    const tagged = gitTagExists('v0.1.0');
-    assert.equal(resolveAliasedFile(DEFAULT_STATIC_ALIASES, '/reports/v0.1.0/'), tagged ? draft : null);
-    assert.equal(gitTagExists('v999.999.999'), false);
-    assert.equal(resolveAliasedFile(DEFAULT_STATIC_ALIASES, '/reports/v999.999.999/'), null);
+    const { db } = openDatabase({ path: 'd.db', cwd: scratchDir('draft'), schemaPath: null });
+    const server = createServer({ db, routes: [], log: silent });
+    await new Promise<void>((done) => server.listen(0, '127.0.0.1', done));
+    const base = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
+    try {
+      for (const path of ['/reports/v0.1.0/', '/reports/v0.1.0', '/reports/v0.1.0/index.html', '/sprint-reports/v0.1.0/']) {
+        assert.equal((await fetch(`${base}${path}`, { redirect: 'manual' })).status, 404, path);
+      }
+    } finally {
+      server.closeAllConnections();
+      await new Promise<void>((done) => server.close(() => done()));
+      db.close();
+    }
   });
 
-  test('over HTTP: public/ wins, aliases fill in, and directory indexes redirect to a trailing slash', async () => {
-    const { aliases, root } = fixture();
+  test('a report goes public only once published into public/reports/<version>/', async () => {
+    const root = scratchDir('publish');
     const pub = join(root, 'public');
     mkdirSync(join(pub, 'reports'), { recursive: true });
     writeFileSync(join(pub, 'reports', 'index.html'), 'hub');
-    const dir = scratchDir('alias-db');
-    const { db } = openDatabase({ path: 'a.db', cwd: dir, schemaPath: null });
-    const server = createServer({ db, routes: [], publicDir: pub, staticAliases: aliases, log: silent });
+    const { db } = openDatabase({ path: 'p.db', cwd: root, schemaPath: null });
+    const server = createServer({ db, routes: [], publicDir: pub, staticAliases: [], log: silent });
     await new Promise<void>((done) => server.listen(0, '127.0.0.1', done));
     const base = `http://127.0.0.1:${(server.address() as { port: number }).port}`;
     try {
       assert.equal(await (await fetch(`${base}/reports/`)).text(), 'hub');
+      assert.equal((await fetch(`${base}/reports/v0.1.0/`)).status, 404);
+
+      mkdirSync(join(pub, 'reports', 'v0.1.0'));
+      writeFileSync(join(pub, 'reports', 'v0.1.0', 'index.html'), '<a href="../">hub</a>');
       const redirect = await fetch(`${base}/reports/v0.1.0?x=1`, { redirect: 'manual' });
       assert.equal(redirect.status, 301);
       assert.equal(redirect.headers.get('location'), '/reports/v0.1.0/?x=1');
       const report = await fetch(`${base}/reports/v0.1.0/`);
       assert.equal(report.status, 200);
       assert.equal(await report.text(), '<a href="../">hub</a>');
-      const logo = await fetch(`${base}/tangleclaw-logo.png`);
-      assert.equal(logo.headers.get('content-type'), 'image/png');
-      assert.equal((await fetch(`${base}/reports/scripts/gen.py`)).status, 404);
-      assert.equal((await fetch(`${base}/reports/v0.1.0/index.html`, { redirect: 'manual' })).status, 200);
     } finally {
       server.closeAllConnections();
       await new Promise<void>((done) => server.close(() => done()));
