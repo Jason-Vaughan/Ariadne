@@ -37,7 +37,7 @@ export interface ScoreOptions {
 export interface TopMatchOptions extends ScoreOptions {
   /** Candidates per participant (default 3). */
   k?: number;
-  /** When given, each selected pair is published once as `match.evaluated`. */
+  /** When given, each selected pair is published once as `match.candidate.generated`. */
   db?: DatabaseSync;
 }
 
@@ -67,10 +67,10 @@ interface Side {
 /**
  * Normalizes a capability name so `TypeScript` and ` typescript ` count as the same capability.
  * @param name - Raw capability name.
- * @returns Lowercased, trimmed name with inner whitespace collapsed to `-`.
+ * @returns Lowercased, trimmed name with whitespace and underscores collapsed to `-`.
  */
 export function normalizeCapability(name: string): string {
-  return name.trim().toLowerCase().replace(/\s+/g, '-');
+  return name.trim().toLowerCase().replace(/[\s_]+/g, '-');
 }
 
 /**
@@ -171,29 +171,47 @@ function isStaleNeed(need: OpportunityNeed, side: Side, now: Date): boolean {
 }
 
 /**
- * Need vector `n`: each desired capability weighted by the need's confidence, ×0.2 for a stale-issue need.
- * Cosine ignores scale, so the discount also yields `retained`: the share of need weight left after
- * discounting, which scales this side's fit (all needs stale → ×0.2; none stale → ×1).
+ * Need vectors `n`: each desired capability weighted by the need's confidence. `discounted` applies the
+ * ×0.2 stale-issue factor; `full` does not, and supplies the norm in `needFit` so the discount
+ * lowers the fit (cosine alone would ignore a uniform scale-down).
  * @param side - The participant's working view.
  * @param now - Reference time.
- * @returns The vector, the retained weight share, and the needs that were discounted as stale.
+ * @returns Both vectors and the needs that were discounted as stale.
  */
-function needVector(side: Side, now: Date): { vector: Map<string, number>; retained: number; stale: OpportunityNeed[] } {
-  const vector = new Map<string, number>();
+function needVectors(side: Side, now: Date): { discounted: Map<string, number>; full: Map<string, number>; stale: OpportunityNeed[] } {
+  const discounted = new Map<string, number>();
+  const full = new Map<string, number>();
   const stale: OpportunityNeed[] = [];
-  let full = 0;
-  let kept = 0;
   for (const need of side.needs) {
     const isStale = isStaleNeed(need, side, now);
     if (isStale) stale.push(need);
-    const factor = isStale ? STALE_NEED_FACTOR : 1;
     for (const capability of need.desired_capabilities) {
-      add(vector, normalizeCapability(capability), need.confidence * factor);
-      full += need.confidence;
-      kept += need.confidence * factor;
+      const key = normalizeCapability(capability);
+      add(discounted, key, need.confidence * (isStale ? STALE_NEED_FACTOR : 1));
+      add(full, key, need.confidence);
     }
   }
-  return { vector, retained: full === 0 ? 1 : kept / full, stale };
+  return { discounted, full, stale };
+}
+
+/**
+ * One direction of need/offer fit: `dot(n_discounted, o) / (‖n_full‖ · ‖o‖)`, clamped to 0–1.
+ * Equals plain cosine when nothing is stale, scales by exactly 0.2 when everything is, and a stale
+ * need the offerer cannot meet never lowers the fit of a fresh need they can.
+ * @param discounted - Needs with stale weights discounted.
+ * @param full - Needs without discounting.
+ * @param offers - The other side's offer vector.
+ * @returns Fit in 0–1.
+ */
+function needFit(discounted: ReadonlyMap<string, number>, full: ReadonlyMap<string, number>, offers: ReadonlyMap<string, number>): number {
+  let dot = 0;
+  for (const [key, value] of discounted) dot += value * (offers.get(key) ?? 0);
+  let normFull = 0;
+  for (const value of full.values()) normFull += value * value;
+  let normOffers = 0;
+  for (const value of offers.values()) normOffers += value * value;
+  if (normFull === 0 || normOffers === 0) return 0;
+  return Math.min(1, Math.max(0, dot / Math.sqrt(normFull * normOffers)));
 }
 
 /**
@@ -295,9 +313,8 @@ export interface PreparedProfile {
   needs: OpportunityNeed[];
   capabilities: Map<string, number>;
   offers: Map<string, number>;
-  needVector: Map<string, number>;
-  /** Share of need weight kept after stale-issue discounting; scales this side's need/offer fit. */
-  needRetained: number;
+  needsDiscounted: Map<string, number>;
+  needsFull: Map<string, number>;
   staleNeeds: OpportunityNeed[];
   names: Set<string>;
   cited: EvidenceReceipt[];
@@ -311,15 +328,15 @@ export interface PreparedProfile {
  */
 export function prepareProfile(profile: ParticipantProfile, options: ScoreOptions): PreparedProfile {
   const side = toSide(profile);
-  const needs = needVector(side, options.now);
+  const needs = needVectors(side, options.now);
   return {
     profile,
     claims: side.claims,
     needs: side.needs,
     capabilities: capabilityVector(side.claims),
     offers: offerVector(side.claims),
-    needVector: needs.vector,
-    needRetained: needs.retained,
+    needsDiscounted: needs.discounted,
+    needsFull: needs.full,
     staleNeeds: needs.stale,
     names: new Set(side.claims.map((c) => normalizeCapability(c.name))),
     cited: citedEvidence(side),
@@ -356,7 +373,7 @@ export function scorePrepared(first: PreparedProfile, second: PreparedProfile, o
   const breakdown: ScoreBreakdown = {
     capability_similarity: round4(cosine(a.capabilities, b.capabilities)),
     need_offer_fit: round4(
-      Math.max(cosine(a.needVector, b.offers) * a.needRetained, cosine(b.needVector, a.offers) * b.needRetained),
+      Math.max(needFit(a.needsDiscounted, a.needsFull, b.offers), needFit(b.needsDiscounted, b.needsFull, a.offers)),
     ),
     complementarity: complementarity(a.claims, b.claims),
     novelty: round4(novelty(a.names, b.names)),
@@ -402,7 +419,8 @@ export function scorePrepared(first: PreparedProfile, second: PreparedProfile, o
 /**
  * Ranks each eligible participant's top-k surfaceable candidates. Never pads: a participant with
  * fewer qualifying candidates gets fewer, possibly none. Ties break on the other participant's id.
- * With `db`, each selected pair is published once as `match.evaluated` (idempotent per pair and score).
+ * With `db`, each selected pair is published once as `match.candidate.generated` (idempotent per pair);
+ * `match.evaluated` belongs to the explanation stage (A-007).
  * @param profiles - The pool (live participants and active seeds).
  * @param options - Reference time, k, optional database.
  * @returns Candidates per participant id, best first; every eligible participant has an entry.
@@ -432,7 +450,7 @@ export function selectTopMatches(profiles: readonly ParticipantProfile[], option
 }
 
 /**
- * Publishes `match.evaluated` for each selected pair, in match-id order.
+ * Publishes `match.candidate.generated` for each selected pair, in match-id order.
  * @param db - Open database handle.
  * @param pairs - Selected pairs.
  * @param profiles - Eligible profiles, for display aliases.
@@ -442,14 +460,13 @@ function publishSelected(db: DatabaseSync, pairs: readonly PairScore[], profiles
   for (const pair of [...pairs].sort((x, y) => (x.match_id < y.match_id ? -1 : 1))) {
     publishEvent(
       db,
-      'match.evaluated',
+      'match.candidate.generated',
       {
         match_id: pair.match_id,
         display_alias_a: aliases.get(pair.participant_a_id)!,
         display_alias_b: aliases.get(pair.participant_b_id)!,
-        composite_score: pair.composite_score,
       },
-      { idempotencyKey: `${pair.match_id}:evaluated:${pair.composite_score}` },
+      { idempotencyKey: `${pair.match_id}:candidate` },
     );
   }
 }

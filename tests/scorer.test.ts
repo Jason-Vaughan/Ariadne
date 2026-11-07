@@ -312,6 +312,15 @@ describe('scorePair', () => {
     const penalized = scorePair(mixed(900), helper, { now: NOW }).score_breakdown.need_offer_fit;
     const unpenalized = scorePair(mixed(3), helper, { now: NOW }).score_breakdown.need_offer_fit;
     assert.ok(penalized < unpenalized, `${penalized} < ${unpenalized}`);
+    // A stale need the helper cannot meet must not drag down the fit of a fresh need it does meet.
+    const unmet = (age: number) =>
+      profile('Dusty-0D06', 'old-org/graphql-api', [{ name: 'APIs', category: 'domain' }], [
+        { wants: ['GraphQL'], issueAgeDays: 3 },
+        { wants: ['Kotlin'], issueAgeDays: age },
+      ]);
+    const staleUnmet = scorePair(unmet(900), helper, { now: NOW }).score_breakdown.need_offer_fit;
+    const freshUnmet = scorePair(unmet(3), helper, { now: NOW }).score_breakdown.need_offer_fit;
+    assert.ok(staleUnmet >= freshUnmet, `${staleUnmet} >= ${freshUnmet}`);
   });
 
   test('a need with an old issue but also fresh non-issue evidence is not treated as stale', () => {
@@ -380,6 +389,18 @@ describe('scorePair', () => {
     const pair = scorePair(a, offsite, { now: NOW });
     assert.ok(!pair.evidence_receipt_ids.some((id) => b.evidence.some((r) => r.id === id)));
     assert.deepEqual(pair.rejections, ['insufficient_evidence']);
+  });
+
+  test('capability names match across case, spaces and underscores (agent_orchestration pairs with evals-observability)', () => {
+    const orchestrator = profile('Agent-5A01', 'agents/orch', [
+      { name: 'agent_orchestration', category: 'domain' },
+      { name: 'AI', category: 'domain' },
+    ]);
+    const evaluator = profile('Evals-5A02', 'evals/obs', [
+      { name: 'Evals Observability', category: 'domain' },
+      { name: 'AI', category: 'domain' },
+    ]);
+    assert.equal(scorePair(orchestrator, evaluator, { now: NOW }).score_breakdown.complementarity, 1);
   });
 
   test('refuses to score a participant against themselves', () => {
@@ -463,7 +484,7 @@ describe('selectTopMatches', () => {
     assert.ok(result.get(a.participant.id)!.every((p) => p.participant_b_id !== withdrawn.participant.id && p.participant_a_id !== withdrawn.participant.id));
   });
 
-  test('publishes match.evaluated once per selected pair, idempotently, when a db is supplied', () => {
+  test('publishes match.candidate.generated once per selected pair, idempotently, when a db is supplied', () => {
     const db = new DatabaseSync(':memory:');
     db.exec(readFileSync(join(REPO_ROOT, 'src/db/schema.sql'), 'utf8'));
     const [a, b] = highSynergyPair();
@@ -472,11 +493,11 @@ describe('selectTopMatches', () => {
     const events = readEventsAfter(db, 0);
     assert.equal(events.length, 1);
     PublicEventEnvelopeSchema.parse(events[0]);
+    assert.equal(events[0]!.type, 'match.candidate.generated');
     assert.deepEqual(events[0]!.payload, {
       match_id: pair.match_id,
       display_alias_a: pair.participant_a_id === a.participant.id ? 'Thread-0A01' : 'Spool-0B02',
       display_alias_b: pair.participant_b_id === b.participant.id ? 'Spool-0B02' : 'Thread-0A01',
-      composite_score: pair.composite_score,
     });
     selectTopMatches([a, b], { now: NOW, db });
     assert.equal(readEventsAfter(db, 0).length, 1);
