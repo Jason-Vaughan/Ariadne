@@ -26,3 +26,9 @@ __pycache__/
 
 # Prawduct plugin version marker (per-repo last-seen)
 .prawduct/.prawduct-version
+
+# Node
+node_modules/
+
+# Local SQLite database, WAL files and backups (participant data)
+data/
