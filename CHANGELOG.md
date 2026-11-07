@@ -5,6 +5,13 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Self-hosted Ariadne server on `127.0.0.1:3420` with SQLite WAL client, auto-mounted routes, `GET /api/health` and narrow tunnel script (A-014 Slice 1, #13):**
+  - `src/server.ts` mounts every `src/routes/*.ts` module (`export const routes: RouteDefinition[]`), so feature lanes add routes without editing the server; a duplicate method + path fails at boot. Serves `public/` as static files (`/stage` → `public/stage/index.html`) with path-traversal protection. Binds loopback only and refuses TangleClaw/Medusa ports (3100, 3102, 8443, 3009, 3010).
+  - `src/db/client.ts` opens `data/ariadne.db` (override with `ARIADNE_DB_PATH`) with `journal_mode = WAL`, `synchronous = NORMAL`, `busy_timeout = 5000`, `foreign_keys = ON`, and applies `src/db/schema.sql` on every open when present (the schema must be idempotent).
+  - `GET /api/health` reports WAL readiness, `async_jobs` queue depth and whether a GitHub token is configured; returns 503 when the database is unavailable and never includes secrets, paths or stack traces.
+  - `scripts/tunnel.sh` starts `cloudflared` (or `ngrok`) against `http://127.0.0.1:3420` (or staging `3421`) only, after a local health probe, with a stripped environment; `--check` validates without starting.
+  - Zero third-party dependencies: Node 22 built-ins (`node:http`, `node:sqlite`, native TypeScript type stripping). Run with `node src/server.ts`; test with `node --test tests/server.test.ts`.
+  - PortHub leases registered: `3420` (app), `3421` (staging), `4420` (test harness), all `loopback`.
 - **Onboarded Prawduct Protocol (`.prawduct/`, No Internal PRR) + Testament Test Runner (`.testament.toml`, `tests/test_ariadne_suite.py`) + Dual-Reviewer Bottleneck Mitigation (`CLAUDE.md`, `AGENTS.md`):**
   - Scaffolded `.prawduct/` via `prawduct-hook init-product` across `Jason-Vaughan/Ariadne` so all 4 Opus 5.5 Builder lanes (`Ariadne-Lane-A..D`) run under Prawduct governance, while explicitly waiving Prawduct's internal `pr` gate (`.prawduct/.gates-waived`) so Builders never waste tokens/time running internal PRR (`Ariadne-PRR` `#1568` and `Ariadne-Arc` `#1563` perform external PRR).
   - Configured Dual-Reviewer load balancing (`Ariadne-Arc` `#1563` reviews `Car A/B`; `Ariadne-PRR` `#1568` reviews `Car C/D`) to eliminate single-PRR queueing bottlenecks across the 4 parallel Builders.
