@@ -544,6 +544,173 @@
           "legacy_ade_v1_addressed": 5.46
         }
       }
+    },
+    "v0.4.0": {
+      "slug": "v0.4.0",
+      "hrs": 0.85,
+      "issues_closed": 3,
+      "issues_addressed": 3,
+      "loc": 12775,
+      "cost": 2.1,
+      "throughput_closed": 3.51,
+      "throughput_addressed": 3.51,
+      "cost_per_issue": 0.7,
+      "cost_per_addressed": 0.7,
+      "cost_per_kloc": 0.16,
+      "ade_score": 1.67,
+      "ade_addressed": 1.67,
+      "est_tokens_m": 4.6,
+      "api_shadow_cost": 35.9,
+      "savings_mult": 17.1,
+      "detailed": {
+        "schema_version": "2.0.0",
+        "slug": "v0.4.0",
+        "milestone_number": 4,
+        "milestone_title": "Train 3 \u2014 Opportunity Agent, Mutual Intros & Progressive Worker Pool (v0.4.0)",
+        "standing_auth": "ARIADNE-HACK-2026-W4",
+        "prev_tag": "v0.3.0",
+        "prev_sha": "1a7c8be",
+        "release_tag": "v0.4.0",
+        "release_sha": "160ef88",
+        "timestamps": {
+          "t1_first_activity": "2026-11-07T20:23:30Z",
+          "t1_pst": "12:23:30 PST (Pipelined Wave 4 Charter Dispatch \u2014 Car 04-B on Ariadne-Lane-B)",
+          "t2_first_branch_commit": "2026-11-07T20:28:44Z",
+          "t2_pst": "12:28:44 PST (First Wave 4 branch commit @ 5e647f1 \u2014 Car 04-B / A-005; in-range #34 commit @ 992ed84 at 12:33:46 PST)",
+          "t3_first_pr_opened": "2026-11-07T20:29:42Z",
+          "t3_pst": "12:29:42 PST (PR #31 opened \u2014 Car 04-B / A-005; in-range PR #34 opened at 12:34:04 PST)",
+          "t4_final_feature_pr_merged": "2026-11-07T21:19:14Z",
+          "t4_pst": "13:19:14 PST (PR #38 merged @ 160ef88 \u2014 Car 04-C / A-016)",
+          "t5_release_pr_merged": "2026-11-07T21:19:14Z",
+          "t5_pst": "13:19:14 PST (Wave 4 final merge @ 160ef88)",
+          "t6_release_tag_published": "2026-11-07T21:19:32Z",
+          "t6_pst": "13:19:32 PST (Annotated tag v0.4.0 published @ 160ef88)",
+          "t7_live_deploy_completed": "2026-11-07T21:20:00Z",
+          "t7_pst": "13:20:00 PST (Live :3420 /api/health 200 OK, worker running, 25 seed personas hydrated, 516/516 tests green)",
+          "t8_observer_certification_completed": "2026-11-07T21:35:00Z",
+          "t8_pst": "13:35:00 PST (Ariadne-Obsr O-Gate PASS comment on PR #40)"
+        },
+        "durations": {
+          "full_engineering_window_hrs": 0.85,
+          "full_engineering_window_human": "51m 16s (0.85h \u00b7 t2 12:28:44 \u2192 t7 13:20:00 PST; post-tag #34 t2 12:33:46 \u2192 t7 46m 14s / 0.77h; t1\u2192t7 wall-clock 56m 30s / 0.94h)",
+          "inter_release_deploy_cadence_hrs": 0.62,
+          "inter_release_deploy_cadence_human": "37m 15s (0.62h \u00b7 v0.3.0 live t7 12:42:45 \u2192 v0.4.0 live t7 13:20:00 PST)",
+          "pipeline_overlap_hrs": 0.23,
+          "pipeline_overlap_pct": 27.3,
+          "pipeline_overlap_human": "14m 01s (0.23h / 27.3% \u00b7 t2 12:28:44 \u2192 prior t7 12:42:45 PST; post-tag #34 t2 overlap 8m 59s)"
+        },
+        "completion": {
+          "chartered_total_issues": 3,
+          "chartered_active_issues": 3,
+          "state_a_implemented_issues": 3,
+          "state_b_integrated_issues": 3,
+          "state_c_verified_closed_issues": 3,
+          "state_c_issue_ids": [
+            12,
+            5,
+            15
+          ],
+          "state_d_externally_accepted_issues": 0,
+          "partial_slice_re_milestoned_issues": 0,
+          "partial_slice_issue_ids": [],
+          "partial_slice_ruling": "0 partial slices \u2014 all 3 Wave 4 cars (#12 A-012, #5 A-005, #15 A-016) closed cleanly in Milestone #4 (v0.4.0); Car 04-B (#5, PR #31 @ ae55786, +980/-0 LOC) merged pipelined at 20:35:12Z prior to the v0.3.0 tag.",
+          "deferred_to_future_milestone_issues": 0,
+          "deferred_issue_ids": [],
+          "deferred_label": "Deferred to Milestone #5 (<code>v1.0.0</code>)",
+          "deferred_ruling": "0 deferred issues in Wave 4 (all 15 MVP issues closed).",
+          "pre_closed_milestone_issues": 0,
+          "pre_closed_issue_ids": [],
+          "milestone_closed_total": 3,
+          "milestone_open_total": 0
+        },
+        "diff": {
+          "prs_merged": [
+            34,
+            36,
+            30,
+            38
+          ],
+          "feature_prs": [
+            34,
+            36,
+            38
+          ],
+          "release_prs": [
+            30
+          ],
+          "true_merge_count": 0,
+          "squash_or_rebase_count": 4,
+          "net_repo_files": 35,
+          "net_repo_insertions": 12775,
+          "net_repo_deletions": 843,
+          "feature_pr_files_sum": 24,
+          "feature_pr_insertions": 4677,
+          "feature_pr_deletions": 189,
+          "release_pr_files": 16,
+          "release_pr_insertions": 8098,
+          "release_pr_deletions": 654,
+          "per_pr": [
+            {
+              "pr": 34,
+              "issue": "#12 (A-012)",
+              "lane": "Ariadne-Lane-A",
+              "files": 10,
+              "ins": 1537,
+              "del": 14,
+              "sha": "baff161"
+            },
+            {
+              "pr": 36,
+              "issue": "#7 (A-007 privacy)",
+              "lane": "Ariadne-Lane-C",
+              "files": 4,
+              "ins": 197,
+              "del": 166,
+              "sha": "b5ee8bc"
+            },
+            {
+              "pr": 30,
+              "issue": "#14 (v0.2.0 O-Gate)",
+              "lane": "Ariadne-Obsr",
+              "files": 16,
+              "ins": 8098,
+              "del": 654,
+              "sha": "c8adc62"
+            },
+            {
+              "pr": 38,
+              "issue": "#15 (A-016)",
+              "lane": "Ariadne-Lane-C",
+              "files": 10,
+              "ins": 2943,
+              "del": 9,
+              "sha": "160ef88"
+            }
+          ]
+        },
+        "economics": {
+          "tier1_measured_marginal_api_usd": 0.0,
+          "tier1_measured_marginal_electricity_usd": 0.02,
+          "tier1_evidence_class": "measured",
+          "tier2_allocated_subscription_usd": 2.1,
+          "tier2_hourly_rate_usd": 2.46,
+          "tier2_calendar_hour_subscription_usd": 0.52,
+          "tier2_calendar_hourly_rate_usd": 0.611,
+          "tier2_evidence_class": "allocated_estimate",
+          "tier3_hypothetical_api_shadow_usd": 35.9,
+          "est_tokens_m": 4.6,
+          "tier3_evidence_class": "hypothetical_estimate"
+        },
+        "efficiency": {
+          "throughput_closed_per_eng_hr": 3.51,
+          "throughput_addressed_per_eng_hr": 3.51,
+          "unit_allocated_cost_per_closed_issue_usd": 0.7,
+          "unit_allocated_cost_per_addressed_issue_usd": 0.7,
+          "unit_allocated_cost_per_kloc_usd": 0.16,
+          "legacy_ade_v1_closed": 1.67,
+          "legacy_ade_v1_addressed": 1.67
+        }
+      }
     }
   },
   "detailed_sprint_records": {
@@ -1026,6 +1193,155 @@
         "unit_allocated_cost_per_kloc_usd": 0.14,
         "legacy_ade_v1_closed": 5.46,
         "legacy_ade_v1_addressed": 5.46
+      }
+    },
+    "v0.4.0": {
+      "schema_version": "2.0.0",
+      "slug": "v0.4.0",
+      "milestone_number": 4,
+      "milestone_title": "Train 3 \u2014 Opportunity Agent, Mutual Intros & Progressive Worker Pool (v0.4.0)",
+      "standing_auth": "ARIADNE-HACK-2026-W4",
+      "prev_tag": "v0.3.0",
+      "prev_sha": "1a7c8be",
+      "release_tag": "v0.4.0",
+      "release_sha": "160ef88",
+      "timestamps": {
+        "t1_first_activity": "2026-11-07T20:23:30Z",
+        "t1_pst": "12:23:30 PST (Pipelined Wave 4 Charter Dispatch \u2014 Car 04-B on Ariadne-Lane-B)",
+        "t2_first_branch_commit": "2026-11-07T20:28:44Z",
+        "t2_pst": "12:28:44 PST (First Wave 4 branch commit @ 5e647f1 \u2014 Car 04-B / A-005; in-range #34 commit @ 992ed84 at 12:33:46 PST)",
+        "t3_first_pr_opened": "2026-11-07T20:29:42Z",
+        "t3_pst": "12:29:42 PST (PR #31 opened \u2014 Car 04-B / A-005; in-range PR #34 opened at 12:34:04 PST)",
+        "t4_final_feature_pr_merged": "2026-11-07T21:19:14Z",
+        "t4_pst": "13:19:14 PST (PR #38 merged @ 160ef88 \u2014 Car 04-C / A-016)",
+        "t5_release_pr_merged": "2026-11-07T21:19:14Z",
+        "t5_pst": "13:19:14 PST (Wave 4 final merge @ 160ef88)",
+        "t6_release_tag_published": "2026-11-07T21:19:32Z",
+        "t6_pst": "13:19:32 PST (Annotated tag v0.4.0 published @ 160ef88)",
+        "t7_live_deploy_completed": "2026-11-07T21:20:00Z",
+        "t7_pst": "13:20:00 PST (Live :3420 /api/health 200 OK, worker running, 25 seed personas hydrated, 516/516 tests green)",
+        "t8_observer_certification_completed": "2026-11-07T21:35:00Z",
+        "t8_pst": "13:35:00 PST (Ariadne-Obsr O-Gate PASS comment on PR #40)"
+      },
+      "durations": {
+        "full_engineering_window_hrs": 0.85,
+        "full_engineering_window_human": "51m 16s (0.85h \u00b7 t2 12:28:44 \u2192 t7 13:20:00 PST; post-tag #34 t2 12:33:46 \u2192 t7 46m 14s / 0.77h; t1\u2192t7 wall-clock 56m 30s / 0.94h)",
+        "inter_release_deploy_cadence_hrs": 0.62,
+        "inter_release_deploy_cadence_human": "37m 15s (0.62h \u00b7 v0.3.0 live t7 12:42:45 \u2192 v0.4.0 live t7 13:20:00 PST)",
+        "pipeline_overlap_hrs": 0.23,
+        "pipeline_overlap_pct": 27.3,
+        "pipeline_overlap_human": "14m 01s (0.23h / 27.3% \u00b7 t2 12:28:44 \u2192 prior t7 12:42:45 PST; post-tag #34 t2 overlap 8m 59s)"
+      },
+      "completion": {
+        "chartered_total_issues": 3,
+        "chartered_active_issues": 3,
+        "state_a_implemented_issues": 3,
+        "state_b_integrated_issues": 3,
+        "state_c_verified_closed_issues": 3,
+        "state_c_issue_ids": [
+          12,
+          5,
+          15
+        ],
+        "state_d_externally_accepted_issues": 0,
+        "partial_slice_re_milestoned_issues": 0,
+        "partial_slice_issue_ids": [],
+        "partial_slice_ruling": "0 partial slices \u2014 all 3 Wave 4 cars (#12 A-012, #5 A-005, #15 A-016) closed cleanly in Milestone #4 (v0.4.0); Car 04-B (#5, PR #31 @ ae55786, +980/-0 LOC) merged pipelined at 20:35:12Z prior to the v0.3.0 tag.",
+        "deferred_to_future_milestone_issues": 0,
+        "deferred_issue_ids": [],
+        "deferred_label": "Deferred to Milestone #5 (<code>v1.0.0</code>)",
+        "deferred_ruling": "0 deferred issues in Wave 4 (all 15 MVP issues closed).",
+        "pre_closed_milestone_issues": 0,
+        "pre_closed_issue_ids": [],
+        "milestone_closed_total": 3,
+        "milestone_open_total": 0
+      },
+      "diff": {
+        "prs_merged": [
+          34,
+          36,
+          30,
+          38
+        ],
+        "feature_prs": [
+          34,
+          36,
+          38
+        ],
+        "release_prs": [
+          30
+        ],
+        "true_merge_count": 0,
+        "squash_or_rebase_count": 4,
+        "net_repo_files": 35,
+        "net_repo_insertions": 12775,
+        "net_repo_deletions": 843,
+        "feature_pr_files_sum": 24,
+        "feature_pr_insertions": 4677,
+        "feature_pr_deletions": 189,
+        "release_pr_files": 16,
+        "release_pr_insertions": 8098,
+        "release_pr_deletions": 654,
+        "per_pr": [
+          {
+            "pr": 34,
+            "issue": "#12 (A-012)",
+            "lane": "Ariadne-Lane-A",
+            "files": 10,
+            "ins": 1537,
+            "del": 14,
+            "sha": "baff161"
+          },
+          {
+            "pr": 36,
+            "issue": "#7 (A-007 privacy)",
+            "lane": "Ariadne-Lane-C",
+            "files": 4,
+            "ins": 197,
+            "del": 166,
+            "sha": "b5ee8bc"
+          },
+          {
+            "pr": 30,
+            "issue": "#14 (v0.2.0 O-Gate)",
+            "lane": "Ariadne-Obsr",
+            "files": 16,
+            "ins": 8098,
+            "del": 654,
+            "sha": "c8adc62"
+          },
+          {
+            "pr": 38,
+            "issue": "#15 (A-016)",
+            "lane": "Ariadne-Lane-C",
+            "files": 10,
+            "ins": 2943,
+            "del": 9,
+            "sha": "160ef88"
+          }
+        ]
+      },
+      "economics": {
+        "tier1_measured_marginal_api_usd": 0.0,
+        "tier1_measured_marginal_electricity_usd": 0.02,
+        "tier1_evidence_class": "measured",
+        "tier2_allocated_subscription_usd": 2.1,
+        "tier2_hourly_rate_usd": 2.46,
+        "tier2_calendar_hour_subscription_usd": 0.52,
+        "tier2_calendar_hourly_rate_usd": 0.611,
+        "tier2_evidence_class": "allocated_estimate",
+        "tier3_hypothetical_api_shadow_usd": 35.9,
+        "est_tokens_m": 4.6,
+        "tier3_evidence_class": "hypothetical_estimate"
+      },
+      "efficiency": {
+        "throughput_closed_per_eng_hr": 3.51,
+        "throughput_addressed_per_eng_hr": 3.51,
+        "unit_allocated_cost_per_closed_issue_usd": 0.7,
+        "unit_allocated_cost_per_addressed_issue_usd": 0.7,
+        "unit_allocated_cost_per_kloc_usd": 0.16,
+        "legacy_ade_v1_closed": 1.67,
+        "legacy_ade_v1_addressed": 1.67
       }
     }
   }
