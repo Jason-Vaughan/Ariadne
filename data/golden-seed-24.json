@@ -1,0 +1,805 @@
+{
+  "description": "Golden seed personas for Ariadne's Seed Mode: fictional builders (github.com/ariadne-seed-NN) used to give live attendees scorable matches. Ages are relative to hydration time.",
+  "version": 1,
+  "personas": [
+    {
+      "n": 1,
+      "bio": "Builds low-latency WebRTC media servers in Rust.",
+      "repos": [
+        {
+          "name": "rust-sfu",
+          "language": "Rust",
+          "topics": [
+            "webrtc",
+            "sfu",
+            "realtime",
+            "networking"
+          ],
+          "description": "Selective forwarding unit for low-latency group calls",
+          "stars": 120,
+          "pushed_days_ago": 4
+        },
+        {
+          "name": "rtp-probe",
+          "language": "Rust",
+          "topics": [
+            "rtp",
+            "observability",
+            "latency"
+          ],
+          "description": "Packet-level latency probe for RTP streams",
+          "stars": 30,
+          "pushed_days_ago": 18
+        }
+      ],
+      "readme": "A Rust SFU that keeps group-call latency under 150 ms. Looking for help with the browser audio pipeline."
+    },
+    {
+      "n": 2,
+      "bio": "Frontend engineer obsessed with browser audio and React UX.",
+      "repos": [
+        {
+          "name": "audio-deck",
+          "language": "TypeScript",
+          "topics": [
+            "react",
+            "webaudio",
+            "frontend",
+            "ui"
+          ],
+          "description": "Multi-track audio editor in the browser",
+          "stars": 85,
+          "pushed_days_ago": 3
+        },
+        {
+          "name": "worklet-kit",
+          "language": "TypeScript",
+          "topics": [
+            "audio-worklet",
+            "webaudio",
+            "dsp"
+          ],
+          "description": "Helpers for AudioWorklet processors",
+          "stars": 22,
+          "pushed_days_ago": 25
+        }
+      ],
+      "readme": "React + WebAudio editor. Needs a low-latency transport for live collaboration."
+    },
+    {
+      "n": 3,
+      "bio": "Measures LLM quality with evaluation harnesses and golden datasets.",
+      "repos": [
+        {
+          "name": "eval-harness",
+          "language": "Python",
+          "topics": [
+            "llm",
+            "evaluation",
+            "benchmark",
+            "pytest"
+          ],
+          "description": "Regression evals for LLM prompts and agents",
+          "stars": 140,
+          "pushed_days_ago": 2
+        },
+        {
+          "name": "judge-calibration",
+          "language": "Python",
+          "topics": [
+            "llm-as-judge",
+            "statistics",
+            "eval"
+          ],
+          "description": "Calibrating LLM judges against human labels",
+          "stars": 40,
+          "pushed_days_ago": 15
+        }
+      ],
+      "readme": "Evaluation harness for prompts and agents with drift alerts."
+    },
+    {
+      "n": 4,
+      "bio": "Designs multi-agent orchestration with tools and memory.",
+      "repos": [
+        {
+          "name": "agent-mesh",
+          "language": "Python",
+          "topics": [
+            "agents",
+            "orchestration",
+            "tool-use",
+            "llm"
+          ],
+          "description": "Planner/executor agents with tool routing",
+          "stars": 210,
+          "pushed_days_ago": 5
+        },
+        {
+          "name": "memory-store",
+          "language": "Python",
+          "topics": [
+            "agents",
+            "memory",
+            "vector-search"
+          ],
+          "description": "Long-term memory service for agents",
+          "stars": 60,
+          "pushed_days_ago": 21
+        }
+      ],
+      "readme": "Agent orchestration framework. Wants better evals and a UI for traces."
+    },
+    {
+      "n": 5,
+      "bio": "Writes Kubernetes operators and platform tooling in Go.",
+      "repos": [
+        {
+          "name": "k8s-autoscaler",
+          "language": "Go",
+          "topics": [
+            "kubernetes",
+            "operator",
+            "autoscaling",
+            "infrastructure"
+          ],
+          "description": "Queue-aware autoscaling operator",
+          "stars": 95,
+          "pushed_days_ago": 6
+        },
+        {
+          "name": "helm-lint-plus",
+          "language": "Go",
+          "topics": [
+            "helm",
+            "ci",
+            "devops"
+          ],
+          "description": "Policy checks for Helm charts",
+          "stars": 18,
+          "pushed_days_ago": 30
+        }
+      ],
+      "readme": "Kubernetes operator that scales workers from queue depth."
+    },
+    {
+      "n": 6,
+      "bio": "Analytics engineer building dbt and streaming data pipelines.",
+      "repos": [
+        {
+          "name": "dbt-event-models",
+          "language": "SQL",
+          "topics": [
+            "dbt",
+            "analytics",
+            "data-pipeline",
+            "warehouse"
+          ],
+          "description": "Event models for product analytics in dbt",
+          "stars": 70,
+          "pushed_days_ago": 7
+        },
+        {
+          "name": "kafka-ingest",
+          "language": "Python",
+          "topics": [
+            "kafka",
+            "streaming",
+            "etl"
+          ],
+          "description": "Kafka to warehouse ingestion with schema checks",
+          "stars": 44,
+          "pushed_days_ago": 12
+        }
+      ],
+      "readme": "dbt models and streaming ingestion with data contracts."
+    },
+    {
+      "n": 7,
+      "bio": "Product engineer focused on activation, pricing and growth experiments.",
+      "repos": [
+        {
+          "name": "growth-experiments",
+          "language": "TypeScript",
+          "topics": [
+            "product",
+            "experimentation",
+            "analytics",
+            "growth"
+          ],
+          "description": "Feature flags and A/B experiment toolkit",
+          "stars": 55,
+          "pushed_days_ago": 4
+        },
+        {
+          "name": "pricing-page",
+          "language": "TypeScript",
+          "topics": [
+            "saas",
+            "pricing",
+            "landing-page"
+          ],
+          "description": "Conversion-optimised pricing page",
+          "stars": 12,
+          "pushed_days_ago": 20
+        }
+      ],
+      "readme": "Experimentation toolkit for activation funnels. Needs a data pipeline partner."
+    },
+    {
+      "n": 8,
+      "bio": "iOS developer crafting accessible SwiftUI experiences.",
+      "repos": [
+        {
+          "name": "swiftui-a11y-kit",
+          "language": "Swift",
+          "topics": [
+            "ios",
+            "swiftui",
+            "accessibility",
+            "ui"
+          ],
+          "description": "Accessible SwiftUI components",
+          "stars": 64,
+          "pushed_days_ago": 9
+        },
+        {
+          "name": "offline-notes-ios",
+          "language": "Swift",
+          "topics": [
+            "ios",
+            "offline",
+            "sync"
+          ],
+          "description": "Offline-first notes app",
+          "stars": 28,
+          "pushed_days_ago": 26
+        }
+      ],
+      "readme": "Accessible SwiftUI component kit. Looking for a sync backend."
+    },
+    {
+      "n": 9,
+      "bio": "Android engineer working on offline-first sync in Kotlin.",
+      "repos": [
+        {
+          "name": "android-sync",
+          "language": "Kotlin",
+          "topics": [
+            "android",
+            "offline-first",
+            "sync",
+            "room"
+          ],
+          "description": "Conflict-aware offline sync for Android",
+          "stars": 47,
+          "pushed_days_ago": 8
+        },
+        {
+          "name": "compose-charts",
+          "language": "Kotlin",
+          "topics": [
+            "jetpack-compose",
+            "charts",
+            "ui"
+          ],
+          "description": "Charts for Jetpack Compose",
+          "stars": 35,
+          "pushed_days_ago": 33
+        }
+      ],
+      "readme": "Offline-first Android sync layer."
+    },
+    {
+      "n": 10,
+      "bio": "Embedded Rust for IoT sensors and edge devices.",
+      "repos": [
+        {
+          "name": "edge-sensor-fw",
+          "language": "Rust",
+          "topics": [
+            "embedded",
+            "iot",
+            "firmware",
+            "no-std"
+          ],
+          "description": "Low-power sensor firmware in no_std Rust",
+          "stars": 52,
+          "pushed_days_ago": 10
+        },
+        {
+          "name": "mqtt-bridge",
+          "language": "Rust",
+          "topics": [
+            "mqtt",
+            "iot",
+            "networking"
+          ],
+          "description": "MQTT to HTTP bridge for edge gateways",
+          "stars": 19,
+          "pushed_days_ago": 24
+        }
+      ],
+      "readme": "Embedded firmware for battery-powered sensors. Needs a dashboard."
+    },
+    {
+      "n": 11,
+      "bio": "Builds retrieval-augmented generation pipelines and vector search.",
+      "repos": [
+        {
+          "name": "rag-pipeline",
+          "language": "Python",
+          "topics": [
+            "rag",
+            "retrieval",
+            "vector-search",
+            "llm"
+          ],
+          "description": "Hybrid retrieval pipeline with reranking",
+          "stars": 160,
+          "pushed_days_ago": 3
+        },
+        {
+          "name": "chunking-bench",
+          "language": "Python",
+          "topics": [
+            "evaluation",
+            "rag",
+            "benchmark"
+          ],
+          "description": "Benchmarks for document chunking strategies",
+          "stars": 26,
+          "pushed_days_ago": 17
+        }
+      ],
+      "readme": "Hybrid RAG pipeline with reranking. Wants evaluation help."
+    },
+    {
+      "n": 12,
+      "bio": "Ships SaaS landing pages and onboarding flows with Next.js.",
+      "repos": [
+        {
+          "name": "saas-starter",
+          "language": "TypeScript",
+          "topics": [
+            "nextjs",
+            "saas",
+            "onboarding",
+            "frontend"
+          ],
+          "description": "Next.js SaaS starter with onboarding flows",
+          "stars": 120,
+          "pushed_days_ago": 5
+        },
+        {
+          "name": "waitlist-kit",
+          "language": "TypeScript",
+          "topics": [
+            "growth",
+            "landing-page",
+            "email"
+          ],
+          "description": "Waitlist and referral kit",
+          "stars": 30,
+          "pushed_days_ago": 22
+        }
+      ],
+      "readme": "Next.js SaaS starter. Looking for backend and data help."
+    },
+    {
+      "n": 13,
+      "bio": "Observability engineer working on tracing and metrics in Go.",
+      "repos": [
+        {
+          "name": "trace-collector",
+          "language": "Go",
+          "topics": [
+            "observability",
+            "opentelemetry",
+            "tracing",
+            "infrastructure"
+          ],
+          "description": "Lightweight OpenTelemetry collector",
+          "stars": 88,
+          "pushed_days_ago": 6
+        },
+        {
+          "name": "slo-dashboards",
+          "language": "Go",
+          "topics": [
+            "metrics",
+            "slo",
+            "monitoring"
+          ],
+          "description": "SLO dashboards from Prometheus metrics",
+          "stars": 33,
+          "pushed_days_ago": 28
+        }
+      ],
+      "readme": "OpenTelemetry collector tuned for small teams."
+    },
+    {
+      "n": 14,
+      "bio": "Turns messy datasets into clear visual stories.",
+      "repos": [
+        {
+          "name": "viz-notebooks",
+          "language": "Python",
+          "topics": [
+            "data-visualization",
+            "pandas",
+            "notebooks",
+            "analytics"
+          ],
+          "description": "Reproducible data-viz notebooks",
+          "stars": 58,
+          "pushed_days_ago": 11
+        },
+        {
+          "name": "csv-profiler",
+          "language": "Python",
+          "topics": [
+            "data-quality",
+            "profiling",
+            "etl"
+          ],
+          "description": "Fast CSV profiling and validation",
+          "stars": 24,
+          "pushed_days_ago": 19
+        }
+      ],
+      "readme": "Data visualization notebooks. Needs a product to ship them in."
+    },
+    {
+      "n": 15,
+      "bio": "Realtime backends in Elixir and Phoenix.",
+      "repos": [
+        {
+          "name": "phoenix-presence-chat",
+          "language": "Elixir",
+          "topics": [
+            "realtime",
+            "websockets",
+            "phoenix",
+            "backend"
+          ],
+          "description": "Presence-aware chat backend",
+          "stars": 77,
+          "pushed_days_ago": 7
+        },
+        {
+          "name": "pubsub-bench",
+          "language": "Elixir",
+          "topics": [
+            "pubsub",
+            "benchmark",
+            "distributed"
+          ],
+          "description": "Benchmarks for distributed PubSub",
+          "stars": 15,
+          "pushed_days_ago": 31
+        }
+      ],
+      "readme": "Realtime chat backend with presence. Wants a polished frontend."
+    },
+    {
+      "n": 16,
+      "bio": "Creative coder building WebGL and three.js experiences.",
+      "repos": [
+        {
+          "name": "webgl-graph",
+          "language": "TypeScript",
+          "topics": [
+            "webgl",
+            "threejs",
+            "visualization",
+            "frontend"
+          ],
+          "description": "Force-directed 3D graph renderer",
+          "stars": 130,
+          "pushed_days_ago": 4
+        },
+        {
+          "name": "shader-lab",
+          "language": "GLSL",
+          "topics": [
+            "shaders",
+            "graphics",
+            "creative-coding"
+          ],
+          "description": "Shader experiments",
+          "stars": 48,
+          "pushed_days_ago": 23
+        }
+      ],
+      "readme": "3D graph renderer in WebGL. Looking for live data to visualise."
+    },
+    {
+      "n": 17,
+      "bio": "Fine-tunes small language models for specific domains.",
+      "repos": [
+        {
+          "name": "small-lm-finetune",
+          "language": "Python",
+          "topics": [
+            "llm",
+            "fine-tuning",
+            "pytorch",
+            "training"
+          ],
+          "description": "LoRA fine-tuning recipes for small models",
+          "stars": 175,
+          "pushed_days_ago": 2
+        },
+        {
+          "name": "dataset-curation",
+          "language": "Python",
+          "topics": [
+            "datasets",
+            "data-quality",
+            "llm"
+          ],
+          "description": "Curation tools for instruction datasets",
+          "stars": 41,
+          "pushed_days_ago": 14
+        }
+      ],
+      "readme": "LoRA fine-tuning recipes. Needs serving infrastructure."
+    },
+    {
+      "n": 18,
+      "bio": "Builds MCP tool servers that connect agents to real systems.",
+      "repos": [
+        {
+          "name": "mcp-tool-servers",
+          "language": "TypeScript",
+          "topics": [
+            "mcp",
+            "agents",
+            "tool-use",
+            "integration"
+          ],
+          "description": "Model Context Protocol servers for common APIs",
+          "stars": 145,
+          "pushed_days_ago": 3
+        },
+        {
+          "name": "agent-auth",
+          "language": "TypeScript",
+          "topics": [
+            "oauth",
+            "agents",
+            "security"
+          ],
+          "description": "Scoped OAuth for agent tools",
+          "stars": 37,
+          "pushed_days_ago": 16
+        }
+      ],
+      "readme": "MCP tool servers for agents. Wants evaluation and orchestration partners."
+    },
+    {
+      "n": 19,
+      "bio": "Local-first software and CRDT sync engines in Rust.",
+      "repos": [
+        {
+          "name": "crdt-sync",
+          "language": "Rust",
+          "topics": [
+            "crdt",
+            "local-first",
+            "sync",
+            "distributed"
+          ],
+          "description": "CRDT sync engine for local-first apps",
+          "stars": 190,
+          "pushed_days_ago": 5
+        },
+        {
+          "name": "crdt-devtools",
+          "language": "TypeScript",
+          "topics": [
+            "devtools",
+            "crdt",
+            "visualization"
+          ],
+          "description": "Inspector for CRDT document history",
+          "stars": 22,
+          "pushed_days_ago": 27
+        }
+      ],
+      "readme": "CRDT sync engine. Needs app builders on mobile and web."
+    },
+    {
+      "n": 20,
+      "bio": "Red-teams LLM apps and measures prompt-injection robustness.",
+      "repos": [
+        {
+          "name": "injection-evals",
+          "language": "Python",
+          "topics": [
+            "llm",
+            "security",
+            "red-teaming",
+            "evaluation"
+          ],
+          "description": "Prompt-injection evaluation suite",
+          "stars": 98,
+          "pushed_days_ago": 4
+        },
+        {
+          "name": "guardrail-proxy",
+          "language": "Go",
+          "topics": [
+            "security",
+            "proxy",
+            "llm"
+          ],
+          "description": "Policy proxy in front of LLM APIs",
+          "stars": 27,
+          "pushed_days_ago": 21
+        }
+      ],
+      "readme": "Prompt-injection eval suite. Looking for agent builders to test with."
+    },
+    {
+      "n": 21,
+      "bio": "Full-stack Rails developer running a two-sided marketplace.",
+      "repos": [
+        {
+          "name": "marketplace-core",
+          "language": "Ruby",
+          "topics": [
+            "rails",
+            "marketplace",
+            "payments",
+            "product"
+          ],
+          "description": "Two-sided marketplace with escrow payments",
+          "stars": 66,
+          "pushed_days_ago": 8
+        },
+        {
+          "name": "search-ranking",
+          "language": "Ruby",
+          "topics": [
+            "search",
+            "ranking",
+            "product"
+          ],
+          "description": "Listing search and ranking",
+          "stars": 21,
+          "pushed_days_ago": 29
+        }
+      ],
+      "readme": "Marketplace platform. Needs recommendation and data help."
+    },
+    {
+      "n": 22,
+      "bio": "Game audio and engine programming in C++.",
+      "repos": [
+        {
+          "name": "spatial-audio-engine",
+          "language": "C++",
+          "topics": [
+            "audio",
+            "game-engine",
+            "dsp",
+            "realtime"
+          ],
+          "description": "Spatial audio engine for games",
+          "stars": 83,
+          "pushed_days_ago": 6
+        },
+        {
+          "name": "profiler-overlay",
+          "language": "C++",
+          "topics": [
+            "performance",
+            "profiling",
+            "tools"
+          ],
+          "description": "In-game frame profiler overlay",
+          "stars": 17,
+          "pushed_days_ago": 35
+        }
+      ],
+      "readme": "Spatial audio engine. Wants web and tooling collaborators."
+    },
+    {
+      "n": 23,
+      "bio": "Design-system engineer focused on accessibility and tokens.",
+      "repos": [
+        {
+          "name": "design-tokens",
+          "language": "TypeScript",
+          "topics": [
+            "design-system",
+            "accessibility",
+            "css",
+            "frontend"
+          ],
+          "description": "Accessible design tokens and components",
+          "stars": 112,
+          "pushed_days_ago": 5
+        },
+        {
+          "name": "contrast-checker",
+          "language": "TypeScript",
+          "topics": [
+            "accessibility",
+            "a11y",
+            "tools"
+          ],
+          "description": "WCAG contrast checker for design tokens",
+          "stars": 39,
+          "pushed_days_ago": 18
+        }
+      ],
+      "readme": "Accessible design system. Looking for products to adopt it."
+    },
+    {
+      "n": 24,
+      "bio": "Data engineer orchestrating ETL with Airflow.",
+      "repos": [
+        {
+          "name": "airflow-pipelines",
+          "language": "Python",
+          "topics": [
+            "airflow",
+            "etl",
+            "data-pipeline",
+            "orchestration"
+          ],
+          "description": "Airflow DAGs for product data",
+          "stars": 61,
+          "pushed_days_ago": 9
+        },
+        {
+          "name": "data-contracts",
+          "language": "Python",
+          "topics": [
+            "data-quality",
+            "schema",
+            "contracts"
+          ],
+          "description": "Schema contracts for pipelines",
+          "stars": 26,
+          "pushed_days_ago": 23
+        }
+      ],
+      "readme": "Airflow ETL with data contracts. Needs analytics consumers."
+    },
+    {
+      "n": 25,
+      "bio": "Developer-tools builder writing fast CLIs in Go.",
+      "repos": [
+        {
+          "name": "dev-cli",
+          "language": "Go",
+          "topics": [
+            "cli",
+            "developer-tools",
+            "productivity"
+          ],
+          "description": "Batteries-included developer CLI",
+          "stars": 104,
+          "pushed_days_ago": 4
+        },
+        {
+          "name": "release-notes-bot",
+          "language": "Go",
+          "topics": [
+            "github",
+            "automation",
+            "release"
+          ],
+          "description": "Release notes from merged PRs",
+          "stars": 33,
+          "pushed_days_ago": 20
+        }
+      ],
+      "readme": "Developer CLI toolkit. Wants a web dashboard and docs site."
+    }
+  ]
+}

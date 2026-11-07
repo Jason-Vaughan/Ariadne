@@ -74,6 +74,47 @@ export function normalizeCapability(name: string): string {
 }
 
 /**
+ * A-005 states needs as generic labels ("Backend services") while A-004 names capabilities concretely
+ * ("Go"). This vocabulary map lets a generic need also count the concrete capabilities that satisfy it,
+ * so need/offer fit is not zero merely because two agents word things differently. It is data only:
+ * the cosine, weights and anti-clone cap are unchanged. Keys and values are normalized names.
+ */
+export const NEED_LABEL_EXPANSIONS: Readonly<Record<string, readonly string[]>> = {
+  'frontend-(react)': ['react', 'typescript', 'next.js', 'javascript', 'vue', 'svelte'],
+  'ui/ux-design': ['react', 'next.js', 'swift', 'kotlin', 'css'],
+  'data-visualization': ['python', 'glsl', 'd3', 'javascript'],
+  'backend-services': ['go', 'rust', 'elixir', 'ruby', 'ruby-on-rails', 'java', 'kotlin', 'node.js', 'python'],
+  'cloud-infrastructure': ['kubernetes', 'devops', 'go', 'terraform', 'docker', 'aws'],
+  'performance-engineering': ['rust', 'c++', 'go', 'c'],
+  devops: ['kubernetes', 'docker', 'terraform'],
+  'data-pipelines': ['kafka', 'airflow', 'dbt', 'sql', 'spark', 'python'],
+  'etl-/-streaming': ['kafka', 'airflow', 'dbt', 'spark'],
+  analytics: ['sql', 'dbt', 'python'],
+  'large-language-models': ['llm-evaluation', 'retrieval-augmented-generation', 'pytorch', 'ai-agents'],
+  'ai-agents': ['model-context-protocol', 'large-language-models'],
+  'agent-orchestration': ['ai-agents', 'model-context-protocol'],
+  'tool-integration-(mcp)': ['model-context-protocol', 'ai-agents'],
+  'workflow-automation': ['ai-agents', 'airflow'],
+  'retrieval-augmented-generation': ['large-language-models', 'python'],
+  'llm-evaluation': ['large-language-models', 'python', 'pytorch'],
+  'prompt-engineering': ['large-language-models', 'llm-evaluation'],
+  'model-benchmarking': ['llm-evaluation', 'pytorch'],
+  'model-context-protocol': ['ai-agents'],
+  realtime: ['webrtc', 'elixir', 'rust'],
+};
+
+/**
+ * The capability keys one desired capability counts toward: itself, plus any concrete capabilities a
+ * generic need label stands for.
+ * @param capability - A desired capability as A-005 wrote it.
+ * @returns Distinct normalized keys.
+ */
+export function needKeys(capability: string): string[] {
+  const key = normalizeCapability(capability);
+  return [...new Set([key, ...(NEED_LABEL_EXPANSIONS[key] ?? [])])];
+}
+
+/**
  * Whether a profile may be scored at all: consent granted and not withdrawn.
  * @param profile - The participant profile.
  * @returns True when the participant is eligible for matching.
@@ -204,9 +245,10 @@ function needVectors(side: Side, now: Date): { discounted: Map<string, number>; 
     const isStale = isStaleNeed(need, side, now);
     if (isStale) stale.push(need);
     for (const capability of need.desired_capabilities) {
-      const key = normalizeCapability(capability);
-      add(discounted, key, need.confidence * (isStale ? STALE_NEED_FACTOR : 1));
-      add(full, key, need.confidence);
+      for (const key of needKeys(capability)) {
+        add(discounted, key, need.confidence * (isStale ? STALE_NEED_FACTOR : 1));
+        add(full, key, need.confidence);
+      }
     }
   }
   return { discounted, full, stale };

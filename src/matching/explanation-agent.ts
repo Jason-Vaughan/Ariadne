@@ -4,7 +4,7 @@ import type { MatchProposal, ScoreBreakdown } from '../contracts/index.ts';
 import { publishEvent } from '../events/bus.ts';
 import { findPrivateSpans, formatEvidencePills, hasCrossEvidence, scrubPrivateDetails } from './evidence-formatter.ts';
 import type { EvidencePill, PrivacyContext } from './evidence-formatter.ts';
-import { normalizeCapability } from './scorer.ts';
+import { needKeys, normalizeCapability } from './scorer.ts';
 import type { PairScore, ParticipantProfile } from './scorer.ts';
 import type { Logger } from '../server.ts';
 
@@ -114,10 +114,13 @@ function servedNeeds(offerer: ParticipantProfile, needer: ParticipantProfile): {
   for (const n of needer.needs) {
     if (n.dismissed_by_user) continue;
     for (const want of n.desired_capabilities) {
-      const label = offers.get(normalizeCapability(want));
-      if (label && !capabilities.includes(label)) {
-        capabilities.push(label);
-        need ??= n;
+      // Same vocabulary as the scorer: a generic need ("Backend services") is met by the concrete skills it covers.
+      for (const key of needKeys(want)) {
+        const label = offers.get(key);
+        if (label && !capabilities.includes(label)) {
+          capabilities.push(label);
+          need ??= n;
+        }
       }
     }
   }

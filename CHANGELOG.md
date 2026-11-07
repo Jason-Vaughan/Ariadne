@@ -5,6 +5,26 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Background job worker, golden seed personas and `/admin` capacity controller (A-016, #15):**
+  - `src/worker/job-runner.ts` runs `async_jobs`. Start it with `node src/worker/job-runner.ts`, a separate process sharing the WAL database; live views pick up its events within 1 s.
+    - It leases due jobs atomically and returns jobs abandoned by a crashed worker to the queue, giving up (and logging it) after 3 attempts; a participant whose analysis was abandoned mid-way is marked `failed` and `analysis.failed` is published, so `/me` stops waiting.
+    - It gates on consent first, and again after the (async) GitHub fetch: a job for a missing or withdrawn participant is skipped, recorded as `succeeded` with a `skipped: consent_withdrawn` note, and a snapshot fetched for someone who withdrew meanwhile is deleted.
+    - `participant.analyze`, Stage 1: fetch the GitHub/website snapshot (A-003), store A-004 capabilities and A-005 needs (including the participant's goal as their confirmed need), mark the participant `ready`, re-match the pool, then explain and announce the matches (A-006/A-007).
+    - `participant.analyze`, Stage 2: model enrichment of capabilities, needs and match cards follows; concurrent model calls never exceed `workerConcurrency` (one limiter shared across ticks), and a missing key, error or timeout falls back to Stage 1. A refined fingerprint is written back to the snapshot so `/me` and `/stage` show it.
+    - GitHub rate-limit and outage errors retry with backoff, up to 3 attempts. An unknown user fails at once. A final failure marks the participant `failed` and publishes `analysis.failed`.
+    - `matches.refresh` re-matches.
+    - A match a participant has acted on (any intro state other than `candidate`, or an approval) is never re-scored or re-explained.
+  - `src/worker/seed-personas.ts` and `data/golden-seed-24.json` hold 25 fictional builders (`github.com/ariadne-seed-NN`) across systems, frontend, LLM evaluation, agents, data and product. `hydrateSeedPersonas()` runs each through the same deterministic A-004/A-005 pipeline as a live participant (snapshot, fingerprint, evidence, claims, needs). Ids are deterministic and nothing is published.
+  - `src/routes/admin.ts` serves `GET /admin` (the operator panel), `GET /api/admin/capacity`, `POST /api/admin/capacity` and `POST /api/admin/prewarm`. All are presenter-machine only: a loopback socket (`isPresenterRequest`) addressed to a loopback name (`localhost`, `127.0.0.1`, `[::1]`), which blocks DNS rebinding. The POSTs also require `application/json` from the same origin, so another web page cannot forge them. Controls:
+    - room capacity presets (15–300), which auto-scale worker concurrency and fetch mode (≤30 → 8, ≤80 → 16, ≤150 → 24 and fast fetch, more → 32) unless overridden;
+    - VIP/judge pre-warm (up to 50 handles), so those snapshots load instantly and are admitted past a full room;
+    - the intake lock (onboarding's admission policy);
+    - worker concurrency (8/16/24/32);
+    - GitHub fetch mode (`full-graphql` keeps the full REST budget; `fast-rest-top5` skips the README);
+    - the seed pool (enabling hydrates the 25 seeds and re-matches; disabling removes them). Seeds added bare by the stage HUD's toggle are hydrated by the worker on its next tick.
+
+    The whole update is validated first, so a bad field changes nothing. Worker settings reach the worker process through `data/worker-settings.json` (override with `ARIADNE_WORKER_SETTINGS_PATH`).
+  - A-006 scorer (approved by PM/Arc): A-004 claim names (`React`, `Go`…) and A-005 need labels (`Frontend (React)`, `Backend services`…) barely overlapped, so need/offer fit was 0 for most pairs. `NEED_LABEL_EXPANSIONS` now lets a generic need count the concrete capabilities that satisfy it, and A-007's match cards use the same vocabulary to say who brings what. The cosine, weights and cap are unchanged. Measured on 25 live persona profiles against the 25 seeds: profiles with no surfaced match drop from 15 to 10, and surfaced matches rise from 24 to 51. The remainder is limited by the 0.35 similarity weight.
 - **O-Gate Certification — Sprint `v0.2.0` Canonical v2.0.0 Report, `T_eng = t7 - t2` Validator Arithmetic Guard & Public Hub Publication (`Ariadne-Obsr`):**
   - Updated `sprint-reports/metrics_schema.py`, `sprint-reports/metrics-schema.json`, `sprint-reports/generators/gen_v020.py`, `sprint-reports/generators/gen_v010.py`, and `sprint-reports/index.html` with empirical Wave 2 (`v0.2.0 @ 3f14b9e`) telemetry and strict contract §3.1 `T_eng = t7 - t2` exact-second arithmetic:
     - `v0.2.0`: 8 canonical timestamps (`t1..t8`), full engineering window `T_eng = 0.3964h` (`1,427s` / `23m 47s` `t2→t7`, displayed `0.40h`; `t1→t7` wall-clock `33m 30s` / `0.56h`; inter-release cadence `0.38h` / `23m 00s`; `t2→t7_prev` pipeline overlap `47s` / `0.01h` / `3.3%`), 4/4 Milestone #2 issues closed (`#2, #3, #6, #10`), 4 merged PRs (`#23 @ 308443a`, `#22 @ 664bfea`, `#24 @ 39f605a`, `#26 @ 3f14b9e`, net `+6,682 / -0` LOC across 18 files), and 3-tier cost ledger (`$0.00` marginal API fee, `$0.98` allocated subscription pool, `$0.24/issue`, `10.09` closed issues/hr, `ADE_v1 = 10.35`).
