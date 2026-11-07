@@ -218,8 +218,24 @@ export const ScoreBreakdownSchema = z.strictObject({
 export type ScoreBreakdown = z.infer<typeof ScoreBreakdownSchema>;
 
 /**
+ * Highest score a pair with nothing to trade can reach (MATCH_SCORING_SPEC.md TC-SCORE-02).
+ * It sits below MATCH_SURFACE_THRESHOLD so similarity and freshness alone never surface a clone.
+ */
+export const ANTI_CLONE_SCORE_CAP = 38;
+
+/**
+ * Whether a pair has nothing distinct to trade: no need/offer fit and no complementary layers.
+ * @param breakdown - The five normalized components.
+ * @returns True when the anti-clone cap applies.
+ */
+export function isCloneLike(breakdown: ScoreBreakdown): boolean {
+  return breakdown.need_offer_fit === 0 && breakdown.complementarity === 0;
+}
+
+/**
  * Composite score: `round(100 × (0.35·capability_similarity + 0.30·need_offer_fit
- * + 0.15·complementarity + 0.10·novelty + 0.10·freshness))`.
+ * + 0.15·complementarity + 0.10·novelty + 0.10·freshness))`, capped at
+ * ANTI_CLONE_SCORE_CAP when the pair is clone-like.
  * @param breakdown - The five normalized components.
  * @returns Integer score in 0–100.
  */
@@ -230,7 +246,8 @@ export function compositeScore(breakdown: ScoreBreakdown): number {
     SCORE_WEIGHTS.complementarity * breakdown.complementarity +
     SCORE_WEIGHTS.novelty * breakdown.novelty +
     SCORE_WEIGHTS.freshness * breakdown.freshness;
-  return Math.round(weighted * 100);
+  const score = Math.round(weighted * 100);
+  return isCloneLike(breakdown) ? Math.min(score, ANTI_CLONE_SCORE_CAP) : score;
 }
 
 export const INTRODUCTION_STATES = [

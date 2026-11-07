@@ -21,6 +21,8 @@ Implemented in `src/contracts/types.ts` (`ScoreBreakdown`, `SCORE_WEIGHTS`, `com
 | **`freshness`** | **0.10** | Recency of the cited repositories/issues. |
 | **Composite** | **1.00** | `composite_score = round(100 × (0.35·capability_similarity + 0.30·need_offer_fit + 0.15·complementarity + 0.10·novelty + 0.10·freshness))`, an integer `0–100`. |
 
+**Anti-clone cap:** when `need_offer_fit = 0` AND `complementarity = 0` the pair has nothing distinct to trade, and `composite_score` is capped at **38** (`ANTI_CLONE_SCORE_CAP`, `isCloneLike`) — below the surfacing threshold — so capability similarity and freshness alone can never surface a clone (TC-SCORE-02: a fresh identical pair `1, 0, 0, 0, 1` would otherwise score exactly 45).
+
 **Evidence gate (not a weighted component):** a match surfaces only with at least **2 cited evidence pills** — at least one valid `EvidenceReceipt` on each side (`MatchProposal.evidence_receipt_ids` has ≥ 2 entries) — and `composite_score >= 45`.
 
 ---

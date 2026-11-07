@@ -9,7 +9,9 @@ import {
   EVENT_TYPES,
   EventPollResponseSchema,
   EvidenceReceiptSchema,
+  ANTI_CLONE_SCORE_CAP,
   INTRODUCTION_STATES,
+  MATCH_SURFACE_THRESHOLD,
   MatchProposalSchema,
   OpportunityNeedSchema,
   ParticipantSchema,
@@ -19,6 +21,7 @@ import {
   canTransitionIntroState,
   classifyIntroTransition,
   compositeScore,
+  isCloneLike,
   type EventType,
   type IntroActor,
   type IntroductionState,
@@ -208,6 +211,26 @@ describe('MatchProposal', () => {
       compositeScore({ capability_similarity: 1, need_offer_fit: 1, complementarity: 1, novelty: 1, freshness: 1 }),
       100,
     );
+  });
+
+  it('keeps a fresh identical clone below the surfacing threshold (TC-SCORE-02)', () => {
+    const clone = { capability_similarity: 1, need_offer_fit: 0, complementarity: 0, novelty: 0, freshness: 1 };
+    assert.equal(isCloneLike(clone), true);
+    assert.equal(compositeScore(clone), ANTI_CLONE_SCORE_CAP);
+    assert.ok(compositeScore(clone) < MATCH_SURFACE_THRESHOLD);
+    assert.ok(compositeScore({ ...clone, novelty: 1 }) < MATCH_SURFACE_THRESHOLD);
+  });
+
+  it('caps only pairs with nothing to trade', () => {
+    const base = { capability_similarity: 1, need_offer_fit: 0, complementarity: 0, novelty: 0, freshness: 1 };
+    assert.equal(compositeScore({ ...base, complementarity: 0.2 }), 48);
+    assert.equal(compositeScore({ ...base, need_offer_fit: 0.2 }), 51);
+  });
+
+  it('rejects a clone-like match claiming the uncapped score', () => {
+    const breakdown = { capability_similarity: 1, need_offer_fit: 0, complementarity: 0, novelty: 0, freshness: 1 };
+    assert.equal(MatchProposalSchema.safeParse(match({ score_breakdown: breakdown, composite_score: 45 })).success, false);
+    assert.equal(MatchProposalSchema.safeParse(match({ score_breakdown: breakdown, composite_score: 38 })).success, true);
   });
 
   it('rounds the weighted score to an integer', () => {
