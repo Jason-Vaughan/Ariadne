@@ -64,7 +64,7 @@ type Access =
 function authorize(req: IncomingMessage, db: DatabaseSync, matchId: string): Access {
   const viewerId = readSession(req);
   const viewer = viewerId
-    ? (db.prepare("SELECT id, ownership_verified FROM participants WHERE id = ? AND consent_status = 'granted'").get(viewerId) as Viewer | undefined)
+    ? (db.prepare("SELECT id, ownership_verified FROM participants WHERE id = ? AND consent_status = 'granted' AND analysis_state <> 'withdrawn'").get(viewerId) as Viewer | undefined)
     : undefined;
   if (!viewer) return { ok: false, status: 401, error: 'not_signed_in' };
   const match = db
@@ -79,7 +79,7 @@ function authorize(req: IncomingMessage, db: DatabaseSync, matchId: string): Acc
   if (!side) return { ok: false, status: 403, error: 'not_your_match' };
   const counterpartId = side === 'a' ? match.participant_b_id : match.participant_a_id;
   const counterpartActive = Boolean(
-    db.prepare("SELECT 1 FROM participants WHERE id = ? AND consent_status = 'granted'").get(counterpartId),
+    db.prepare("SELECT 1 FROM participants WHERE id = ? AND consent_status = 'granted' AND analysis_state <> 'withdrawn'").get(counterpartId),
   );
   return { ok: true, viewer, match, side, counterpartActive };
 }
@@ -348,7 +348,7 @@ async function postToRoom(req: IncomingMessage, res: ServerResponse, db: Databas
  */
 async function saveContactCard(req: IncomingMessage, res: ServerResponse, db: DatabaseSync): Promise<void> {
   const viewerId = readSession(req);
-  const exists = viewerId ? db.prepare("SELECT 1 FROM participants WHERE id = ? AND consent_status = 'granted'").get(viewerId) : undefined;
+  const exists = viewerId ? db.prepare("SELECT 1 FROM participants WHERE id = ? AND consent_status = 'granted' AND analysis_state <> 'withdrawn'").get(viewerId) : undefined;
   if (!viewerId || !exists) return sendJson(res, 401, { error: 'not_signed_in' });
   const body = await readJson(req);
   const raw = body?.contact_card;

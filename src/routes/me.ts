@@ -68,7 +68,7 @@ function sessionParticipant(req: IncomingMessage, db: DatabaseSync): Participant
   if (!id) return undefined;
   return db
     .prepare(
-      "SELECT id, display_alias, github_username, website_url, stage_display_consent, analysis_state FROM participants WHERE id = ? AND consent_status = 'granted'",
+      "SELECT id, display_alias, github_username, website_url, stage_display_consent, analysis_state FROM participants WHERE id = ? AND consent_status = 'granted' AND analysis_state <> 'withdrawn'",
     )
     .get(id) as ParticipantRow | undefined;
 }
@@ -224,7 +224,7 @@ function matchesFor(db: DatabaseSync, participantId: string) {
               intro_state, approval_a, approval_b
        FROM matches
        WHERE (participant_a_id = ? OR participant_b_id = ?) AND composite_score >= ? AND intro_state <> 'declined'
-         AND NOT EXISTS (SELECT 1 FROM participants p WHERE p.id IN (participant_a_id, participant_b_id) AND p.consent_status <> 'granted')
+         AND NOT EXISTS (SELECT 1 FROM participants p WHERE p.id IN (participant_a_id, participant_b_id) AND (p.consent_status <> 'granted' OR p.analysis_state = 'withdrawn'))
        ORDER BY composite_score DESC, id LIMIT ?`,
     )
     .all(participantId, participantId, MATCH_SURFACE_THRESHOLD, TOP_MATCHES) as unknown as MatchRow[];

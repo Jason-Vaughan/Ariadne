@@ -404,6 +404,24 @@ describe('introductions API', () => {
     assert.deepEqual(me.matches.map((m) => m.id), [MATCH_AC], 'the match with the withdrawn participant disappears from /me');
   });
 
+  it('treats analysis_state withdrawn as withdrawn even while consent_status still reads granted', async () => {
+    await decide('a', 'interested');
+    await decide('b', 'interested');
+    db.prepare("UPDATE participants SET analysis_state = 'withdrawn' WHERE id = ?").run(people.b.id);
+    assert.equal((await get('a', 'room')).status, 403);
+    assert.equal((await get('a', 'vcard')).status, 403);
+    assert.equal((await get('b', 'room')).status, 401);
+    assert.equal((await decide('a', 'pass', MATCH_AC)).status, 200, 'unrelated matches keep working');
+    const me = (await (await fetch(`${base}/api/me`, { headers: { cookie: people.a.cookie } })).json()) as { matches: Array<{ id: string }> };
+    assert.equal(me.matches.some((m) => m.id === MATCH), false);
+  });
+
+  it('omits a stage-consenting participant from intro events once their analysis is withdrawn', async () => {
+    db.prepare("UPDATE participants SET analysis_state = 'withdrawn' WHERE id = ?").run(people.b.id);
+    assert.equal((await decide('a', 'interested')).status, 409);
+    assert.doesNotMatch(JSON.stringify(introEvents()), /hubot/);
+  });
+
   it('removes the room and scrubs stage identity when a participant deletes their data', async () => {
     await decide('a', 'interested');
     await decide('b', 'interested');

@@ -80,6 +80,7 @@ interface PairIdentity {
   avatar_url: string | null;
   stage_display_consent: number;
   consent_status: string;
+  analysis_state: string;
 }
 
 /**
@@ -91,12 +92,12 @@ interface PairIdentity {
  */
 function pairPayload(db: DatabaseSync, match: MatchSides) {
   const lookup = db.prepare(
-    'SELECT display_alias, github_username, avatar_url, stage_display_consent, consent_status FROM participants WHERE id = ?',
+    'SELECT display_alias, github_username, avatar_url, stage_display_consent, consent_status, analysis_state FROM participants WHERE id = ?',
   );
   const a = lookup.get(match.participant_a_id) as unknown as PairIdentity;
   const b = lookup.get(match.participant_b_id) as unknown as PairIdentity;
   const display = (p: PairIdentity): PublicDisplay | undefined =>
-    p.stage_display_consent === 1 && p.consent_status === 'granted'
+    p.stage_display_consent === 1 && p.consent_status === 'granted' && p.analysis_state !== 'withdrawn'
       ? { stage_display_consent: true, github_username: p.github_username, avatar_url: p.avatar_url }
       : undefined;
   const displayA = display(a);
