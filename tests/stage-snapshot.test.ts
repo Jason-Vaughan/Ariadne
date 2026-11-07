@@ -16,6 +16,7 @@ import {
   capTopEdges,
   edgeStateFor,
   encodeQr,
+  isLoopbackHost,
   isPresenterRequest,
   isSeedId,
   qrToSvg,
@@ -282,7 +283,7 @@ describe('top-3 edge cap', () => {
 
 describe('presenter guard and join URL', () => {
   const fakeReq = (remoteAddress: string, headers: Record<string, string> = {}) =>
-    ({ socket: { remoteAddress }, headers }) as unknown as Parameters<typeof isPresenterRequest>[0];
+    ({ socket: { remoteAddress }, headers: { host: '127.0.0.1:3420', ...headers } }) as unknown as Parameters<typeof isPresenterRequest>[0];
 
   test('only direct loopback requests without proxy headers count as the presenter', () => {
     assert.equal(isPresenterRequest(fakeReq('127.0.0.1')), true);
@@ -291,6 +292,18 @@ describe('presenter guard and join URL', () => {
     assert.equal(isPresenterRequest(fakeReq('127.0.0.1', { 'x-forwarded-for': '203.0.113.9' })), false);
     assert.equal(isPresenterRequest(fakeReq('127.0.0.1', { 'cf-connecting-ip': '203.0.113.9' })), false);
     assert.equal(isPresenterRequest(fakeReq('192.168.1.20')), false);
+  });
+
+  test('a DNS-rebinding page is not the presenter, even on a loopback socket without proxy headers', () => {
+    for (const host of ['localhost', 'localhost:3420', '127.0.0.1:3420', '[::1]:3420', 'LOCALHOST:3420']) {
+      assert.equal(isLoopbackHost(host), true, host);
+      assert.equal(isPresenterRequest(fakeReq('127.0.0.1', { host })), true, host);
+    }
+    for (const host of ['evil.example:3420', 'evil.example', '127.0.0.1.evil.example', 'localhost.evil.example:3420',
+      '[::2]:3420', 'cursatory.tail123678.ts.net', '']) {
+      assert.equal(isPresenterRequest(fakeReq('127.0.0.1', { host })), false, host);
+    }
+    assert.equal(isLoopbackHost(undefined), false);
   });
 
   test('the join URL needs an https ARIADNE_PUBLIC_URL', () => {
@@ -440,6 +453,14 @@ describe('stage routes', () => {
       const stagePage = await post({ 'content-type': 'application/json; charset=utf-8', origin: self, 'sec-fetch-site': 'same-origin' });
       assert.equal(stagePage.status, 200, 'the stage page itself is allowed');
       assert.equal(seeds(), 25);
+      const rebound = `http://evil.example:${port}`;
+      const rebinding = await post({ 'content-type': 'application/json', host: `evil.example:${port}`, origin: rebound, 'sec-fetch-site': 'same-origin' }, '{"enabled":false}');
+      assert.equal(rebinding.status, 403, 'a DNS-rebinding page passes every same-origin check but not the Host check');
+      assert.equal(JSON.parse(rebinding.body).error, 'presenter_only');
+      assert.equal(seeds(), 25);
+      const reboundSnapshot = await call(port, 'GET', '/api/stage/snapshot', { headers: { host: `evil.example:${port}` } });
+      assert.equal(JSON.parse(reboundSnapshot.body).presenter, false);
+
       const curl = await post({ 'content-type': 'application/json', 'sec-fetch-site': 'none' }, '{"enabled":false}');
       assert.equal(curl.status, 200, 'a direct request from the host (no Origin) is allowed');
       assert.equal(seeds(), 0);

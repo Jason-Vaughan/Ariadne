@@ -607,14 +607,31 @@ const LOOPBACK_ADDRESSES = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 // cloudflared and ngrok add at least one of these to every request they forward.
 const PROXY_HEADERS = ['x-forwarded-for', 'forwarded', 'cf-connecting-ip', 'x-real-ip'];
 
+const LOOPBACK_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]']);
+
 /**
- * Whether a request came straight from this machine rather than through the public tunnel,
- * which also arrives on loopback but always carries forwarding headers.
+ * Whether the Host header names this machine. A DNS-rebinding page (an attacker's domain made to
+ * resolve to 127.0.0.1) arrives on a loopback socket with no proxy headers, but its Host still
+ * carries the attacker's domain.
+ * @param host - The Host header.
+ * @returns True for localhost, 127.0.0.1 or [::1], on any port.
+ */
+export function isLoopbackHost(host: string | undefined): boolean {
+  if (!host) return false;
+  const name = host.startsWith('[') ? host.slice(0, host.indexOf(']') + 1) : (host.split(':')[0] ?? '');
+  return LOOPBACK_HOSTNAMES.has(name.toLowerCase());
+}
+
+/**
+ * Whether a request came straight from this machine's own browser or tools: a loopback socket,
+ * no forwarding headers (the public tunnel also arrives on loopback but always adds them), and a
+ * loopback Host (which a DNS-rebinding page cannot present).
  * @param req - Incoming request.
  * @returns True for a direct local request.
  */
 export function isPresenterRequest(req: IncomingMessage): boolean {
   if (!LOOPBACK_ADDRESSES.has(req.socket.remoteAddress ?? '')) return false;
+  if (!isLoopbackHost(req.headers.host)) return false;
   return PROXY_HEADERS.every((h) => req.headers[h] === undefined);
 }
 
