@@ -412,7 +412,7 @@ describe('/me page behaviour', () => {
     assert.equal(cards.length, 3);
     assert.match(cards[0]!.textContent, /Loom-0001/);
     assert.match(cards[1]!.textContent, /@public-builder/);
-    assert.match(cards[2]!.textContent, /interested in meeting you/);
+    assert.match(cards[2]!.textContent, /wants to connect with you/);
     assert.equal(cards[0]!.all().filter((n) => n.className === 'bar-row').length, 5, 'five score components');
     const dismissButtons = elements.offers!.all().filter((n) => n.tagName === 'BUTTON');
     assert.equal(dismissButtons.length, 1, 'only the AI inference can be dismissed');
@@ -447,14 +447,41 @@ describe('/me page behaviour', () => {
     assert.equal(meFetches(), before + 1, 'a burst of events about this participant coalesces into one refresh');
   });
 
-  it('explains that introductions are not open yet when the decision endpoint is missing', async () => {
-    const { elements, requests } = await loadPage(answerSample);
+  it('opens the intro room when a tap completes the mutual introduction', async () => {
+    const { elements, requests, page } = await loadPage((url) =>
+      url === '/api/matches/m1/decision' ? [200, { state: 'completed', completed: true, room: '/me/matches/m1' }] : answerSample(url),
+    );
     const card = elements.matches!.children[0]!;
     const interested = card.all().find((n) => n.tagName === 'BUTTON' && /Interested/.test(n.textContent))!;
     await interested.listeners.click!();
     await settle();
     assert.ok(requests.some((r) => r.url === '/api/matches/m1/decision' && r.method === 'POST'));
-    assert.match(card.textContent, /Introductions open shortly/);
+    assert.equal(page.redirectedTo, '/me/matches/m1');
+  });
+
+  it('shows the server message when a decision is refused', async () => {
+    const { elements } = await loadPage((url) =>
+      url === '/api/matches/m1/decision' ? [409, { error: 'not_allowed', message: 'This introduction can no longer change that way.' }] : answerSample(url),
+    );
+    const card = elements.matches!.children[0]!;
+    const pass = card.all().find((n) => n.tagName === 'BUTTON' && n.textContent === 'Pass')!;
+    await pass.listeners.click!();
+    await settle();
+    assert.match(card.textContent, /can no longer change/);
+  });
+
+  it('replaces the buttons with a room link once the introduction is completed', async () => {
+    const completed = { ...sample, matches: [{ ...sample.matches[0]!, intro_state: 'completed', my_interest: true, their_interest: true }] };
+    const { elements } = await loadPage((url) => (url === '/api/me' ? [200, completed] : [404, {}]));
+    const card = elements.matches!.children[0]!;
+    const link = card.all().find((n) => n.tagName === 'A' && /Open Intro Room/.test(n.textContent));
+    assert.equal(link?.attributes.href, '/me/matches/m1');
+    assert.equal(card.all().some((n) => n.tagName === 'BUTTON'), false);
+  });
+
+  it('shows the incoming-interest banner', async () => {
+    const { elements } = await loadPage(answerSample);
+    assert.match(elements.matches!.children[2]!.textContent, /⚡ Loom-0003 wants to connect with you! Tap Interested to unlock your Intro Room/);
   });
 
   it('withdraws only after a second tap', async () => {
