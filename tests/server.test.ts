@@ -19,6 +19,7 @@ import {
   openDatabase,
   REQUIRED_TABLES,
   resolveDbPath,
+  resolveSchemaPath,
 } from '../src/db/client.ts';
 import type { Logger, RouteDefinition, RunningServer, StaticAlias } from '../src/server.ts';
 import {
@@ -192,6 +193,8 @@ describe('db client', () => {
     assert.equal(resolveDbPath({ ARIADNE_DB_PATH: '/tmp/x.db' }), '/tmp/x.db');
     assert.equal(resolveDbPath({ ARIADNE_DB_PATH: '  ' }), DEFAULT_DB_PATH);
     assert.equal(resolveDbPath({}), 'data/ariadne.db');
+    assert.equal(resolveSchemaPath({ ARIADNE_SCHEMA_PATH: '/tmp/s.sql' }), '/tmp/s.sql');
+    assert.equal(resolveSchemaPath({}), 'src/db/schema.sql');
   });
 });
 
@@ -581,9 +584,33 @@ describe('entry point', () => {
     });
   }
 
+  test('node src/server.ts with ARIADNE_SCHEMA_PATH applies that schema and reports ready', async () => {
+    const dir = scratchDir('entry-schema');
+    writeFileSync(join(dir, 'schema.sql'), FULL_SCHEMA);
+    const { child, first } = await launch({
+      ARIADNE_PORT: '0',
+      ARIADNE_DB_PATH: join(dir, 'e.db'),
+      ARIADNE_SCHEMA_PATH: join(dir, 'schema.sql'),
+    });
+    try {
+      assert.equal(first.schemaApplied, true);
+      assert.equal(first.schemaReady, true);
+      assert.equal((await fetch(`${first.url}/api/health`)).status, 200);
+    } finally {
+      const exited = new Promise<number | null>((done) => child.once('exit', (code) => done(code)));
+      child.kill('SIGTERM');
+      assert.equal(await exited, 0);
+    }
+  });
+
   test('node src/server.ts boots without a schema, reports not_ready and shuts down on SIGTERM', async () => {
     const dir = scratchDir('entry');
-    const { child, first } = await launch({ ARIADNE_PORT: '0', ARIADNE_DB_PATH: join(dir, 'e.db') });
+    // Point at an absent schema explicitly so this stays true once src/db/schema.sql lands in the repo.
+    const { child, first } = await launch({
+      ARIADNE_PORT: '0',
+      ARIADNE_DB_PATH: join(dir, 'e.db'),
+      ARIADNE_SCHEMA_PATH: join(dir, 'absent-schema.sql'),
+    });
     try {
       assert.equal(first.message, 'ariadne server listening');
       assert.equal(first.schemaReady, false);

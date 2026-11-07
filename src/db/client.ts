@@ -27,7 +27,7 @@ export interface SchemaReadiness {
 export interface OpenDatabaseOptions {
   /** Database file path; relative paths resolve against `cwd`. */
   path?: string;
-  /** Idempotent schema file to apply on open; `null` skips schema application. */
+  /** Idempotent schema file to apply on open; defaults to `ARIADNE_SCHEMA_PATH` or `src/db/schema.sql`; `null` skips it. */
   schemaPath?: string | null;
   /** Base directory for relative paths. Defaults to `process.cwd()`. */
   cwd?: string;
@@ -57,6 +57,16 @@ export function resolveDbPath(env: NodeJS.ProcessEnv = process.env): string {
 }
 
 /**
+ * Resolves the schema file path from `ARIADNE_SCHEMA_PATH`, falling back to the default.
+ * @param env - Environment to read; defaults to `process.env`.
+ * @returns The configured schema path (possibly relative).
+ */
+export function resolveSchemaPath(env: NodeJS.ProcessEnv = process.env): string {
+  const configured = env.ARIADNE_SCHEMA_PATH?.trim();
+  return configured ? configured : DEFAULT_SCHEMA_PATH;
+}
+
+/**
  * Opens the Ariadne SQLite database in WAL mode and applies the schema file when present.
  * The schema file is executed on every open, so it must be idempotent (`CREATE ... IF NOT EXISTS`).
  * @param options - Path, schema and base-directory overrides.
@@ -78,7 +88,7 @@ export function openDatabase(options: OpenDatabaseOptions = {}): AriadneDatabase
     db.exec(`PRAGMA synchronous = NORMAL; PRAGMA busy_timeout = ${BUSY_TIMEOUT_MS}; PRAGMA foreign_keys = ON;`);
 
     let schemaApplied = false;
-    const schemaPath = options.schemaPath === undefined ? DEFAULT_SCHEMA_PATH : options.schemaPath;
+    const schemaPath = options.schemaPath === undefined ? resolveSchemaPath() : options.schemaPath;
     if (schemaPath !== null) {
       const absoluteSchema = resolve(cwd, schemaPath);
       if (existsSync(absoluteSchema)) {
