@@ -418,6 +418,19 @@ describe('persistAnalysis', () => {
     db.close();
   });
 
+  test('a withdrawn participant gets nothing written or published, even with stage consent still set', () => {
+    for (const update of ["consent_status = 'withdrawn'", "analysis_state = 'withdrawn'"]) {
+      const db = dbWithParticipant(true);
+      db.prepare(`UPDATE participants SET ${update} WHERE id = ?`).run(PARTICIPANT);
+      const result = persistAnalysis(db, analyzeStage1(snapshot(), PARTICIPANT));
+      assert.deepEqual(result, { receipts: 0, claims: 0, event: null, skipped: 'consent_withdrawn' }, update);
+      assert.equal((db.prepare('SELECT COUNT(*) AS n FROM capability_claims').get() as { n: number }).n, 0);
+      assert.equal((db.prepare('SELECT COUNT(*) AS n FROM evidence_receipts').get() as { n: number }).n, 0);
+      assert.equal(readEventsAfter(db, 0).length, 0);
+      db.close();
+    }
+  });
+
   test('an unknown participant is refused and nothing is written', () => {
     const db = dbWithParticipant();
     const stranger = analyzeStage1(snapshot(), 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');

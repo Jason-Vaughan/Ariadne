@@ -122,6 +122,7 @@ All notable changes to Ariadne-PM are documented in this file.
   - Linked every card on the prepared Public Roadmap (`Ariadne-Public-Roadmap-preview.html` and `index.html`) directly to its live GitHub issue (`https://github.com/Jason-Vaughan/Ariadne/issues/1`..`17`) and published to GitHub Pages (`https://jason-vaughan.github.io/Ariadne/`) and PortHub `:3422`.
 
 ### Fixed
+- **A-004 `persistAnalysis` now refuses withdrawn participants:** it fails closed, writing no claims or receipts and publishing no `profile.analysis.completed`, and returns `skipped: 'consent_withdrawn'` when `consent_status` is not `granted` or `analysis_state` is `withdrawn`. Before this, a queued analysis finishing after withdrawal could still store data and broadcast the stage identity. The guard matches A-005's `persistOpportunities`.
 - **A-006 scorer timing test no longer flakes under a loaded test run:** each profile's architectural layers, domains and latest activity per cited project are now computed once per profile instead of once per pair, which removes per-pair set building and date parsing. The "pool of 30 in under 5 ms" test also takes the best of 20 runs rather than 5, so scheduler noise from parallel suites cannot fail it. Scores are unchanged.
 
 ### Changed
