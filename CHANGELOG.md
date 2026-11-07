@@ -5,6 +5,11 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Added
+- **A-008 Mobile Participant Dashboard (`/me`, `src/routes/me.ts`, `public/app/me.*`, `public/app/app.css`, Issue #8):**
+  - `GET /me` serves the dashboard to a signed-in participant and redirects anyone else to `/join`; `GET /api/me` returns their profile, a three-step research stepper (GitHub + Website Crawl → 6-Axis Builder Fingerprint → Top-3 Matches), the six fingerprint axes (0–100), non-dismissed offers and needs with evidence, their top 3 surfaced matches (`composite_score ≥ 45`, not declined) and the event cursor.
+  - Match cards show the score, the five score components, summary, first conversation, confidence limitations, https-only evidence links, incoming-interest alerts and Interested / Pass (posting to the A-012 decision endpoint, with a "introductions open shortly" fallback until it exists). A counterpart's GitHub handle appears only with their stage-display consent or after a completed bilateral introduction; contact cards are never returned.
+  - Participants can dismiss their own AI-inferred offers and needs (`POST /api/me/claims/:id/dismiss`, `POST /api/me/needs/:id/dismiss`), which queues a `matches.refresh` job; observed facts and participant-confirmed needs cannot be dismissed (409), and others' records are untouchable (404).
+  - The page re-renders live: it subscribes to `/api/events/stream` from the dashboard cursor, refreshes when an event names the participant's alias (`match.candidate.generated`, `match.evaluated`, …), and falls back to `/api/events/poll`. All data is written as text, never markup. A two-tap **Withdraw & Delete My Data** button calls `DELETE /api/participants/me`.
 - **Evidence-backed capability analysis and Builder Fingerprint agent (A-004, #4):**
   - `src/intelligence/capability-agent.ts`, **Stage 1** (`analyzeStage1`): deterministic, no model, a few ms. Turns an A-003 snapshot into contract-valid `EvidenceReceipt`s and `CapabilityClaim`s:
     - `OBSERVED_FACT` claims for primary languages, plus frameworks, tools, domains and architectures named in repository topics, descriptions or the README, each citing the receipts that show them. Proficiency comes from how many repositories show it.
