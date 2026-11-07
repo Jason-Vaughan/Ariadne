@@ -24,14 +24,17 @@ const SOURCE_LABELS: Readonly<Record<EvidenceReceipt['source_type'], string>> = 
 };
 
 const URL_PATTERN = /https?:\/\/[^\s)<>"'\]]+/gi;
-const GITHUB_PATH_PATTERN = /(?:https?:\/\/)?(?:www\.)?github\.com\/([A-Za-z0-9-]{1,39}(?:\/[A-Za-z0-9._-]{1,100})?)/gi;
-const REPO_TOKEN_PATTERN = /(^|[^A-Za-z0-9._\/-])([A-Za-z0-9][A-Za-z0-9-]{0,38}\/[A-Za-z0-9._-]{1,100})(?=$|[^A-Za-z0-9._\/-])/g;
-const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i;
-// Any dotted host-like token, wherever it sits (after `.`, `/`, `_`, letters…); emails are removed first.
+const GITHUB_PATH_PATTERN = /(?:https?:\/\/)?(?:www\.)?github\.com\/[A-Za-z0-9._\/-]*/gi;
+const EMAIL_PATTERN = /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi;
+const HANDLE_PATTERN = /(^|[^A-Za-z0-9._%+-])(@[A-Za-z0-9-]{1,39})\b/g;
+const PHONE_PATTERN = /\+?\d[\d\s().-]{6,}\d/g;
 const HOST_PATTERN = /((?:[A-Za-z0-9-]+\.)+([A-Za-z]{2,}))(\/[^\s)<>"']*)?/g;
-// Endings of code and file names (`Node.js`, `main.py`); a pathless token with one of these is not a link.
-// Real TLDs that are also common code endings (sh, net…) are deliberately absent: they fail safe as links.
-const CODE_SUFFIXES: ReadonlySet<string> = new Set(['js', 'ts', 'jsx', 'tsx', 'mjs', 'cjs', 'py', 'rs', 'go', 'rb', 'kt', 'swift', 'md', 'json', 'yml', 'yaml', 'toml', 'lock', 'html', 'css', 'scss', 'sql', 'wasm']);
+const REPO_TOKEN_PATTERN = /(^|[^A-Za-z0-9._\/-])([A-Za-z0-9][A-Za-z0-9-]{0,38}\/[A-Za-z0-9._-]{1,100})(?=$|[^A-Za-z0-9._\/-])/g;
+// Endings of code and file names (`Node.js`, `index.ts`) that are not also real top-level domains;
+// a pathless token with one of these is not a link. Ambiguous ones (md, rs, py, sh, io, net…) count as links.
+const CODE_SUFFIXES: ReadonlySet<string> = new Set(['js', 'ts', 'jsx', 'tsx', 'mjs', 'cjs', 'kt', 'swift', 'json', 'yml', 'yaml', 'toml', 'lock', 'html', 'css', 'scss', 'sql', 'wasm']);
+const STOCK_SLASH_PHRASES: ReadonlySet<string> = new Set(['and/or', 'either/or', 'n/a']);
+const MIN_PHONE_DIGITS = 9;
 
 /**
  * Turns the cited receipts of a pair into evidence pills: only receipts in `citedIds` that
@@ -81,59 +84,145 @@ export function hasCrossEvidence(pills: readonly EvidencePill[]): boolean {
   return pills.length >= 2 && pills.some((p) => p.side === 'a') && pills.some((p) => p.side === 'b');
 }
 
-/**
- * Lists every http(s) URL in a text, without trailing punctuation.
- * @param text - Free text.
- * @returns The URLs, in order of appearance.
- */
-export function extractUrls(text: string): string[] {
-  return (text.match(URL_PATTERN) ?? []).map((u) => u.replace(/[.,;:!?]+$/, ''));
+export type PrivateSpanKind = 'private' | 'link' | 'repo';
+
+/** A stretch of text that must not reach a match card or pass the Stage 2 gate. */
+export interface PrivateSpan {
+  start: number;
+  end: number;
+  kind: PrivateSpanKind;
+}
+
+/** What a pair may legitimately mention, and what identifies its two participants. */
+export interface PrivacyContext {
+  /** The pair's evidence URLs. */
+  allowedUrls: readonly string[];
+  /** The pair's repo names (`owner/repo`). */
+  allowedRepos: readonly string[];
+  /** Public display aliases. */
+  aliases: readonly string[];
+  contactCards: readonly string[];
+  /** GitHub logins; only allowed inside the pair's own repo names and URLs. */
+  logins: readonly string[];
+  /** Normalized capability names the pair holds or needs (`Rust/WebRTC`, `Node.js` are not links). */
+  capabilities: ReadonlySet<string>;
 }
 
 /**
- * Whether a text contains an email address.
- * @param text - Free text.
- * @returns True when an email-shaped string is present.
+ * Normalizes a capability-like token for comparison: lowercase, whitespace and underscores as `-`.
+ * @param value - Token.
+ * @returns Normalized token.
  */
-export function containsEmail(text: string): boolean {
-  return EMAIL_PATTERN.test(text);
+function normalizeToken(value: string): string {
+  return value.trim().toLowerCase().replace(/[\s_]+/g, '-');
 }
 
 /**
- * Lists every github.com path mentioned in a text, with or without a scheme (`owner` or `owner/repo`).
- * @param text - Free text.
- * @returns Lowercased paths without trailing punctuation.
+ * Every case-insensitive occurrence of each needle.
+ * @param lower - Lowercased haystack.
+ * @param needles - Strings to find.
+ * @returns `[start, end)` intervals.
  */
-export function extractGithubPaths(text: string): string[] {
-  return [...text.matchAll(GITHUB_PATH_PATTERN)].map((m) => m[1]!.replace(/[.,;:!?]+$/, '').toLowerCase());
-}
-
-/**
- * Lists every bare `owner/repo`-shaped token (`a/b`, any case). Callers decide which are allowed,
- * e.g. the pair's own repos or capability pairs such as `Rust/WebRTC`.
- * @param text - Free text with URLs already removed.
- * @returns Lowercased tokens.
- */
-export function extractRepoTokens(text: string): string[] {
-  return [...text.matchAll(REPO_TOKEN_PATTERN)].map((m) => m[2]!.replace(/[.,;:!?]+$/, '').toLowerCase());
-}
-
-/**
- * Lists link-shaped tokens written without a scheme: every dotted host, with or without a path
- * (`gitlab.com/a/b`, `evil.ru`, `Rust/gitlab.com/x`), except pathless code or file names such as
- * `Node.js` or `main.py`. Emails are excluded (callers check them separately).
- * @param text - Free text with full URLs already removed.
- * @returns Lowercased tokens (`host` or `host/path`) without trailing punctuation.
- */
-export function extractSchemelessLinks(text: string): string[] {
-  const links: string[] = [];
-  const withoutEmails = text.replace(new RegExp(EMAIL_PATTERN.source, 'gi'), ' ');
-  for (const m of withoutEmails.matchAll(HOST_PATTERN)) {
-    const host = m[1]!.toLowerCase();
-    const suffix = m[2]!.toLowerCase();
-    const path = (m[3] ?? '').replace(/[.,;:!?]+$/, '');
-    if (!path && CODE_SUFFIXES.has(suffix)) continue;
-    links.push(`${host}${path.toLowerCase()}`);
+function occurrences(lower: string, needles: readonly string[]): Array<[number, number]> {
+  const found: Array<[number, number]> = [];
+  for (const needle of needles) {
+    const n = needle.toLowerCase();
+    if (!n) continue;
+    for (let i = lower.indexOf(n); i !== -1; i = lower.indexOf(n, i + 1)) found.push([i, i + n.length]);
   }
-  return links;
+  return found;
+}
+
+/**
+ * The single privacy detector shared by the Stage 1 scrub and the Stage 2 gate. It finds:
+ * - contact cards, emails, @handles, phone numbers, and GitHub logins outside the pair's own repos/URLs (`private`);
+ * - URLs, `github.com/...` paths and schemeless hosts that are not the pair's evidence (`link`);
+ * - bare `owner/repo` names that are not the pair's (`repo`).
+ * The pair's own URLs, repo names and aliases are protected; capability names and pathless code/file
+ * names (`Node.js`) are not links.
+ * @param text - Text to inspect.
+ * @param ctx - The pair's privacy context.
+ * @returns Non-overlapping spans in text order.
+ */
+export function findPrivateSpans(text: string, ctx: PrivacyContext): PrivateSpan[] {
+  const lower = text.toLowerCase();
+  const allowedUrls = new Set(ctx.allowedUrls.map((u) => u.toLowerCase()));
+  const allowedRepos = new Set(ctx.allowedRepos.map((r) => r.toLowerCase()));
+  const allowedPaths = new Set([...allowedRepos, ...ctx.allowedUrls.map((u) => u.toLowerCase().replace(/^https?:\/\/(?:www\.)?github\.com\//, '').replace(/\/$/, ''))]);
+  const protectedIv = occurrences(lower, [...ctx.allowedUrls, ...ctx.allowedRepos, ...ctx.aliases]);
+  const spans: PrivateSpan[] = [];
+  const within = (start: number, end: number, ivs: ReadonlyArray<readonly [number, number]>): boolean => ivs.some(([s, e]) => start >= s && end <= e);
+  const covered = (start: number, end: number): boolean => within(start, end, protectedIv) || within(start, end, spans.map((sp) => [sp.start, sp.end] as const));
+  const trimEnd = (value: string): string => value.replace(/[.,;:!?]+$/, '');
+
+  for (const [start, end] of occurrences(lower, ctx.contactCards)) spans.push({ start, end, kind: 'private' });
+  for (const m of text.matchAll(URL_PATTERN)) {
+    const url = trimEnd(m[0]);
+    if (!allowedUrls.has(url.toLowerCase()) && !covered(m.index!, m.index! + url.length)) spans.push({ start: m.index!, end: m.index! + url.length, kind: 'link' });
+  }
+  for (const m of text.matchAll(GITHUB_PATH_PATTERN)) {
+    const token = trimEnd(m[0]);
+    const path = token.toLowerCase().replace(/^(?:https?:\/\/)?(?:www\.)?github\.com\//, '').replace(/\/$/, '');
+    if (allowedPaths.has(path)) protectedIv.push([m.index!, m.index! + token.length]);
+    else if (!covered(m.index!, m.index! + token.length)) spans.push({ start: m.index!, end: m.index! + token.length, kind: 'link' });
+  }
+  for (const m of text.matchAll(EMAIL_PATTERN)) {
+    if (!covered(m.index!, m.index! + m[0].length)) spans.push({ start: m.index!, end: m.index! + m[0].length, kind: 'private' });
+  }
+  for (const m of text.matchAll(HANDLE_PATTERN)) {
+    const start = m.index! + m[1]!.length;
+    if (!covered(start, start + m[2]!.length)) spans.push({ start, end: start + m[2]!.length, kind: 'private' });
+  }
+  for (const m of text.matchAll(PHONE_PATTERN)) {
+    if ((m[0].match(/\d/g) ?? []).length >= MIN_PHONE_DIGITS && !covered(m.index!, m.index! + m[0].length)) {
+      spans.push({ start: m.index!, end: m.index! + m[0].length, kind: 'private' });
+    }
+  }
+  for (const m of text.matchAll(HOST_PATTERN)) {
+    const token = trimEnd(m[0]);
+    const end = m.index! + token.length;
+    const suffix = m[2]!.toLowerCase();
+    const hasPath = token.length > m[1]!.length;
+    if (covered(m.index!, end) || (!hasPath && CODE_SUFFIXES.has(suffix)) || ctx.capabilities.has(normalizeToken(token))) continue;
+    spans.push({ start: m.index!, end, kind: 'link' });
+  }
+  for (const m of text.matchAll(REPO_TOKEN_PATTERN)) {
+    const token = trimEnd(m[2]!);
+    const start = m.index! + m[1]!.length;
+    const t = token.toLowerCase();
+    const isCapabilityPair = t.split('/').every((part) => ctx.capabilities.has(normalizeToken(part)));
+    // Fractions such as a 76/100 score are not repos.
+    if (/^[\d/]+$/.test(t) || covered(start, start + token.length) || allowedRepos.has(t) || STOCK_SLASH_PHRASES.has(t) || isCapabilityPair) continue;
+    spans.push({ start, end: start + token.length, kind: 'repo' });
+  }
+  for (const login of ctx.logins) {
+    // Logins are [a-z0-9-] by contract (GithubUsernameSchema), so they need no escaping.
+    const pattern = new RegExp(`(^|[^a-z0-9-])(${login.toLowerCase()})(?=$|[^a-z0-9-])`, 'g');
+    for (const m of lower.matchAll(pattern)) {
+      const start = m.index! + m[1]!.length;
+      if (!covered(start, start + login.length)) spans.push({ start, end: start + login.length, kind: 'private' });
+    }
+  }
+  spans.sort((x, y) => x.start - y.start || y.end - x.end);
+  const merged: PrivateSpan[] = [];
+  for (const span of spans) {
+    const last = merged.at(-1);
+    if (last && span.start < last.end) last.end = Math.max(last.end, span.end);
+    else merged.push({ ...span });
+  }
+  return merged;
+}
+
+/**
+ * Replaces every private span: private details become `[redacted]`, foreign links and repos `[link removed]`.
+ * @param text - Text to clean.
+ * @param ctx - The pair's privacy context.
+ * @returns The cleaned text.
+ */
+export function scrubPrivateDetails(text: string, ctx: PrivacyContext): string {
+  let out = text;
+  for (const span of findPrivateSpans(text, ctx).reverse()) {
+    out = `${out.slice(0, span.start)}${span.kind === 'private' ? '[redacted]' : '[link removed]'}${out.slice(span.end)}`;
+  }
+  return out;
 }
