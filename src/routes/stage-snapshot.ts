@@ -287,6 +287,7 @@ export function buildStageSnapshot(db: DatabaseSync, options: SnapshotOptions = 
   const head = latestSeqId(db);
   const live = participants.filter((p) => !isSeedId(p.id));
   const shown = new Set(nodes.filter((n) => n.display).map((n) => n.alias));
+  const active = new Set(nodes.map((n) => n.alias));
   const policy = getAdmissionPolicy();
   return {
     generated_at: (options.now ?? new Date()).toISOString(),
@@ -306,9 +307,10 @@ export function buildStageSnapshot(db: DatabaseSync, options: SnapshotOptions = 
     nodes,
     edges: capTopEdges(allEdges),
     pipeline: buildPipelineCounters(db, participants, allEdges),
-    recent_events: readEventsAfter(db, Math.max(0, head - RECENT_EVENT_COUNT), RECENT_EVENT_COUNT).map((e) =>
-      stageSafeEvent(e, shown),
-    ),
+    recent_events: readEventsAfter(db, Math.max(0, head - RECENT_EVENT_WINDOW), RECENT_EVENT_WINDOW)
+      .filter((e) => isActiveEvent(e, active))
+      .slice(-RECENT_EVENT_COUNT)
+      .map((e) => stageSafeEvent(e, shown)),
     fingerprints: buildFingerprintCards(db, participants, nodes),
     spotlight: buildSpotlight(db, aliasById, nodes),
     admission: { max_room_capacity: policy.maxRoomCapacity, intake_locked: policy.intakeLocked, live_builders: live.length },
@@ -320,6 +322,8 @@ export function buildStageSnapshot(db: DatabaseSync, options: SnapshotOptions = 
 // ---------------------------------------------------------------------------
 
 export const RECENT_EVENT_COUNT = 40;
+/** Events scanned for the feed, so it stays full after withdrawn or removed builders' events are dropped. */
+export const RECENT_EVENT_WINDOW = 400;
 export const SPOTLIGHT_LIMIT = 12;
 /** Evidence pills shown per builder on a fingerprint card or a spotlight side. */
 export const EVIDENCE_PILLS = 3;
@@ -367,6 +371,22 @@ function buildPipelineCounters(db: DatabaseSync, participants: ParticipantRow[],
       golden: edges.filter((e) => e.state === 'golden').length,
     },
   };
+}
+
+/**
+ * Whether an event concerns only builders on stage right now. A builder who withdrew (and whose data
+ * was deleted) or a seed taken out of the pool must disappear from the feed too, not just from the
+ * counters. Pair events need both sides present; events that name no builder always stay.
+ * @param event - Public event.
+ * @param active - Aliases of every participant currently on stage.
+ * @returns True when the event may be shown.
+ */
+export function isActiveEvent(event: PublicEventEnvelope, active: Set<string>): boolean {
+  const payload = event.payload as Record<string, unknown>;
+  return ['display_alias', 'display_alias_a', 'display_alias_b']
+    .map((key) => payload[key])
+    .filter((alias): alias is string => typeof alias === 'string')
+    .every((alias) => active.has(alias));
 }
 
 /**
