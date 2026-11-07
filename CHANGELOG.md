@@ -5,6 +5,9 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Added `node --test` Discovery to Testament Suite (`tests/test_ariadne_suite.py`) & Explicitly Added Shared `CHANGELOG.md` to Car Envelopes (`ARIADNE_ROADMAP.md`):**
+  - Updated `tests/test_ariadne_suite.py` so `/Users/jasonvaughan/.local/bin/testament run --json` automatically discovers and executes every `tests/*.test.ts` and `tests/*.test.js` file via `node --test`.
+  - Updated `ARIADNE_ROADMAP.md` to explicitly list shared `CHANGELOG.md` (and `package.json`/`tsconfig.json` for Foundation Cars) in the Car envelopes and aligned GitHub issue numbers (`#13 = A-014`, `#14 = A-015`).
 - **Onboarded Prawduct Protocol (`.prawduct/`, No Internal PRR) + Testament Test Runner (`.testament.toml`, `tests/test_ariadne_suite.py`) + Dual-Reviewer Bottleneck Mitigation (`CLAUDE.md`, `AGENTS.md`):**
   - Scaffolded `.prawduct/` via `prawduct-hook init-product` across `Jason-Vaughan/Ariadne` so all 4 Opus 5.5 Builder lanes (`Ariadne-Lane-A..D`) run under Prawduct governance, while explicitly waiving Prawduct's internal `pr` gate (`.prawduct/.gates-waived`) so Builders never waste tokens/time running internal PRR (`Ariadne-PRR` `#1568` and `Ariadne-Arc` `#1563` perform external PRR).
   - Configured Dual-Reviewer load balancing (`Ariadne-Arc` `#1563` reviews `Car A/B`; `Ariadne-PRR` `#1568` reviews `Car C/D`) to eliminate single-PRR queueing bottlenecks across the 4 parallel Builders.
