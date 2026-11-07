@@ -5,6 +5,9 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Added `node --test` Discovery to Testament Suite (`tests/test_ariadne_suite.py`) & Explicitly Added Shared `CHANGELOG.md` to Car Envelopes (`ARIADNE_ROADMAP.md`):**
+  - Updated `tests/test_ariadne_suite.py` so `/Users/jasonvaughan/.local/bin/testament run --json` automatically discovers and executes every `tests/*.test.ts` and `tests/*.test.js` file via `node --test`.
+  - Updated `ARIADNE_ROADMAP.md` to explicitly list shared `CHANGELOG.md` (and `package.json`/`tsconfig.json` for Foundation Cars) in the Car envelopes and aligned GitHub issue numbers (`#13 = A-014`, `#14 = A-015`).
 - **Self-hosted Ariadne server on `127.0.0.1:3420` with SQLite WAL client, auto-mounted routes, `GET /api/health` and narrow tunnel script (A-014 Slice 1, #13):**
   - `src/server.ts` mounts every `src/routes/*.ts` module (`export const routes: RouteDefinition[]`), so feature lanes add routes without editing the server; a duplicate method + path fails at boot. Serves `public/` as static files (`/stage` → `public/stage/index.html`) with path-traversal protection, then two narrow aliases: `/reports/v<x.y.z>/…` → `sprint-reports/v<x.y.z>/…` (version directories only, so generator scripts stay private) and `/tangleclaw-logo.png` → `roadmap-board/tangleclaw-logo.png`. A directory URL without a trailing slash 301-redirects so relative links resolve. Binds loopback only and refuses TangleClaw/Medusa ports (3100, 3102, 8443, 3009, 3010).
   - `src/db/client.ts` opens `data/ariadne.db` (override with `ARIADNE_DB_PATH`) with `journal_mode = WAL`, `synchronous = NORMAL`, `busy_timeout = 5000`, `foreign_keys = ON`, and applies `src/db/schema.sql` on every open when present (the schema must be idempotent).

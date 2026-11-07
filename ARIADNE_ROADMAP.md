@@ -42,12 +42,13 @@ _Data as of 2026-11-05 22:36 PST._ Sorted by `Ariadne-PM` (`#149`) per `TC-Lane-
 - Stand up append-only SQLite event bus (`SSE GET /api/events/stream` + fallback `GET /api/events/poll`).
 - Publish live `/roadmap` and `/reports` (`v2.0.0` Sprint Reports Hub) static mounts.
 
-**Can start in parallel:** Solo #1 (A-001): Contracts & SQLite WAL Schema; Solo #14 (A-014): Self-Hosted `:3420` Server & Auto-Route Loader; Solo #9 (A-009): SSE + Polling Fallback Event Bus; Solo #15 (A-015): Live Roadmap & v2.0.0 Sprint Reports Hub.
+**Can start in parallel:** Solo #1 (A-001): Contracts & SQLite WAL Schema; Solo #13 (A-014): Self-Hosted `:3420` Server & Auto-Route Loader; Solo #9 (A-009): SSE + Polling Fallback Event Bus; Solo #14 (A-015): Live Roadmap & v2.0.0 Sprint Reports Hub.
+*(Shared Governance Envelope Rule: Every Car across all versions is authorized to append its `[Unreleased]` entry to `CHANGELOG.md` and update `.prawduct/*` governance artifacts; `Ariadne-INT` resolves/combines `CHANGELOG.md` entries at merge time. `Refs #N` or `Closes #N` are both accepted on Wave PRs.)*
 
-- **Solo #1 (A-001): Contracts & SQLite WAL Schema** — 0 of 1 done · lane: Ariadne-Lane-A · Exclusive envelope: `src/contracts/types.ts`, `src/contracts/events.ts`, `src/db/schema.sql`, `tests/contracts.test.ts`.
-- **Solo #14 (A-014): Self-Hosted `:3420` Server & Auto-Route Loader** — 0 of 1 done · lane: Ariadne-Lane-B · Exclusive envelope: `src/server.ts`, `src/db/client.ts`, `src/routes/health.ts`, `scripts/tunnel.sh`, `tests/server.test.ts`.
-- **Solo #9 (A-009): SSE + Polling Fallback Event Bus** — 0 of 1 done · lane: Ariadne-Lane-C · Exclusive envelope: `src/events/bus.ts`, `src/routes/events.ts`, `tests/events.test.ts`.
-- **Solo #15 (A-015): Live Roadmap & v2.0.0 Sprint Reports Hub** — 0 of 1 done · lane: Ariadne-Lane-D · Exclusive envelope: `public/reports/index.html`, `public/roadmap/index.html`, `scripts/build-sprint-report.js`, `tests/reports.test.ts`.
+- **Solo #1 (A-001): Contracts & SQLite WAL Schema** — 0 of 1 done · lane: Ariadne-Lane-A · Exclusive envelope: `src/contracts/types.ts`, `src/contracts/events.ts`, `src/db/schema.sql`, `tests/contracts.test.ts` (+ shared `CHANGELOG.md`, `package.json`, `tsconfig.json`).
+- **Solo #13 (A-014): Self-Hosted `:3420` Server & Auto-Route Loader** — 0 of 1 done · lane: Ariadne-Lane-B · Exclusive envelope: `src/server.ts`, `src/db/client.ts`, `src/routes/health.ts`, `scripts/tunnel.sh`, `tests/server.test.ts` (+ shared `CHANGELOG.md`, `package.json`, `tsconfig.json`).
+- **Solo #9 (A-009): SSE + Polling Fallback Event Bus** — 0 of 1 done · lane: Ariadne-Lane-C · Exclusive envelope: `src/events/bus.ts`, `src/routes/events.ts`, `tests/events.test.ts` (+ shared `CHANGELOG.md`).
+- **Solo #14 (A-015): Live Roadmap & v2.0.0 Sprint Reports Hub** — 0 of 1 done · lane: Ariadne-Lane-D · Exclusive envelope: `public/reports/index.html`, `public/roadmap/index.html`, `scripts/build-sprint-report.js`, `tests/reports.test.ts` (+ shared `CHANGELOG.md`).
 
 ```tc-release
 {
