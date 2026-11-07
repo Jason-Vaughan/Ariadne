@@ -24,6 +24,7 @@ import {
   SEED_COUNT,
   seedProfiles,
   setSeedMode,
+  stageSafeEvent,
 } from '../src/routes/stage-snapshot.ts';
 import type { StageEdge } from '../src/routes/stage-snapshot.ts';
 import {
@@ -536,6 +537,46 @@ describe('network graph helpers', () => {
     assert.match(edgePath({ x: 0, y: 0 }, { x: 10, y: 0 }, false), /^M0\.0 0\.0L10\.0 0\.0$/);
     assert.match(edgePath({ x: 0, y: 0 }, { x: 10, y: 0 }, true), /^M0\.0 0\.0Q5\.0 2\.2 10\.0 0\.0$/);
   });
+});
+
+test('stageSafeEvent fills identities from current stage displays and removes everyone else\'s', () => {
+  const display = { github_username: 'alice', avatar_url: 'https://avatars.githubusercontent.com/u/1?v=4' };
+  const displays = new Map([['Thread-0A01', display], ['Thread-0C03', null]]);
+  const pair = {
+    seq_id: 1,
+    event_id: randomUUID(),
+    type: 'introduction.completed' as const,
+    occurred_at: NOW,
+    payload: {
+      match_id: randomUUID(),
+      display_alias_a: 'Thread-0A01',
+      display_alias_b: 'Thread-0B02',
+      display_b: { stage_display_consent: true as const, github_username: 'bob', avatar_url: null },
+      channel: 'web' as const,
+    },
+  };
+  const safe = stageSafeEvent(pair, displays).payload as Record<string, unknown>;
+  assert.deepEqual(safe.display_a, { stage_display_consent: true, ...display }, 'added from the stage, though the event had none');
+  assert.equal('display_b' in safe, false, 'an identity the stage does not show is removed');
+  assert.ok(!('display_a' in pair.payload), 'the stored event is not modified');
+
+  const single = { seq_id: 2, event_id: randomUUID(), type: 'participant.registered' as const, occurred_at: NOW, payload: { display_alias: 'Thread-0C03' } };
+  assert.equal('display' in stageSafeEvent(single, displays).payload, false, 'a node without a display stays pseudonymous');
+});
+
+test('/stage/ opens on View 1 and carries a floating QR outside the views', () => {
+  const html = readFileSync(join(REPO_ROOT, 'public', 'stage', 'index.html'), 'utf8');
+  assert.match(html, /const state = \{\n  view: '1',/);
+  assert.match(html, /<button type="button" id="qr-float-toggle" data-action="qr:floating" aria-pressed="true">📌 Floating QR<kbd>A<\/kbd><\/button>/);
+  assert.ok(html.includes('<aside id="qr-floating" aria-label="Floating join QR">'), 'the floating QR is on when the stage loads');
+  const panel = html.indexOf('<aside id="qr-floating"');
+  assert.ok(panel > html.indexOf('</main>'), 'the floating QR sits outside every view, so it persists across them');
+  for (const id of ['id="qr-float-handle"', 'id="qr-float-frame"', 'id="qr-float-url"', 'id="qr-float-count"', 'Drag to move']) {
+    assert.ok(html.includes(id), id);
+  }
+  assert.ok(html.includes("else if (action === 'qr:floating') toggleFloatingQr();"));
+  assert.ok(html.includes('(event.clientX - drag.x) / state.scale'), 'dragging divides by the stage scale');
+  assert.ok(html.includes('<div id="qr-modal" hidden>'), 'the Q overlay is unchanged');
 });
 
 // Key-to-action mapping is tested in tests/stage-modes.test.ts; this checks the page wires it up.

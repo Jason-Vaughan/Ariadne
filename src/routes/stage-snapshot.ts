@@ -286,7 +286,7 @@ export function buildStageSnapshot(db: DatabaseSync, options: SnapshotOptions = 
 
   const head = latestSeqId(db);
   const live = participants.filter((p) => !isSeedId(p.id));
-  const shown = new Set(nodes.filter((n) => n.display).map((n) => n.alias));
+  const displays = new Map(nodes.filter((n) => n.display).map((n) => [n.alias, n.display]));
   const active = new Set(nodes.map((n) => n.alias));
   const policy = getAdmissionPolicy();
   return {
@@ -310,7 +310,7 @@ export function buildStageSnapshot(db: DatabaseSync, options: SnapshotOptions = 
     recent_events: readEventsAfter(db, Math.max(0, head - RECENT_EVENT_WINDOW), RECENT_EVENT_WINDOW)
       .filter((e) => isActiveEvent(e, active))
       .slice(-RECENT_EVENT_COUNT)
-      .map((e) => stageSafeEvent(e, shown)),
+      .map((e) => stageSafeEvent(e, displays)),
     fingerprints: buildFingerprintCards(db, participants, nodes),
     spotlight: buildSpotlight(db, aliasById, nodes),
     admission: { max_room_capacity: policy.maxRoomCapacity, intake_locked: policy.intakeLocked, live_builders: live.length },
@@ -390,22 +390,41 @@ export function isActiveEvent(event: PublicEventEnvelope, active: Set<string>): 
 }
 
 /**
- * Strip GitHub identities from an event unless that builder is shown on stage right now. An event
- * records the consent in force when it was written; consent can be withdrawn and privacy mode can
- * be switched on afterwards, so the stage re-applies the current rule.
+ * Apply the stage's current identity rule to an event. An event records the consent in force when it
+ * was written (and the worker writes aliases only), while consent can change and privacy mode can be
+ * switched on afterwards, so the stage decides now.
+ * - Given a Set of aliases, an identity already on the event is kept only for those aliases.
+ * - Given a Map of alias → stage display, every alias with a display gets that identity, whether or
+ *   not the event carried one, and every other identity is removed.
  * @param event - Contract-valid public event.
- * @param shown - Aliases whose identity the stage may show.
+ * @param shown - Aliases whose identity the stage may show, or their current stage displays.
  * @returns A copy of the event that is safe to project.
  */
-export function stageSafeEvent(event: PublicEventEnvelope, shown: Set<string>): PublicEventEnvelope {
+export function stageSafeEvent(
+  event: PublicEventEnvelope,
+  shown: Set<string> | ReadonlyMap<string, StageNode['display']>,
+): PublicEventEnvelope {
   const payload: Record<string, unknown> = { ...event.payload };
-  const strip = (aliasKey: string, displayKey: string): void => {
+  const apply = (aliasKey: string, displayKey: string): void => {
     const alias = payload[aliasKey];
-    if (typeof alias !== 'string' || !shown.has(alias)) delete payload[displayKey];
+    if (typeof alias !== 'string') {
+      delete payload[displayKey];
+      return;
+    }
+    if (shown instanceof Set) {
+      if (!shown.has(alias)) delete payload[displayKey];
+      return;
+    }
+    const display = shown.get(alias);
+    if (display) {
+      payload[displayKey] = { stage_display_consent: true, github_username: display.github_username, avatar_url: display.avatar_url };
+    } else {
+      delete payload[displayKey];
+    }
   };
-  strip('display_alias', 'display');
-  strip('display_alias_a', 'display_a');
-  strip('display_alias_b', 'display_b');
+  apply('display_alias', 'display');
+  apply('display_alias_a', 'display_a');
+  apply('display_alias_b', 'display_b');
   return { ...event, payload } as PublicEventEnvelope;
 }
 
