@@ -1,0 +1,7 @@
+manifest_version = 2
+name = "ariadne"
+executor = "host"
+command = ["/Users/jasonvaughan/.local/bin/uv", "run", "--with", "pytest", "pytest"]
+default_selection = ["tests/"]
+fallback = "local"
+env_inputs = ["DATA_AND_EVENTS_CONTRACT.md"]

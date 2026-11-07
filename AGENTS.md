@@ -467,3 +467,28 @@ Before wrapping, update memory with what the next session needs: key decisions a
 - Remove or update stale entries — memory should reflect current state.
 - Plain markdown, no special syntax required.
 <!-- END:tangleclaw -->
+
+## Ariadne Fleet Protocol: Prawduct on Builders + External Dual-Reviewer PRR (NO Internal PRR)
+
+1. **Use Prawduct Build Discipline on All Builder Lanes (`Ariadne-Lane-A..D`):**
+   - Follow Prawduct's structured chunk cycle (`.prawduct/` state, test-alongside-code, `.prawduct/.test-evidence.json`, and session reflection).
+2. **NO Internal PRR (`/prawduct:pr` Subagent Disabled on Builders):**
+   - Builders **MUST NOT** invoke `/prawduct:pr`'s internal `pr-reviewer` subagent. All Pull Request Review (PRR) is performed externally by our dedicated fleet reviewers!
+   - When opening a PR with `gh pr create`, Builders MUST immediately waive Prawduct's internal Gate 3 (`pr`) so the Stop hook does not block waiting for an internal PR reviewer:
+     ```bash
+     echo '{"pr": "External PR review performed by dedicated fleet reviewers Ariadne-PRR (#1568) and Ariadne-Arc (#1563)"}' > .prawduct/.gates-waived
+     ```
+3. **Dual-Reviewer Load Balancing (Preventing Single-PRR Bottlenecks):**
+   - To prevent 4 parallel Opus 5.5 Builders from bottlenecking on a single PRR lane, PR review is split 50/50 in parallel across two reviewers:
+     - **`Ariadne-Arc` (`#1563`) — Parallel Reviewer A/B:** Reviews PRs from **`Ariadne-Lane-A` (Car A)** and **`Ariadne-Lane-B` (Car B)**.
+     - **`Ariadne-PRR` (`#1568`) — Parallel Reviewer C/D:** Reviews PRs from **`Ariadne-Lane-C` (Car C)** and **`Ariadne-Lane-D` (Car D)**.
+   - Once either reviewer issues `APPROVE`, **`Ariadne-INT` (`#1565`)** rebases, verifies the full suite via `testament run --json`, and squash-merges to `main`.
+
+## Running tests (`testament`)
+
+Run tests through `/Users/jasonvaughan/.local/bin/testament`, not `pytest` directly:
+
+    /Users/jasonvaughan/.local/bin/testament run --json [pytest args…]
+
+Pass the same paths, `-k`, `-m` and flags you'd pass to `pytest` (alongside workspace `npm test` during inner-loop TypeScript checks). `testament run` ships the run to the shared runner pool (or runs locally when configured) and prints one JSON object on stdout when it finishes.
+

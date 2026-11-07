@@ -5,6 +5,10 @@ All notable changes to Ariadne-PM are documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Onboarded Prawduct Protocol (`.prawduct/`, No Internal PRR) + Testament Test Runner (`.testament.toml`, `tests/test_ariadne_suite.py`) + Dual-Reviewer Bottleneck Mitigation (`CLAUDE.md`, `AGENTS.md`):**
+  - Scaffolded `.prawduct/` via `prawduct-hook init-product` across `Jason-Vaughan/Ariadne` so all 4 Opus 5.5 Builder lanes (`Ariadne-Lane-A..D`) run under Prawduct governance, while explicitly waiving Prawduct's internal `pr` gate (`.prawduct/.gates-waived`) so Builders never waste tokens/time running internal PRR (`Ariadne-PRR` `#1568` and `Ariadne-Arc` `#1563` perform external PRR).
+  - Configured Dual-Reviewer load balancing (`Ariadne-Arc` `#1563` reviews `Car A/B`; `Ariadne-PRR` `#1568` reviews `Car C/D`) to eliminate single-PRR queueing bottlenecks across the 4 parallel Builders.
+  - Added `.testament.toml` and `tests/test_ariadne_suite.py` so every lane runs verification suites through `/Users/jasonvaughan/.local/bin/testament run --json`.
 - **Bootstrapped Public GitHub Repository (`Jason-Vaughan/Ariadne`), 4 Milestones, All 17 Planned Issues (`#1`–`#17`), and Published Public Roadmap (`gh-pages`):**
   - Created `https://github.com/Jason-Vaughan/Ariadne`, labels, 4 Release Train milestones (`v0.1.0`..`v1.0.0`), all 15 active MVP issues (`#1`–`#15`), and the 2 deferred V2 holding issues (`#16` `A-013`, `#17` `A-017`, closed as `not_planned`).
   - Linked every card on the prepared Public Roadmap (`Ariadne-Public-Roadmap-preview.html` and `index.html`) directly to its live GitHub issue (`https://github.com/Jason-Vaughan/Ariadne/issues/1`..`17`) and published to GitHub Pages (`https://jason-vaughan.github.io/Ariadne/`) and PortHub `:3422`.
