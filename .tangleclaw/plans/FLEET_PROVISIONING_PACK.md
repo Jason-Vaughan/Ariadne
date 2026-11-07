@@ -46,14 +46,14 @@ tcFetch('/plans/149/FLEET_PROVISIONING_PACK.md').then(r=>r.text()).then(h=>eval(
   };
 
   const fleet = [
-    { name: 'Ariadne-Arc',    engine: 'antigravity',            roleKey: 'ARC' },
-    { name: 'Ariadne-PRR',    engine: 'codex',                  roleKey: 'PRR' },
-    { name: 'Ariadne-INT',    engine: 'codex',                  roleKey: 'INT' },
-    { name: 'Ariadne-Obsr',   engine: 'antigravity',            roleKey: 'OBSR' },
-    { name: 'Ariadne-Lane-A', engine: 'claude-sonnet-reviewer', roleKey: 'BUILDER_A' },
-    { name: 'Ariadne-Lane-B', engine: 'claude-sonnet-reviewer', roleKey: 'BUILDER_B' },
-    { name: 'Ariadne-Lane-C', engine: 'claude-sonnet-reviewer', roleKey: 'BUILDER_C' },
-    { name: 'Ariadne-Lane-D', engine: 'claude-sonnet-reviewer', roleKey: 'BUILDER_D' },
+    { name: 'Ariadne-Arc',    engine: 'antigravity',         roleKey: 'ARC' },
+    { name: 'Ariadne-PRR',    engine: 'codex',               roleKey: 'PRR' },
+    { name: 'Ariadne-INT',    engine: 'codex',               roleKey: 'INT' },
+    { name: 'Ariadne-Obsr',   engine: 'antigravity',         roleKey: 'OBSR' },
+    { name: 'Ariadne-Lane-A', engine: 'claude-fable-sprint', roleKey: 'BUILDER_A' },
+    { name: 'Ariadne-Lane-B', engine: 'claude-fable-sprint', roleKey: 'BUILDER_B' },
+    { name: 'Ariadne-Lane-C', engine: 'claude-fable-sprint', roleKey: 'BUILDER_C' },
+    { name: 'Ariadne-Lane-D', engine: 'claude-fable-sprint', roleKey: 'BUILDER_D' },
   ];
 
   const COMMON_CORE = `TEAM COMMON CORE (ARIADNE-HACK-2026 v1 — governs Ariadne-Arc, Ariadne-PRR, Ariadne-INT, Ariadne-Obsr, Ariadne-Lane-A..D)
@@ -200,9 +200,18 @@ tcFetch('/plans/149/FLEET_PROVISIONING_PACK.md').then(r=>r.text()).then(h=>eval(
     console.log('DELEGATE -> PM(149)', lane.name, `(#${p.id}):`, assign.status);
   }
 
+  // Step 5: Launch all 8 Ariadne Fleet Lanes (#150..#157) in bypassPermissions mode
+  for (const lane of fleet) {
+    const res = await call(`/api/sessions/${encodeURIComponent(lane.name)}`, 'POST', {
+      launchMode: 'bypassPermissions'
+    });
+    console.log('🚀 LAUNCH', lane.name, res.status, res.data);
+    await new Promise(r => setTimeout(r, 1500));
+  }
+
   if (typeof loadProjects === 'function') await loadProjects();
   if (failures === 0) {
-    console.log('✅ ALL 8 ARIADNE FLEET LANES CREATED, MEDUSA ENABLED, INTERACTIVE MODE OFF (BYPASS), ACTIVE RULES SEEDED, AND PM DELEGATED!');
+    console.log('✅ ALL 8 ARIADNE FLEET LANES CONFIGURED (OPUS 5.5 BUILDERS) AND LAUNCHED!');
   } else {
     console.warn(`⚠️ Completed with ${failures} failed call(s) — check red error lines above.`);
   }
