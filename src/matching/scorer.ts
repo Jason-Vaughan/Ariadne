@@ -83,7 +83,19 @@ export function isEligible(profile: ParticipantProfile): boolean {
 }
 
 /**
- * Keeps the profile's own, non-dismissed claims and needs and its contract-valid evidence.
+ * Fails closed: scoring a participant who has not granted consent, or has withdrawn, is an error.
+ * @param profile - The participant profile.
+ * @throws If the profile is not eligible.
+ */
+function assertEligible(profile: ParticipantProfile): void {
+  if (!isEligible(profile)) throw new Error(`Participant ${profile.participant.id} is not eligible for matching (consent not granted or withdrawn)`);
+}
+
+/**
+ * Keeps the profile's contract-valid evidence and the non-dismissed claims and needs it supports.
+ * A claim, or an inferred need, counts only if it cites at least one valid receipt the participant
+ * owns, so an unsupported record can neither move the score nor borrow unrelated receipts to pass
+ * the evidence gate. A participant-confirmed need is the participant's own statement and needs no receipt.
  * @param profile - The participant profile.
  * @returns The working view used by every component formula.
  */
@@ -93,10 +105,16 @@ function toSide(profile: ParticipantProfile): Side {
   for (const receipt of profile.evidence) {
     if (receipt.participant_id === id && EvidenceReceiptSchema.safeParse(receipt).success) evidenceById.set(receipt.id, receipt);
   }
+  const supported = (ids: readonly string[]): boolean => ids.some((rid) => evidenceById.has(rid));
   return {
     profile,
-    claims: profile.claims.filter((c) => c.participant_id === id && !c.dismissed_by_user),
-    needs: profile.needs.filter((n) => n.participant_id === id && !n.dismissed_by_user),
+    claims: profile.claims.filter((c) => c.participant_id === id && !c.dismissed_by_user && supported(c.evidence_receipt_ids)),
+    needs: profile.needs.filter(
+      (n) =>
+        n.participant_id === id &&
+        !n.dismissed_by_user &&
+        (n.label === 'Participant Confirmed Need' || supported(n.evidence_receipt_ids)),
+    ),
     evidenceById,
   };
 }
@@ -325,8 +343,10 @@ export interface PreparedProfile {
  * @param profile - The participant profile.
  * @param options - Reference time (stale-need discounting depends on it).
  * @returns The prepared profile.
+ * @throws If the participant has not granted consent or has withdrawn.
  */
 export function prepareProfile(profile: ParticipantProfile, options: ScoreOptions): PreparedProfile {
+  assertEligible(profile);
   const side = toSide(profile);
   const needs = needVectors(side, options.now);
   return {
@@ -350,7 +370,7 @@ export function prepareProfile(profile: ParticipantProfile, options: ScoreOption
  * @param second - The other participant's profile.
  * @param options - Reference time.
  * @returns The canonically ordered pair score.
- * @throws If both profiles are the same participant.
+ * @throws If both profiles are the same participant, or either is not eligible (consent not granted or withdrawn).
  */
 export function scorePair(first: ParticipantProfile, second: ParticipantProfile, options: ScoreOptions): PairScore {
   return scorePrepared(prepareProfile(first, options), prepareProfile(second, options), options);
@@ -362,9 +382,11 @@ export function scorePair(first: ParticipantProfile, second: ParticipantProfile,
  * @param second - The other prepared profile.
  * @param options - Reference time.
  * @returns The canonically ordered pair score.
- * @throws If both profiles are the same participant.
+ * @throws If both profiles are the same participant, or either is not eligible.
  */
 export function scorePrepared(first: PreparedProfile, second: PreparedProfile, options: ScoreOptions): PairScore {
+  assertEligible(first.profile);
+  assertEligible(second.profile);
   const idFirst = first.profile.participant.id;
   const idSecond = second.profile.participant.id;
   if (idFirst === idSecond) throw new Error('Cannot score a participant against themselves');

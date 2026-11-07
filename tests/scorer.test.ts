@@ -18,7 +18,7 @@ import {
 import type { CapabilityClaim, EvidenceReceipt, OpportunityNeed, Participant } from '../src/contracts/index.ts';
 import { readEventsAfter } from '../src/events/bus.ts';
 import { novelty, surfacingRejections } from '../src/matching/anti-clone.ts';
-import { matchIdFor, scorePair, selectTopMatches } from '../src/matching/scorer.ts';
+import { matchIdFor, prepareProfile, scorePair, scorePrepared, selectTopMatches } from '../src/matching/scorer.ts';
 import type { ParticipantProfile } from '../src/matching/scorer.ts';
 
 const REPO_ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -366,7 +366,7 @@ describe('scorePair', () => {
     assert.equal(pair.score_breakdown.complementarity, 0);
   });
 
-  test('insufficient evidence: a high-synergy pair without valid evidence on one side is rejected', () => {
+  test('insufficient evidence: a pair without valid evidence on one side is rejected, and its unsupported claims do not score', () => {
     const [a, b] = highSynergyPair();
     for (const mode of ['none', 'invalid'] as const) {
       const bare = profile(
@@ -377,9 +377,10 @@ describe('scorePair', () => {
         { evidence: mode },
       );
       const pair = scorePair(a, bare, { now: NOW });
-      assert.ok(pair.composite_score >= MATCH_SURFACE_THRESHOLD, `${mode}: score ${pair.composite_score}`);
       assert.equal(pair.surfaceable, false, mode);
-      assert.deepEqual(pair.rejections, ['insufficient_evidence'], mode);
+      assert.ok(pair.rejections.includes('insufficient_evidence'), mode);
+      assert.equal(pair.score_breakdown.capability_similarity, 0, mode);
+      assert.ok(pair.composite_score < scorePair(a, b, { now: NOW }).composite_score, mode);
     }
   });
 
@@ -388,7 +389,36 @@ describe('scorePair', () => {
     const offsite = { ...b, evidence: b.evidence.map((r) => ({ ...r, source_url: 'https://example.com/fake' })) };
     const pair = scorePair(a, offsite, { now: NOW });
     assert.ok(!pair.evidence_receipt_ids.some((id) => b.evidence.some((r) => r.id === id)));
-    assert.deepEqual(pair.rejections, ['insufficient_evidence']);
+    assert.equal(pair.surfaceable, false);
+    assert.ok(pair.rejections.includes('insufficient_evidence'));
+  });
+
+  test('an unsupported high-impact claim cannot move the score or borrow unrelated receipts', () => {
+    const [a, b] = highSynergyPair();
+    // B keeps one real, weakly relevant claim with a valid receipt; its strong claims now cite a receipt it does not own.
+    const docs = profile('Spool-0B05', 'wave-ui/audio-deck', [{ name: 'Markdown', category: 'tooling', proficiency: 'exploratory' }]);
+    const forged = {
+      ...docs,
+      claims: [
+        ...docs.claims,
+        ...b.claims.map((c) => ({ ...c, participant_id: docs.participant.id, evidence_receipt_ids: ['00000000-0000-4000-8000-0000000000ee'] })),
+      ],
+    };
+    const honest = scorePair(a, docs, { now: NOW });
+    const withForged = scorePair(a, forged, { now: NOW });
+    assert.deepEqual(withForged.score_breakdown, honest.score_breakdown);
+    assert.equal(withForged.surfaceable, false);
+  });
+
+  test('a participant-confirmed need counts without a receipt; an inferred one does not', () => {
+    const helper = profile('Graph-0D07', 'qlhelp/graphql-kit', [{ name: 'GraphQL', category: 'systems_architecture' }]);
+    const owner = profile('Owner-0D08', 'owner/app', [{ name: 'APIs', category: 'domain' }], [{ wants: ['GraphQL'], inferred: false }]);
+    const unbacked = (label: OpportunityNeed['label']) => ({
+      ...owner,
+      needs: owner.needs.map((n) => ({ ...n, label, evidence_receipt_ids: [] })),
+    });
+    assert.ok(scorePair(unbacked('Participant Confirmed Need'), helper, { now: NOW }).score_breakdown.need_offer_fit > 0);
+    assert.equal(scorePair(unbacked('Potential Opportunity (AI Inference)'), helper, { now: NOW }).score_breakdown.need_offer_fit, 0);
   });
 
   test('capability names match across case, spaces and underscores (agent_orchestration pairs with evals-observability)', () => {
@@ -401,6 +431,20 @@ describe('scorePair', () => {
       { name: 'AI', category: 'domain' },
     ]);
     assert.equal(scorePair(orchestrator, evaluator, { now: NOW }).score_breakdown.complementarity, 1);
+  });
+
+  test('direct scoring fails closed for a withdrawn or non-consented participant', () => {
+    const [a, b] = highSynergyPair();
+    const withdrawn = { ...b, participant: { ...b.participant, consent_status: 'withdrawn' as const } };
+    const analysisWithdrawn = { ...b, participant: { ...b.participant, analysis_state: 'withdrawn' as const } };
+    for (const bad of [withdrawn, analysisWithdrawn]) {
+      assert.throws(() => scorePair(a, bad, { now: NOW }), /not eligible/);
+      assert.throws(() => scorePair(bad, a, { now: NOW }), /not eligible/);
+      assert.throws(() => prepareProfile(bad, { now: NOW }), /not eligible/);
+    }
+    const prepared = prepareProfile(b, { now: NOW });
+    const revoked = { ...prepared, profile: withdrawn };
+    assert.throws(() => scorePrepared(prepareProfile(a, { now: NOW }), revoked, { now: NOW }), /not eligible/);
   });
 
   test('refuses to score a participant against themselves', () => {
