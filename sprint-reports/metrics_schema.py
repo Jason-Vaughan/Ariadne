@@ -74,8 +74,8 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
             "t6_pst": "11:51:30 PST (Annotated tag v0.1.0 published @ 101d16c)",
             "t7_live_deploy_completed": "2026-11-07T19:52:00Z",
             "t7_pst": "11:52:00 PST (Live :3420 /api/health 200 OK & 183/183 tests green)",
-            "t8_observer_certification_completed": "2026-11-07T19:55:00Z",
-            "t8_pst": "11:55:00 PST (Ariadne-Obsr O-Gate certification)",
+            "t8_observer_certification_completed": "2026-11-07T19:59:52Z",
+            "t8_pst": "11:59:52 PST (Ariadne-Obsr O-Gate PR #25 opened; final head PASS 20:17:50Z)",
         },
         "durations": {
             "full_engineering_window_hrs": 0.66,
@@ -176,8 +176,8 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
             "t6_pst": "12:14:29 PST (Annotated tag v0.2.0 published @ 3f14b9e)",
             "t7_live_deploy_completed": "2026-11-07T20:15:00Z",
             "t7_pst": "12:15:00 PST (Live :3420 /api/health 200 OK & 342/342 tests green)",
-            "t8_observer_certification_completed": "2026-11-07T20:20:00Z",
-            "t8_pst": "12:20:00 PST (Ariadne-Obsr O-Gate certification)",
+            "t8_observer_certification_completed": "2026-11-07T20:40:59Z",
+            "t8_pst": "12:40:59 PST (Ariadne-Obsr O-Gate PASS comment #6712751862 on PR #30; final head PASS 20:50:46Z)",
         },
         "durations": {
             "full_engineering_window_hrs": 0.40,
@@ -278,8 +278,8 @@ DETAILED_SPRINT_RECORDS: Dict[str, Dict[str, Any]] = {
             "t6_pst": "12:42:23 PST (Annotated tag v0.3.0 published @ 1a7c8be)",
             "t7_live_deploy_completed": "2026-11-07T20:42:45Z",
             "t7_pst": "12:42:45 PST (Live :3420 /api/health 200 OK & 442/442 tests green)",
-            "t8_observer_certification_completed": "2026-11-07T20:55:00Z",
-            "t8_pst": "12:55:00 PST (Ariadne-Obsr O-Gate certification)",
+            "t8_observer_certification_completed": "2026-11-07T21:03:59Z",
+            "t8_pst": "13:03:59 PST (Ariadne-Obsr O-Gate PASS comment #6712992075 on PR #37; updated head PASS 21:13:55Z)",
         },
         "durations": {
             "full_engineering_window_hrs": 0.55,
