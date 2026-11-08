@@ -11,8 +11,13 @@ to file paths — this maps the layout itself.
 ## Structure
 
 - `ISSUE_BACKLOG/` — Pre-hackathon H-Day GitHub issue drafts (`A-001.md` through `A-017.md` + `INDEX.md`), ready for publication after explicit Operator H-Day GO.
-- `.tangleclaw/plans/` — Mirrored planning specifications served via TangleClaw MagicDNS (`/plans/149/<file>.md`).
-- Root Markdown specifications (`PROJECT_CHARTER.md`, `PRODUCT_REQUIREMENTS.md`, `ARCHITECTURE.md`, `DATA_AND_EVENTS_CONTRACT.md`, `MATCH_SCORING_SPEC.md`, `GITHUB_INTELLIGENCE_SPEC.md`, `VISUALIZER_SPEC.md`, `PRIVACY_AND_SECURITY.md`, `FLEET_CHARTER.md`, `DEPENDENCY_DAG.md`, `RELEASE_PLAN.md`, `HACKATHON_RUNBOOK.md`, `DEMO_RUNBOOK.md`, `PROVENANCE_AND_JUDGING.md`, `PREFLIGHT_CHECKLIST.md`, `RISK_REGISTER.md`, `OPERATOR_APPROVAL_PACKET.md`) — Pre-event architecture and operational planning package for `ARIADNE-HACK-2026`.
+- `data/` — Runtime SQLite database and the golden seed persona JSON.
+- `public/` — Static participant app, stage visualizer, roadmap, and published report pages.
+- `roadmap-board/` — Roadmap dashboard assets, source data, build scripts, and publishing helpers.
+- `scripts/` — GitHub issue bootstrap, tunnel launcher, and sprint report build scripts.
+- `sprint-reports/` — Report contracts, metrics schemas, generators, validators, assets, and versioned reports.
+- `src/` — TypeScript server, routes, contracts, database, GitHub analysis, matching, events, and worker.
+- `tests/` — Node and Python suites for app behavior, contracts, reports, and worker flows.
 
 ## Shared directories / doc groups
 
