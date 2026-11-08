@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>[feature] A-008: Mobile participant Builder Fingerprint &amp; progressive Top-3 Match Cards UI · Ariadne Documentation (Powered by TangleClaw)</title>
+  <style>
+:root{color-scheme:light dark;--bg:#f6f8fa;--fg:#1f2328;--muted:#59636e;--line:#d0d7de;--panel:#ffffff;--code-bg:#f0f3f6;--link:#0969da;--accent:#1a7f37}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#8b949e;--line:#30363d;--panel:#161b22;--code-bg:#1f242c;--link:#58a6ff;--accent:#3fb950}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;position:relative;min-height:100vh}
+.tc-bg-watermark{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tc-bg-watermark img{width:min(82vw,860px);height:min(82vw,860px);object-fit:contain;opacity:.08;filter:saturate(1.1) contrast(1.05);user-select:none;-webkit-user-drag:none}
+@media(prefers-color-scheme:dark){.tc-bg-watermark img{opacity:.10;filter:drop-shadow(0 0 48px rgba(86,211,100,.18))}}
+header.doc-nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:.65rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;font-size:.88rem}
+.doc-brand{display:inline-flex;align-items:center;gap:.55rem;font-weight:700;color:var(--fg);text-decoration:none}
+.doc-brand img{width:24px;height:24px;border-radius:5px;object-fit:contain}
+.doc-links{display:flex;gap:1rem;flex-wrap:wrap;font-weight:600}
+main.doc-main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:2rem 1.25rem 5rem}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+h1,h2,h3,h4{line-height:1.28;margin-top:1.6em;margin-bottom:.5em}
+h1{font-size:1.95rem;margin-top:.4em;padding-bottom:.35rem;border-bottom:1px solid var(--line)}
+h2{font-size:1.42rem;padding-bottom:.25rem;border-bottom:1px solid var(--line)}
+h3{font-size:1.15rem}
+p,ul,ol,blockquote,pre,table{margin:0 0 1rem}
+ul,ol{padding-left:1.5rem}
+li+li{margin-top:.25rem}
+code{font:0.88em/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.14rem .38rem;border-radius:5px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:.95rem 1.1rem;overflow-x:auto}
+pre code{background:none;padding:0;font-size:.84rem}
+blockquote{margin-left:0;padding:.5rem 1rem;border-left:4px solid var(--link);background:color-mix(in srgb,var(--panel) 85%,transparent);border-radius:0 8px 8px 0;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:1.75rem 0}
+.table-wrap{overflow-x:auto;margin:1rem 0}
+table{width:100%;border-collapse:collapse;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.9rem}
+th,td{text-align:left;padding:.55rem .75rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--code-bg);font-weight:700}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.85rem;margin:1.25rem 0}
+.doc-card{display:block;padding:1rem;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 88%,transparent);transition:border-color .15s,transform .15s}
+.doc-card:hover{border-color:var(--link);transform:translateY(-2px);text-decoration:none}
+.doc-card strong{display:block;color:var(--fg);font-size:.98rem;margin-bottom:.25rem}
+.doc-card span{color:var(--muted);font-size:.82rem}
+footer.doc-footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.84rem}
+</style>
+</head>
+<body>
+  <div class="tc-bg-watermark" aria-hidden="true">
+    <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="">
+  </div>
+  <header class="doc-nav">
+    <a class="doc-brand" href="./">
+      <img src="../ariadne-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/ariadne-logo.png'" alt="Ariadne" style="height:32px;width:auto;border-radius:0;">
+      <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="TangleClaw">
+      <span>Ariadne Documentation · Orchestrated by TangleClaw</span>
+    </a>
+    <nav class="doc-links">
+      <a href="https://github.com/Jason-Vaughan/Ariadne">🐙 GitHub Repo</a>
+      <a href="../">🗺️ Roadmap Board</a>
+      <a href="../reports/">📊 Sprint Reports</a>
+      <a href="./">📚 All Docs (ISSUE_A-008.md)</a>
+      <a href="MASTER_SSOT.html">⭐ Master SSOT</a>
+    </nav>
+  </header>
+  <main class="doc-main">
+    <h1>[feature] A-008: Mobile participant Builder Fingerprint &amp; progressive Top-3 Match Cards UI</h1><ul><li><strong>Issue ID:</strong> <code>A-008</code></li><li><strong>Priority:</strong> <code>P0</code></li><li><strong>Assigned Lane &amp; Car:</strong> <code>Ariadne-Lane-A</code> (<code>Car 1-A</code> Shell &amp; <code>Car 2-A</code> Live Wiring)</li><li><strong>Milestone / Train:</strong> <code>Train 1 (v0.2.0) &amp; Train 2 (v0.3.0)</code></li><li><strong>Dependencies:</strong> <code>A-002</code>, <code>A-006</code>, <code>A-007</code></li></ul><h2>1. Description</h2><p>Build the private mobile participant dashboard (<code>/me</code>) showing:</p><ol><li>Their own <strong>6-Axis Builder Fingerprint Card</strong> (<code>Systems/Infra</code>, <code>Agent Orchestration</code>, <code>LLM/Eval</code>, <code>Frontend/UX</code>, <code>Product/GTM</code>, <code>Data/Pipelines</code>) + Superpower (<code>Offers</code>) &amp; Looking-For (<code>Needs</code>) pills,</li><li>Their <strong>Top-3 Complementary Match Cards</strong> (<code>score &gt;= 45</code>), rendered in <strong><code>&lt; 500ms</code></strong> (Stage 1 deterministic match + repo evidence pills) and progressively upgraded live via SSE/poll when Stage 2 Gemini Flash enrichment (<code>match.enriched</code>) arrives,</li><li>One-tap <strong><code>Interested</code></strong> and <strong><code>Pass</code></strong> buttons plus live incoming-interest alerts.</li></ol><h2>2. Rationale</h2><p>After typing their GitHub handle on <code>/join</code>, <code>/me</code> is the participant&#x27;s personal mobile command center. Seeing their own 6-Axis Builder Fingerprint and Top-3 matches in under a second—and watching the Gemini Flash deep collaboration pitch stream in live—makes the mobile experience feel magical.</p><h2>3. Dependencies</h2><ul><li>Depends on <code>A-002</code> (session &amp; <code>/join</code>), <code>A-006</code> (scoring breakdown), and <code>A-007</code> (Two-Stage match proposals).</li></ul><h2>4. Implementation Boundaries</h2><ul><li><strong>In Scope:</strong> <code>src/app/me/page.tsx</code>, <code>src/components/BuilderFingerprintCard.tsx</code>, <code>src/components/MatchCard.tsx</code>, <code>src/components/CapabilityBadgeList.tsx</code>, <code>src/app/api/matches/route.ts</code>, and progressive SSE/poll updates for Stage 1 → Stage 2 enrichment.</li><li><strong>Out of Scope:</strong> Private Web Introduction Room (<code>/me/matches/:id</code>, <code>A-012</code>).</li></ul><h2>5. Acceptance Criteria</h2><ul><li>[ ] Renders the participant&#x27;s <strong>6-Axis Builder Fingerprint</strong> and verified GitHub capability/opportunity pills at the top of <code>/me</code>.</li><li>[ ] Displays up to <strong>3 Top Matches</strong> ordered by <code>composite_score</code> (<code>&gt;= 45</code>), rendering Stage 1 deterministic cards + clickable GitHub repo evidence pills in <code>&lt; 500ms</code> and smoothly updating in place when <code>match.enriched</code> arrives.</li><li>[ ] Each Match Card renders: overall score, 4-dimension breakdown bar (<code>40/30/20/10</code>), complementary skills, cited repos with clickable GitHub links, suggested first conversation, and 1-tap <code>Interested</code> / <code>Pass</code> buttons.</li><li>[ ] Allows the participant to dismiss any inaccurate AI-inferred capability or opportunity on their own profile and trigger a match refresh.</li></ul><h2>6. Test Requirements</h2><ul><li>Component and API tests covering Builder Fingerprint rendering, 3-match rendering, Stage 1 → Stage 2 progressive update, unauthenticated redirect to <code>/join</code>, and inference dismissal.</li></ul><h2>7. Security &amp; Privacy Considerations</h2><ul><li><code>GET /api/matches</code> returns matches <strong>only</strong> for the authenticated session&#x27;s <code>participant_id</code>.</li><li>Counterpart private contact details remain hidden until both tap <code>Interested</code> (<code>A-012</code>).</li></ul><h2>8. Expected Demonstration Impact</h2><p>Gives every hackathon attendee a fast, gorgeous mobile view of their own Builder DNA and their Top 3 complementary peers in the room.</p>
+    <footer class="doc-footer">
+      Document: <code>ISSUE_A-008.md</code> · Updated: <time>2026-11-06 10:25:32 PST</time> · Ariadne-PM (#149) · Static TangleClaw Watermark Active
+    </footer>
+  </main>
+</body>
+</html>

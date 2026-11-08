@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Ariadne Sprint Charter `ARI-T3` v1.0 — `v1.0.0: Live Dogfooding, UI Polish, Hardening &amp; Judge Sprint Reports` (`Train 3`) · Ariadne Documentation (Powered by TangleClaw)</title>
+  <style>
+:root{color-scheme:light dark;--bg:#f6f8fa;--fg:#1f2328;--muted:#59636e;--line:#d0d7de;--panel:#ffffff;--code-bg:#f0f3f6;--link:#0969da;--accent:#1a7f37}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#8b949e;--line:#30363d;--panel:#161b22;--code-bg:#1f242c;--link:#58a6ff;--accent:#3fb950}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;position:relative;min-height:100vh}
+.tc-bg-watermark{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tc-bg-watermark img{width:min(82vw,860px);height:min(82vw,860px);object-fit:contain;opacity:.08;filter:saturate(1.1) contrast(1.05);user-select:none;-webkit-user-drag:none}
+@media(prefers-color-scheme:dark){.tc-bg-watermark img{opacity:.10;filter:drop-shadow(0 0 48px rgba(86,211,100,.18))}}
+header.doc-nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:.65rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;font-size:.88rem}
+.doc-brand{display:inline-flex;align-items:center;gap:.55rem;font-weight:700;color:var(--fg);text-decoration:none}
+.doc-brand img{width:24px;height:24px;border-radius:5px;object-fit:contain}
+.doc-links{display:flex;gap:1rem;flex-wrap:wrap;font-weight:600}
+main.doc-main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:2rem 1.25rem 5rem}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+h1,h2,h3,h4{line-height:1.28;margin-top:1.6em;margin-bottom:.5em}
+h1{font-size:1.95rem;margin-top:.4em;padding-bottom:.35rem;border-bottom:1px solid var(--line)}
+h2{font-size:1.42rem;padding-bottom:.25rem;border-bottom:1px solid var(--line)}
+h3{font-size:1.15rem}
+p,ul,ol,blockquote,pre,table{margin:0 0 1rem}
+ul,ol{padding-left:1.5rem}
+li+li{margin-top:.25rem}
+code{font:0.88em/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.14rem .38rem;border-radius:5px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:.95rem 1.1rem;overflow-x:auto}
+pre code{background:none;padding:0;font-size:.84rem}
+blockquote{margin-left:0;padding:.5rem 1rem;border-left:4px solid var(--link);background:color-mix(in srgb,var(--panel) 85%,transparent);border-radius:0 8px 8px 0;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:1.75rem 0}
+.table-wrap{overflow-x:auto;margin:1rem 0}
+table{width:100%;border-collapse:collapse;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.9rem}
+th,td{text-align:left;padding:.55rem .75rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--code-bg);font-weight:700}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.85rem;margin:1.25rem 0}
+.doc-card{display:block;padding:1rem;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 88%,transparent);transition:border-color .15s,transform .15s}
+.doc-card:hover{border-color:var(--link);transform:translateY(-2px);text-decoration:none}
+.doc-card strong{display:block;color:var(--fg);font-size:.98rem;margin-bottom:.25rem}
+.doc-card span{color:var(--muted);font-size:.82rem}
+footer.doc-footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.84rem}
+</style>
+</head>
+<body>
+  <div class="tc-bg-watermark" aria-hidden="true">
+    <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="">
+  </div>
+  <header class="doc-nav">
+    <a class="doc-brand" href="./">
+      <img src="../ariadne-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/ariadne-logo.png'" alt="Ariadne" style="height:32px;width:auto;border-radius:0;">
+      <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="TangleClaw">
+      <span>Ariadne Documentation · Orchestrated by TangleClaw</span>
+    </a>
+    <nav class="doc-links">
+      <a href="https://github.com/Jason-Vaughan/Ariadne">🐙 GitHub Repo</a>
+      <a href="../">🗺️ Roadmap Board</a>
+      <a href="../reports/">📊 Sprint Reports</a>
+      <a href="./">📚 All Docs (TRAIN_3_CHARTER_v1.0.0.md)</a>
+      <a href="MASTER_SSOT.html">⭐ Master SSOT</a>
+    </nav>
+  </header>
+  <main class="doc-main">
+    <h1>Ariadne Sprint Charter <code>ARI-T3</code> v1.0 — <code>v1.0.0: Live Dogfooding, UI Polish, Hardening &amp; Judge Sprint Reports</code> (<code>Train 3</code>)</h1><ul><li><strong>Charter ID:</strong> <code>ARI-T3 v1.0</code></li><li><strong>Target Release:</strong> <code>v1.0.0</code> (<code>Milestone M4: Train 3 — Polish, Dogfooding &amp; Final Judge Release</code>)</li><li><strong>Scheduled Window:</strong> Saturday, November 7, 2026 · <code>13:45 PM – 17:45 PM PST</code> (<code>4.0 hours</code>)</li><li><strong>Base Commit (<code>origin/main</code>):</strong> <code>tag: v0.3.0</code></li><li><strong>Sprint Coordinator:</strong> <code>Ariadne-PM</code> (<code>#149</code>, <code>ariadne-pm-db0f895f</code>)</li><li><strong>Architect &amp; A-Gate Reviewer:</strong> <code>Ariadne-Arc</code></li><li><strong>Sole Release &amp; Merge Integrator:</strong> <code>Ariadne-INT</code></li><li><strong>I-Gate Reviewer:</strong> <code>Ariadne-PRR</code></li><li><strong>Observer &amp; O-Gate / Sprint Report Producer:</strong> <code>Ariadne-Obsr</code></li><li><strong>Parallel Builder Lanes:</strong> <code>Ariadne-Lane-A</code>, <code>Ariadne-Lane-B</code>, <code>Ariadne-Lane-C</code>, <code>Ariadne-Lane-D</code></li><li><strong>Reporting Standard:</strong> <code>SPRINT_REPORT_STANDARD.md v2.0.0</code> (<code>validate-sprint-report.py --all</code>)</li></ul><hr><h2>1. Executive Summary &amp; Afternoon Polish Strategy</h2><p>Because <code>Train 0</code> (<code>v0.1.0</code>), <code>Train 1</code> (<code>v0.2.0</code>), and <code>Train 2</code> (<code>v0.3.0</code>) complete the entire functional MVP before <code>14:00 PM PST</code>, <code>Train 3</code> (<code>v1.0.0</code>) provides <strong>4 full hours (<code>13:45 – 17:45 PM PST</code>)</strong> to:</p><ol><li>Onboard real hackathon attendees via the mobile QR code and observe real-world usage.</li><li>Dispatch targeted, file-disjoint bug-fix and UX-polish Cars across <code>Lane-A..D</code> (mobile responsiveness, match card clarity, 16:9 stage animations).</li><li>Complete <strong><code>Car 3-INT</code> (<code>A-014</code> Slice 2 + <code>A-015</code> Slice 2)</strong>: production hardening, synthetic fixture purge, and publication of the final <strong><code>v1.0.0</code> Interactive Sprint Report</strong> plus the <strong><code>v0.1.0–v1.0.0</code> Cumulative Hackathon Retrospective</strong> at <code>/reports/</code>.</li></ol><hr><h2>2. Train 3 Planned Cars (<code>13:45 – 17:30 PM PST</code>)</h2><h3><code>Car 3-A..D</code> (<code>W3-POLISH</code>): Live Dogfooding Bug Fixes &amp; UI Enhancements (Elastic Disjoint Cars)</h3><ul><li><strong>Builder Lanes:</strong> <code>Ariadne-Lane-A</code> (Mobile UX polish), <code>Ariadne-Lane-B</code> (GitHub edge-case handling), <code>Ariadne-Lane-C</code> (Explanation phrasing &amp; scoring calibration), <code>Ariadne-Lane-D</code> (16:9 Stage visual polish).</li><li><strong>I-Gate Reviewer:</strong> <code>Ariadne-PRR</code></li><li><strong>A-Gate Reviewer:</strong> <code>Ariadne-Arc</code></li><li><strong>Branch Pattern:</strong> <code>fix/train3-lane-&lt;a|b|c|d&gt;-polish</code></li><li><strong>Rule:</strong> Every polish Car maintains strict directory ownership (<code>src/app/me/*</code> on Lane A, <code>src/lib/github/*</code> on Lane B, <code>src/lib/scoring/*</code> on Lane C, <code>src/app/stage/*</code> on Lane D) and writes <code>changelog.d/Car-3X-polish.md</code>.</li></ul><hr><h3><code>Car 3-INT</code> (<code>W3-REL</code>): Production Hardening, Fixture Purge &amp; Final <code>v2.0.0</code> Judge Sprint Reports (<code>A-014</code> S2 + <code>A-015</code> S2)</h3><ul><li><strong>Covered Issues (<code>2</code> Final Slices):</strong></li></ul><ol><li><strong><code>A-014</code> (Slice 2 — Final Hardening)</strong>: <code>[chore] Self-hosted server (:3420), SQLite WAL, narrow HTTPS tunnel &amp; resilience (Final Hardening)</code></li></ol><ul><li>Purge/hide any internal <code>[TEST FIXTURE]</code> rows from <code>data/ariadne.sqlite</code> so 100% of stage nodes and matches represent real consenting human participants.</li><li>Take the final pre-judging atomic SQLite backup (<code>data/backups/ariadne-v1.0.0-golden.sqlite</code>) and verify <code>&lt; 15s</code> rollback readiness.</li></ul><ol><li><strong><code>A-015</code> (Slice 2 — Final Judge Reports)</strong>: <code>[docs] Hackathon provenance &amp; Per-Version v2.0.0 Interactive Sprint Reports (Final Release &amp; Retrospective)</code></li></ol><ul><li>Generate <code>/reports/v1.0.0/index.html</code>, <code>/reports/v0.1.0-v1.0.0-retrospective/index.html</code>, and the updated <code>/reports/index.html</code> Hub + Interactive Roadmap Board (<code>/roadmap/index.html</code>) showing all 4 Trains (<code>v0.1.0</code>..<code>v1.0.0</code>), 15 closed MVP issues, <code>t1..t8</code> timestamps, and 4-Gate audit tables.</li><li><strong>Executor Lanes:</strong> <code>Ariadne-INT</code> + <code>Ariadne-Obsr</code></li><li><strong>I-Gate Reviewer:</strong> <code>Ariadne-PRR</code></li><li><strong>A-Gate Reviewer:</strong> <code>Ariadne-Arc</code></li><li><strong>Branch Name:</strong> <code>chore/a014-a015-v100-hardening-and-judge-reports</code></li><li><strong>Exclusive File Write Envelope (<code>Car 3-INT</code>):</strong></li><li><code>docs/provenance/PROVENANCE_LEDGER.md</code></li><li><code>public/reports/*</code></li><li><code>public/roadmap/*</code></li><li><code>scripts/gen_sprint_report.py</code></li><li><code>CHANGELOG.md</code></li><li><code>package.json</code></li></ul><hr><h2>3. Hard Demo Freeze (<code>17:45 PM PST</code>)</h2><p>At <strong><code>17:45 PM PST</code></strong> (15 minutes before the <code>18:00 PM</code> judging window):</p><ul><li><code>v1.0.0</code> is tagged and live on <code>127.0.0.1:3420</code> behind the narrow public HTTPS tunnel.</li><li>All Builder lanes (<code>Lane-A..D</code>) are parked at rest (<code>safe-to-clear</code>).</li><li>Zero code mutations or restarts are permitted during <code>17:45 – 20:00 PM PST</code> unless the Operator explicitly commands a rollback.</li></ul>
+    <footer class="doc-footer">
+      Document: <code>TRAIN_3_CHARTER_v1.0.0.md</code> · Updated: <time>2026-11-05 12:03:11 PST</time> · Ariadne-PM (#149) · Static TangleClaw Watermark Active
+    </footer>
+  </main>
+</body>
+</html>

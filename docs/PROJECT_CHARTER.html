@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Executive Project Charter — ARIADNE (`ARIADNE-HACK-2026`) · Ariadne Documentation (Powered by TangleClaw)</title>
+  <style>
+:root{color-scheme:light dark;--bg:#f6f8fa;--fg:#1f2328;--muted:#59636e;--line:#d0d7de;--panel:#ffffff;--code-bg:#f0f3f6;--link:#0969da;--accent:#1a7f37}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#8b949e;--line:#30363d;--panel:#161b22;--code-bg:#1f242c;--link:#58a6ff;--accent:#3fb950}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;position:relative;min-height:100vh}
+.tc-bg-watermark{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tc-bg-watermark img{width:min(82vw,860px);height:min(82vw,860px);object-fit:contain;opacity:.08;filter:saturate(1.1) contrast(1.05);user-select:none;-webkit-user-drag:none}
+@media(prefers-color-scheme:dark){.tc-bg-watermark img{opacity:.10;filter:drop-shadow(0 0 48px rgba(86,211,100,.18))}}
+header.doc-nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:.65rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;font-size:.88rem}
+.doc-brand{display:inline-flex;align-items:center;gap:.55rem;font-weight:700;color:var(--fg);text-decoration:none}
+.doc-brand img{width:24px;height:24px;border-radius:5px;object-fit:contain}
+.doc-links{display:flex;gap:1rem;flex-wrap:wrap;font-weight:600}
+main.doc-main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:2rem 1.25rem 5rem}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+h1,h2,h3,h4{line-height:1.28;margin-top:1.6em;margin-bottom:.5em}
+h1{font-size:1.95rem;margin-top:.4em;padding-bottom:.35rem;border-bottom:1px solid var(--line)}
+h2{font-size:1.42rem;padding-bottom:.25rem;border-bottom:1px solid var(--line)}
+h3{font-size:1.15rem}
+p,ul,ol,blockquote,pre,table{margin:0 0 1rem}
+ul,ol{padding-left:1.5rem}
+li+li{margin-top:.25rem}
+code{font:0.88em/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.14rem .38rem;border-radius:5px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:.95rem 1.1rem;overflow-x:auto}
+pre code{background:none;padding:0;font-size:.84rem}
+blockquote{margin-left:0;padding:.5rem 1rem;border-left:4px solid var(--link);background:color-mix(in srgb,var(--panel) 85%,transparent);border-radius:0 8px 8px 0;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:1.75rem 0}
+.table-wrap{overflow-x:auto;margin:1rem 0}
+table{width:100%;border-collapse:collapse;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.9rem}
+th,td{text-align:left;padding:.55rem .75rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--code-bg);font-weight:700}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.85rem;margin:1.25rem 0}
+.doc-card{display:block;padding:1rem;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 88%,transparent);transition:border-color .15s,transform .15s}
+.doc-card:hover{border-color:var(--link);transform:translateY(-2px);text-decoration:none}
+.doc-card strong{display:block;color:var(--fg);font-size:.98rem;margin-bottom:.25rem}
+.doc-card span{color:var(--muted);font-size:.82rem}
+footer.doc-footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.84rem}
+</style>
+</head>
+<body>
+  <div class="tc-bg-watermark" aria-hidden="true">
+    <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="">
+  </div>
+  <header class="doc-nav">
+    <a class="doc-brand" href="./">
+      <img src="../ariadne-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/ariadne-logo.png'" alt="Ariadne" style="height:32px;width:auto;border-radius:0;">
+      <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="TangleClaw">
+      <span>Ariadne Documentation · Orchestrated by TangleClaw</span>
+    </a>
+    <nav class="doc-links">
+      <a href="https://github.com/Jason-Vaughan/Ariadne">🐙 GitHub Repo</a>
+      <a href="../">🗺️ Roadmap Board</a>
+      <a href="../reports/">📊 Sprint Reports</a>
+      <a href="./">📚 All Docs (PROJECT_CHARTER.md)</a>
+      <a href="MASTER_SSOT.html">⭐ Master SSOT</a>
+    </nav>
+  </header>
+  <main class="doc-main">
+    <h1>Executive Project Charter — ARIADNE (<code>ARIADNE-HACK-2026</code>)</h1><p><em>Amended: Web-Only Self-Hosted Hackathon MVP</em></p><ul><li><strong>Project ID:</strong> <code>ARIADNE-HACK-2026</code> (TangleClaw Project ID: <code>149</code> / <code>Ariadne-PM</code>)</li><li><strong>Working Name:</strong> Ariadne</li><li><strong>Tagline:</strong> <em>Find Your Thread.</em></li><li><strong>Event:</strong> Anything Applied Agentic Hackathon, San Francisco</li><li><strong>Hackathon Date:</strong> Saturday, November 7, 2026</li><li><strong>Build Window:</strong> 09:30 – 18:00 Pacific (8.5 hours)</li><li><strong>Demo &amp; Judging Window:</strong> 18:00 – 20:00 Pacific</li><li><strong>Operator:</strong> Jason Vaughan (<code>Jason-Vaughan</code>)</li><li><strong>Engineering Platform:</strong> TangleClaw (Supervised Autonomous Fleet)</li><li><strong>Current Authorization State:</strong> <strong>PREPARATION ONLY — H-DAY ENGINEERING NOT AUTHORIZED</strong></li></ul><hr><h2>1. Mission Statement</h2><p>Build and deploy <strong>Ariadne</strong>, an AI-native professional discovery network that connects technically oriented event participants based on verifiable public GitHub work, complementary engineering capabilities, and concrete collaboration opportunities—while simultaneously demonstrating that a single human Operator can direct a TangleClaw autonomous engineering fleet to plan, build, review, test, integrate, and ship a production application in a single 8.5-hour hackathon window.</p><blockquote><em>&quot;Tinder for work. Your AI finds the right people, explains why you should connect, and introduces you when you both agree.&quot;</em></blockquote><hr><h2>2. Architecture Amendment Summary (Web-Only Hackathon MVP)</h2><p>Superseding the earlier cloud/Discord/Medusa draft, <strong>Ariadne is a single, self-hosted web application running on the TangleClaw host (<code>cursatory</code>), strictly isolated from the TangleClaw control plane</strong>:</p><ol><li><strong>Two Interfaces on One Backend:</strong></li></ol><ul><li><strong>Mobile Participant Interface (<code>/join</code>, <code>/me</code>, <code>/me/matches/:id</code>):</strong> QR onboarding, GitHub identity submission, explicit consent, live research progress, top-3 match results with 40/30/20/10 scoring breakdown, <code>Interested</code>/<code>Pass</code> controls, and mutually approved private web introductions.</li><li><strong>Presentation Visualizer (<code>/stage</code>):</strong> Full-screen <code>16:9</code> live network graph, participant activity feed, agent analysis states, evidence-backed connections, and introduction status. Operator-controlled with privacy-safe pseudonymous defaults (<code>Thread-XXXX</code>).</li></ul><ol><li><strong>Self-Hosted Local Stack + Narrow Public HTTPS Tunnel:</strong></li></ol><ul><li>Bound to a dedicated PortHub-registered local port (<code>127.0.0.1:3420</code>) exposed through a narrowly scoped public HTTPS tunnel (<code>cloudflared</code> / <code>ngrok</code> pointing solely to <code>127.0.0.1:3420</code>—never exposing TangleClaw control-plane ports, agent terminals, or internal services).</li><li><strong>SQLite (<code>WAL</code> mode)</strong> for persistent application state.</li><li><strong>In-process asynchronous workers</strong> (backed by SQLite job leases) for bounded GitHub retrieval and AI capability/match analysis.</li><li><strong>Server-Sent Events (SSE) with automatic reconnect + HTTP polling fallback</strong> for live mobile and stage browser updates.</li></ul><ol><li><strong>Zero External Messaging Dependencies in MVP:</strong></li></ol><ul><li><strong>No Discord, Medusa, or Morpheus dependency</strong> is required for the hackathon MVP; all three are moved to the post-hackathon roadmap.</li></ul><hr><h2>3. Dual Strategic Objectives &amp; Success Thresholds</h2><h3>Objective A — Build Ariadne | Objective B — Demonstrate TangleClaw</h3><div class="table-wrap"><table><thead><tr><th>Tier</th><th>Classification</th><th>Operational Definition</th><th>Target Train / Checkpoint</th></tr></thead><tbody><tr><td><strong>Tier 1</strong></td><td><strong>Minimum Success (Essential)</strong></td><td>Real participant scans QR code, submits GitHub identity with consent, receives an evidence-grounded capability profile with GitHub source links, and appears immediately on the 16:9 live network visualizer.</td><td><strong>Train 1 (<code>v0.1.0</code>) — 12:00 PM PST</strong></td></tr><tr><td><strong>Tier 2</strong></td><td><strong>Strong Success (Target)</strong></td><td>Multiple real participants join; Ariadne analyzes capabilities and project opportunities, computes transparent 4-factor match scores, and presents up to 3 evidence-backed match explanations per participant on their private results view and stage activity/spotlight views.</td><td><strong>Train 2 (<code>v0.2.0</code>) — 14:15 PM PST</strong></td></tr><tr><td><strong>Tier 3</strong></td><td><strong>Exceptional Success (Stretch)</strong></td><td>Two consenting, verified participants both click <em>Interested</em>; the mutual-introduction state machine verifies bilateral approval, unlocks their private <strong>Web Introduction Room</strong> with shared contact details &amp; tailored collaboration starter, and animates the completed connection on the stage visualizer.</td><td><strong>Train 3 (<code>v0.3.0</code>) — 15:45 PM PST</strong></td></tr><tr><td><strong>Tier 4</strong></td><td><strong>Polish, Bug Fixes &amp; Judge Reports</strong></td><td>Dedicated 2-hour runway (<code>15:45 – 17:45 PM PST</code>) for UI refinement, edge-case hardening, stage rehearsal, and per-version Observer sprint reports (<code>v0.1.0</code>..<code>v1.0.0</code>).</td><td><strong>Train 4 (<code>v1.0.0</code>) — 17:45 PM PST</strong></td></tr></tbody></table></div><hr><h2>4. Non-Negotiable Constraints &amp; Governance</h2><ol><li><strong>Zero Application Code Before H-Day GO:</strong> No source code, UI components, API routes, schemas, migrations, tests, mocks, or starter templates may be created before 09:30 AM PST on Saturday, November 7, 2026, AND an explicit Operator <code>GO</code> command.</li><li><strong>Evidence Over Fabrication:</strong></li></ol><ul><li>Every capability claim and project opportunity must cite a public GitHub URL and timestamp.</li><li>Distinguish <strong>observed facts</strong> from <strong>AI inferences</strong>.</li><li>If fewer than 3 meaningful matches exist above threshold (<code>score &gt;= 45</code>), return fewer (or zero). Never fabricate profiles, events, or matches.</li><li>Never infer willingness to collaborate from public GitHub activity; interest requires explicit participant action.</li></ul><ol><li><strong>Privacy, Consent &amp; Control-Plane Isolation:</strong></li></ol><ul><li>Explicit opt-in consent before fetching or analyzing public GitHub data.</li><li>Pseudonymous stage visualizer nodes by default (<code>Thread-XXXX</code>); public GitHub handles/avatars appear on stage only with explicit opt-in consent.</li><li>Isolated participant sessions and authenticated/defensibly bound ownership verification before outbound introduction approvals.</li><li>Strict isolation: public HTTPS tunnel routes <strong>exclusively</strong> to Ariadne&#x27;s port (<code>127.0.0.1:3420</code>). Zero TangleClaw control-plane endpoints (<code>:3102</code>, <code>:3100</code>, <code>:8443</code>), agent terminals, or Medusa services (<code>:3009</code>, <code>:3010</code>) are reachable through the public service.</li><li>Per-version provenance and Observer sprint reports generated at every Train release (<code>v0.1.0</code>, <code>v0.2.0</code>, <code>v0.3.0</code>, <code>v1.0.0</code>).</li></ul>
+    <footer class="doc-footer">
+      Document: <code>PROJECT_CHARTER.md</code> · Updated: <time>2026-11-05 11:59:04 PST</time> · Ariadne-PM (#149) · Static TangleClaw Watermark Active
+    </footer>
+  </main>
+</body>
+</html>

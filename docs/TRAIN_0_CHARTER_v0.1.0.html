@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Ariadne Sprint Charter `ARI-T0` v1.0 — `v0.1.0: Core Contracts, SQLite WAL &amp; Self-Hosted Bootstrap` (`Train 0`) · Ariadne Documentation (Powered by TangleClaw)</title>
+  <style>
+:root{color-scheme:light dark;--bg:#f6f8fa;--fg:#1f2328;--muted:#59636e;--line:#d0d7de;--panel:#ffffff;--code-bg:#f0f3f6;--link:#0969da;--accent:#1a7f37}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#8b949e;--line:#30363d;--panel:#161b22;--code-bg:#1f242c;--link:#58a6ff;--accent:#3fb950}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;position:relative;min-height:100vh}
+.tc-bg-watermark{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tc-bg-watermark img{width:min(82vw,860px);height:min(82vw,860px);object-fit:contain;opacity:.08;filter:saturate(1.1) contrast(1.05);user-select:none;-webkit-user-drag:none}
+@media(prefers-color-scheme:dark){.tc-bg-watermark img{opacity:.10;filter:drop-shadow(0 0 48px rgba(86,211,100,.18))}}
+header.doc-nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:.65rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;font-size:.88rem}
+.doc-brand{display:inline-flex;align-items:center;gap:.55rem;font-weight:700;color:var(--fg);text-decoration:none}
+.doc-brand img{width:24px;height:24px;border-radius:5px;object-fit:contain}
+.doc-links{display:flex;gap:1rem;flex-wrap:wrap;font-weight:600}
+main.doc-main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:2rem 1.25rem 5rem}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+h1,h2,h3,h4{line-height:1.28;margin-top:1.6em;margin-bottom:.5em}
+h1{font-size:1.95rem;margin-top:.4em;padding-bottom:.35rem;border-bottom:1px solid var(--line)}
+h2{font-size:1.42rem;padding-bottom:.25rem;border-bottom:1px solid var(--line)}
+h3{font-size:1.15rem}
+p,ul,ol,blockquote,pre,table{margin:0 0 1rem}
+ul,ol{padding-left:1.5rem}
+li+li{margin-top:.25rem}
+code{font:0.88em/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.14rem .38rem;border-radius:5px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:.95rem 1.1rem;overflow-x:auto}
+pre code{background:none;padding:0;font-size:.84rem}
+blockquote{margin-left:0;padding:.5rem 1rem;border-left:4px solid var(--link);background:color-mix(in srgb,var(--panel) 85%,transparent);border-radius:0 8px 8px 0;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:1.75rem 0}
+.table-wrap{overflow-x:auto;margin:1rem 0}
+table{width:100%;border-collapse:collapse;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.9rem}
+th,td{text-align:left;padding:.55rem .75rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--code-bg);font-weight:700}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.85rem;margin:1.25rem 0}
+.doc-card{display:block;padding:1rem;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 88%,transparent);transition:border-color .15s,transform .15s}
+.doc-card:hover{border-color:var(--link);transform:translateY(-2px);text-decoration:none}
+.doc-card strong{display:block;color:var(--fg);font-size:.98rem;margin-bottom:.25rem}
+.doc-card span{color:var(--muted);font-size:.82rem}
+footer.doc-footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.84rem}
+</style>
+</head>
+<body>
+  <div class="tc-bg-watermark" aria-hidden="true">
+    <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="">
+  </div>
+  <header class="doc-nav">
+    <a class="doc-brand" href="./">
+      <img src="../ariadne-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/ariadne-logo.png'" alt="Ariadne" style="height:32px;width:auto;border-radius:0;">
+      <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="TangleClaw">
+      <span>Ariadne Documentation · Orchestrated by TangleClaw</span>
+    </a>
+    <nav class="doc-links">
+      <a href="https://github.com/Jason-Vaughan/Ariadne">🐙 GitHub Repo</a>
+      <a href="../">🗺️ Roadmap Board</a>
+      <a href="../reports/">📊 Sprint Reports</a>
+      <a href="./">📚 All Docs (TRAIN_0_CHARTER_v0.1.0.md)</a>
+      <a href="MASTER_SSOT.html">⭐ Master SSOT</a>
+    </nav>
+  </header>
+  <main class="doc-main">
+    <h1>Ariadne Sprint Charter <code>ARI-T0</code> v1.0 — <code>v0.1.0: Core Contracts, SQLite WAL &amp; Self-Hosted Bootstrap</code> (<code>Train 0</code>)</h1><ul><li><strong>Charter ID:</strong> <code>ARI-T0 v1.0</code></li><li><strong>Target Release:</strong> <code>v0.1.0</code> (<code>Milestone M0: Train 0 — Contracts, SQLite WAL &amp; Bootstrap</code>)</li><li><strong>Scheduled Window:</strong> Saturday, November 7, 2026 · <code>09:30 – 10:15 AM PST</code> (<code>45 minutes</code> — strictly after Operator <code>GO</code>)</li><li><strong>Base Commit (<code>origin/main</code>):</strong> <code>v0.0.0-planning-baseline</code></li><li><strong>Sprint Coordinator:</strong> <code>Ariadne-PM</code> (<code>#149</code>, <code>ariadne-pm-db0f895f</code>)</li><li><strong>Architect &amp; A-Gate Reviewer:</strong> <code>Ariadne-Arc</code></li><li><strong>Sole Release &amp; Merge Integrator:</strong> <code>Ariadne-INT</code></li><li><strong>I-Gate Reviewer:</strong> <code>Ariadne-PRR</code></li><li><strong>Observer &amp; O-Gate / Sprint Report Producer:</strong> <code>Ariadne-Obsr</code></li><li><strong>Reporting Standard:</strong> <code>SPRINT_REPORT_STANDARD.md v2.0.0</code> (<code>metrics_schema.py</code> + <code>validate-sprint-report.py</code>)</li></ul><hr><h2>1. Executive Summary &amp; Bundling Strategy</h2><p><code>v0.1.0</code> (<code>Train 0</code>) establishes the <strong>immutable contract and persistence spine</strong> of Ariadne during the first 45 minutes of the hackathon (<code>09:30 – 10:15 AM PST</code>).</p><p>Once <code>Car 0-INT</code> merges and <code>v0.1.0</code> is tagged:</p><ol><li><code>src/contracts/*</code>, <code>src/db/schema.ts</code>, and <code>package.json</code> are <strong>FROZEN</strong> for <code>Train 1</code> (<code>v0.2.0</code>).</li><li>All 4 Builder lanes (<code>Ariadne-Lane-A</code>, <code>Ariadne-Lane-B</code>, <code>Ariadne-Lane-C</code>, <code>Ariadne-Lane-D</code>) branch off <code>v0.1.0</code> into isolated Git worktrees and build <strong>10 issues simultaneously in a single parallel wave</strong> against deterministic contract fixtures with <code>0</code> file collisions.</li></ol><hr><h2>2. Train 0 Feature Car (<code>3</code> Issues — Single Foundation Car)</h2><h3><code>Car 0-INT</code> (<code>W0-INT</code>): Core TypeScript/Zod Contracts, SQLite WAL Schema, Self-Hosted <code>:3420</code> Bootstrap &amp; Initial Provenance Ledger</h3><ul><li><strong>Covered Issues (<code>3</code>):</strong></li></ul><ol><li><strong><code>A-001</code></strong>: <code>[feature] Core architecture, SQLite WAL schema &amp; data/event contracts</code></li></ol><ul><li>Implement and export all frozen TypeScript interfaces and runtime Zod schemas in <code>src/contracts/*</code> (<code>Participant</code>, <code>EvidenceReceipt</code>, <code>CapabilityClaim</code>, <code>OpportunityNeed</code>, <code>MatchProposal</code>, <code>ScoreBreakdown</code>, <code>PublicEventEnvelope</code>, <code>EventType</code>, <code>canTransitionIntroState</code>).</li><li>Implement SQLite (<code>WAL</code> mode) database client and schema initializer (<code>src/db/client.ts</code>, <code>src/db/schema.ts</code>) creating tables: <code>participants</code>, <code>github_snapshots</code>, <code>evidence_receipts</code>, <code>capability_claims</code>, <code>opportunity_needs</code>, <code>matches</code>, <code>domain_events</code>, and <code>async_jobs</code>.</li></ul><ol><li><strong><code>A-014</code> (Slice 1)</strong>: <code>[chore] Self-hosted server (:3420), SQLite WAL, narrow HTTPS tunnel &amp; resilience (Bootstrap Slice)</code></li></ol><ul><li>Register PortHub lease for <code>127.0.0.1:3420</code> (<code>loopback</code>), implement <code>GET /api/health</code> reporting SQLite WAL readiness and queue depth, and verify the narrow public HTTPS tunnel (<code>cloudflared</code> / <code>ngrok</code> targeting <code>http://127.0.0.1:3420</code> only).</li></ul><ol><li><strong><code>A-015</code> (Slice 1)</strong>: <code>[docs] Hackathon provenance &amp; Per-Version v2.0.0 Interactive Sprint Reports (Baseline Slice)</code></li></ol><ul><li>Commit <code>docs/provenance/PRE_EVENT_MANIFEST.sha256</code>, initialize <code>scripts/gen_sprint_report.py</code> (<code>v2.0.0</code> standard), and mount <code>/reports</code> and <code>/provenance</code> static/route handlers.</li><li><strong>Builder / Executor Lane:</strong> <code>Ariadne-INT</code></li><li><strong>I-Gate Reviewer:</strong> <code>Ariadne-PRR</code></li><li><strong>A-Gate Reviewer:</strong> <code>Ariadne-Arc</code></li><li><strong>Branch Name:</strong> <code>feat/a001-a014-a015-contracts-sqlite-bootstrap</code></li><li><strong>Exclusive File Write Envelope (<code>Car 0-INT</code>):</strong></li><li><code>package.json</code></li><li><code>tsconfig.json</code></li><li><code>vitest.config.ts</code></li><li><code>src/contracts/index.ts</code></li><li><code>src/contracts/entities.ts</code></li><li><code>src/contracts/events.ts</code></li><li><code>src/contracts/state-machine.ts</code></li><li><code>src/contracts/fixtures.ts</code></li><li><code>src/db/client.ts</code></li><li><code>src/db/schema.ts</code></li><li><code>src/app/api/health/route.ts</code></li><li><code>src/app/provenance/page.tsx</code></li><li><code>src/app/reports/route.ts</code></li><li><code>scripts/gen_sprint_report.py</code></li><li><code>docs/provenance/PROVENANCE_LEDGER.md</code></li><li><code>changelog.d/A-001-014-015.md</code></li><li><code>tests/train0/contracts-and-sqlite.test.ts</code></li></ul><hr><h2>3. Release Cut &amp; Gate Exit Criteria (<code>v0.1.0</code> — Target <code>10:15 AM PST</code>)</h2><ol><li><strong><code>R-Gate</code> (<code>Ariadne-PRR</code>) &amp; <code>A-Gate</code> (<code>Ariadne-Arc</code>):</strong> Verify all entities and event envelopes in <code>src/contracts/*</code> match <code>DATA_AND_EVENTS_CONTRACT.md</code> and <code>tests/train0/contracts-and-sqlite.test.ts</code> passes (<code>100%</code> green).</li><li><strong><code>I-Gate</code> (<code>Ariadne-INT</code>):</strong> Merge <code>Car 0-INT</code> via <code>gh pr merge --merge</code>, compile <code>changelog.d/A-001-014-015.md</code> into <code>CHANGELOG.md</code>, tag <code>v0.1.0</code>, verify <code>http://127.0.0.1:3420/api/health</code> returns <code>200 OK</code>, and create worktrees <code>wt-lane-a</code>..<code>d</code>.</li><li><strong><code>O-Gate</code> (<code>Ariadne-Obsr</code>):</strong> Record <code>t1..t8</code> timestamps for <code>v0.1.0</code> and generate <code>/reports/v0.1.0/index.html</code> + update <code>/reports/index.html</code>.</li></ol>
+    <footer class="doc-footer">
+      Document: <code>TRAIN_0_CHARTER_v0.1.0.md</code> · Updated: <time>2026-11-05 12:03:11 PST</time> · Ariadne-PM (#149) · Static TangleClaw Watermark Active
+    </footer>
+  </main>
+</body>
+</html>

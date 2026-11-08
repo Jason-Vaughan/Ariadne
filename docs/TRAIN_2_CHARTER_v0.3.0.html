@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Ariadne Sprint Charter `ARI-T2` v1.0 — `v0.3.0: End-to-End Async Pipeline, Web Mutual Intros &amp; Continuous Rematching` (`Train 2`) · Ariadne Documentation (Powered by TangleClaw)</title>
+  <style>
+:root{color-scheme:light dark;--bg:#f6f8fa;--fg:#1f2328;--muted:#59636e;--line:#d0d7de;--panel:#ffffff;--code-bg:#f0f3f6;--link:#0969da;--accent:#1a7f37}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#8b949e;--line:#30363d;--panel:#161b22;--code-bg:#1f242c;--link:#58a6ff;--accent:#3fb950}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;position:relative;min-height:100vh}
+.tc-bg-watermark{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tc-bg-watermark img{width:min(82vw,860px);height:min(82vw,860px);object-fit:contain;opacity:.08;filter:saturate(1.1) contrast(1.05);user-select:none;-webkit-user-drag:none}
+@media(prefers-color-scheme:dark){.tc-bg-watermark img{opacity:.10;filter:drop-shadow(0 0 48px rgba(86,211,100,.18))}}
+header.doc-nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:.65rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;font-size:.88rem}
+.doc-brand{display:inline-flex;align-items:center;gap:.55rem;font-weight:700;color:var(--fg);text-decoration:none}
+.doc-brand img{width:24px;height:24px;border-radius:5px;object-fit:contain}
+.doc-links{display:flex;gap:1rem;flex-wrap:wrap;font-weight:600}
+main.doc-main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:2rem 1.25rem 5rem}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+h1,h2,h3,h4{line-height:1.28;margin-top:1.6em;margin-bottom:.5em}
+h1{font-size:1.95rem;margin-top:.4em;padding-bottom:.35rem;border-bottom:1px solid var(--line)}
+h2{font-size:1.42rem;padding-bottom:.25rem;border-bottom:1px solid var(--line)}
+h3{font-size:1.15rem}
+p,ul,ol,blockquote,pre,table{margin:0 0 1rem}
+ul,ol{padding-left:1.5rem}
+li+li{margin-top:.25rem}
+code{font:0.88em/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.14rem .38rem;border-radius:5px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:.95rem 1.1rem;overflow-x:auto}
+pre code{background:none;padding:0;font-size:.84rem}
+blockquote{margin-left:0;padding:.5rem 1rem;border-left:4px solid var(--link);background:color-mix(in srgb,var(--panel) 85%,transparent);border-radius:0 8px 8px 0;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:1.75rem 0}
+.table-wrap{overflow-x:auto;margin:1rem 0}
+table{width:100%;border-collapse:collapse;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.9rem}
+th,td{text-align:left;padding:.55rem .75rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--code-bg);font-weight:700}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.85rem;margin:1.25rem 0}
+.doc-card{display:block;padding:1rem;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 88%,transparent);transition:border-color .15s,transform .15s}
+.doc-card:hover{border-color:var(--link);transform:translateY(-2px);text-decoration:none}
+.doc-card strong{display:block;color:var(--fg);font-size:.98rem;margin-bottom:.25rem}
+.doc-card span{color:var(--muted);font-size:.82rem}
+footer.doc-footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.84rem}
+</style>
+</head>
+<body>
+  <div class="tc-bg-watermark" aria-hidden="true">
+    <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="">
+  </div>
+  <header class="doc-nav">
+    <a class="doc-brand" href="./">
+      <img src="../ariadne-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/ariadne-logo.png'" alt="Ariadne" style="height:32px;width:auto;border-radius:0;">
+      <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="TangleClaw">
+      <span>Ariadne Documentation · Orchestrated by TangleClaw</span>
+    </a>
+    <nav class="doc-links">
+      <a href="https://github.com/Jason-Vaughan/Ariadne">🐙 GitHub Repo</a>
+      <a href="../">🗺️ Roadmap Board</a>
+      <a href="../reports/">📊 Sprint Reports</a>
+      <a href="./">📚 All Docs (TRAIN_2_CHARTER_v0.3.0.md)</a>
+      <a href="MASTER_SSOT.html">⭐ Master SSOT</a>
+    </nav>
+  </header>
+  <main class="doc-main">
+    <h1>Ariadne Sprint Charter <code>ARI-T2</code> v1.0 — <code>v0.3.0: End-to-End Async Pipeline, Web Mutual Intros &amp; Continuous Rematching</code> (<code>Train 2</code>)</h1><ul><li><strong>Charter ID:</strong> <code>ARI-T2 v1.0</code></li><li><strong>Target Release:</strong> <code>v0.3.0</code> (<code>Milestone M2/M3: Train 2 — End-to-End Integration, Mutual Intros &amp; Rematching</code>)</li><li><strong>Scheduled Window:</strong> Saturday, November 7, 2026 · <code>12:00 PM – 13:45 PM PST</code> (<code>1 hour 45 minutes</code>)</li><li><strong>Base Commit (<code>origin/main</code>):</strong> <code>tag: v0.2.0</code></li><li><strong>Sprint Coordinator:</strong> <code>Ariadne-PM</code> (<code>#149</code>, <code>ariadne-pm-db0f895f</code>)</li><li><strong>Architect &amp; A-Gate Reviewer:</strong> <code>Ariadne-Arc</code></li><li><strong>Sole Release &amp; Merge Integrator:</strong> <code>Ariadne-INT</code></li><li><strong>I-Gate Reviewer:</strong> <code>Ariadne-PRR</code></li><li><strong>Observer &amp; O-Gate / Sprint Report Producer:</strong> <code>Ariadne-Obsr</code></li><li><strong>Parallel Builder Lanes:</strong> <code>Ariadne-Lane-A</code>, <code>Ariadne-Lane-C</code>, <code>Ariadne-Lane-D</code> (with <code>Ariadne-Lane-B</code> on standby for any GitHub edge-case refinement)</li><li><strong>Reporting Standard:</strong> <code>SPRINT_REPORT_STANDARD.md v2.0.0</code></li></ul><hr><h2>1. Executive Summary &amp; Bundling Strategy</h2><p>With all core domain modules (<code>Car 1-A..D</code>) merged in <code>v0.2.0</code> at noon, <code>Train 2</code> (<code>v0.3.0</code>) wires the complete end-to-end asynchronous pipeline and bilateral Web Introduction Room across <strong>3 file-disjoint Cars (<code>Car 2-A</code>, <code>Car 2-C</code>, <code>Car 2-D</code>)</strong>.</p><p>Completing <code>v0.3.0</code> by <strong><code>13:45 PM PST</code></strong> achieves <strong>Minimum, Strong, and Exceptional Success (<code>M1</code> + <code>M2</code> + <code>M3</code>)</strong> with more than <strong>4 full hours remaining</strong> before judging!</p><hr><h2>2. Wave 1 Feature Cars (<code>3</code> Parallel File-Disjoint Cars)</h2><h3><code>Car 2-A</code> (<code>W2-A</code>): Live Match Results API, Ownership Verification Gate &amp; Private Web Mutual-Introduction Room</h3><ul><li><strong>Covered Issues (<code>2</code>):</strong></li></ul><ol><li><strong><code>A-008</code> (Slice 2 — Live Wiring)</strong>: <code>[feature] Mobile participant profile &amp; top-3 match results interface (Live DB &amp; Dismissal Wiring)</code></li></ol><ul><li>Wire <code>GET /api/matches</code> and <code>POST /api/participants/me/claims/:id/dismiss</code> (allowing a participant to dismiss an inaccurate AI inference and trigger instant score recalculation).</li></ul><ol><li><strong><code>A-012</code></strong>: <code>[feature] Web-native mutual-introduction workflow &amp; private intro room</code></li></ol><ul><li>Implement <code>POST /api/matches/[id]/decision</code> (<code>Interested</code> / <code>Pass</code>), enforce <code>ownership_verified === true</code> gate (prompting 1-click GitHub OAuth or bio challenge modal if unverified), and build the unlocked <strong>Private Web Introduction Room</strong> (<code>/me/matches/[id]/page.tsx</code> + <code>POST /api/matches/[id]/room</code>) with verified GitHub handles, shared <code>contact_card</code> notes, copyable starter prompt, and shared icebreaker note box.</li><li><strong>Builder Lane:</strong> <code>Ariadne-Lane-A</code></li><li><strong>I-Gate Reviewer:</strong> <code>Ariadne-PRR</code></li><li><strong>A-Gate Reviewer:</strong> <code>Ariadne-Arc</code></li><li><strong>Branch Name:</strong> <code>feat/a008-a012-live-matches-and-web-mutual-intros</code></li><li><strong>Exclusive File Write Envelope (<code>Car 2-A</code>):</strong></li><li><code>src/app/me/page.tsx</code></li><li><code>src/app/me/matches/[id]/page.tsx</code></li><li><code>src/components/mobile/MatchCard.tsx</code></li><li><code>src/components/mobile/OwnershipVerifyModal.tsx</code></li><li><code>src/app/api/matches/route.ts</code></li><li><code>src/app/api/matches/[id]/decision/route.ts</code></li><li><code>src/app/api/matches/[id]/room/route.ts</code></li><li><code>src/app/api/participants/me/claims/[id]/dismiss/route.ts</code></li><li><code>src/lib/intros/state-machine.ts</code></li><li><code>changelog.d/A-008-012.md</code></li><li><code>tests/train2/car2a-mutual-intros-and-live-matches.test.ts</code></li></ul><hr><h3><code>Car 2-C</code> (<code>W2-C</code>): SQLite In-Process Async Worker Pipeline &amp; Continuous Rematching Engine</h3><ul><li><strong>Covered Issues (<code>1</code> + Pipeline Orchestration):</strong></li></ul><ol><li><strong><code>A-016</code></strong>: <code>[feature] In-process async job worker &amp; continuous rematching</code></li></ol><ul><li>Implement <code>src/lib/jobs/runner.ts</code> (<code>enqueueAnalysisJob</code>, <code>processNextJob</code>, stalled-lease recovery) connecting <code>Car 1-B</code> (<code>fetchGitHubSnapshot</code> → <code>runProfileResearchAgent</code> → <code>runOpportunityDiscoveryAgent</code>), <code>Car 1-C</code> (<code>rankTopMatchesForParticipant</code> → <code>runMatchEvaluationAgent</code> → <code>runIntroductionAgent</code>), and <code>Car 1-D</code> (<code>publishDomainEvent</code>).</li><li>Implement <code>src/lib/scoring/rematcher.ts</code> so that whenever a new participant completes profile analysis, existing <code>ready</code> participants automatically have their top-3 candidates re-evaluated (without touching any already <code>proposed</code>/<code>accepted</code>/<code>declined</code> match).</li><li><strong>Builder Lane:</strong> <code>Ariadne-Lane-C</code></li><li><strong>I-Gate Reviewer:</strong> <code>Ariadne-PRR</code></li><li><strong>A-Gate Reviewer:</strong> <code>Ariadne-Arc</code></li><li><strong>Branch Name:</strong> <code>feat/a016-async-worker-and-continuous-rematching</code></li><li><strong>Exclusive File Write Envelope (<code>Car 2-C</code>):</strong></li><li><code>src/lib/jobs/runner.ts</code></li><li><code>src/lib/scoring/rematcher.ts</code></li><li><code>src/app/api/worker/tick/route.ts</code></li><li><code>changelog.d/A-016.md</code></li><li><code>tests/train2/car2c-worker-and-rematcher.test.ts</code></li></ul><hr><h3><code>Car 2-D</code> (<code>W2-D</code>): 16:9 Stage Bilateral Connection Animations, Strict Pseudonymity Hotkey &amp; Judge Reports HUD</h3><ul><li><strong>Covered Scope:</strong></li><li>Enhance <code>/stage</code> (<code>NetworkGraph.tsx</code>, <code>SpotlightView.tsx</code>, <code>KpiRibbon.tsx</code>) with live animated edge transitions on <code>introduction.proposed</code> and <code>introduction.completed</code>, verify global pseudonymity override hotkey (<code>S</code>), and add a stage footer link/shortcut (<code>R</code>) to open the Interactive Sprint Reports Hub (<code>/reports/</code>).</li><li><strong>Builder Lane:</strong> <code>Ariadne-Lane-D</code></li><li><strong>I-Gate Reviewer:</strong> <code>Ariadne-PRR</code></li><li><strong>A-Gate Reviewer:</strong> <code>Ariadne-Arc</code></li><li><strong>Branch Name:</strong> <code>feat/stage-bilateral-intro-animations-and-judge-hud</code></li><li><strong>Exclusive File Write Envelope (<code>Car 2-D</code>):</strong></li><li><code>src/app/stage/page.tsx</code></li><li><code>src/components/stage/NetworkGraph.tsx</code></li><li><code>src/components/stage/SpotlightView.tsx</code></li><li><code>src/components/stage/KpiRibbon.tsx</code></li><li><code>changelog.d/Car-2D-stage-hud.md</code></li><li><code>tests/train2/car2d-stage-animations-and-privacy.test.ts</code></li></ul><hr><h2>3. Release Cut &amp; Gate Exit Criteria (<code>v0.3.0</code> — Target <code>13:45 PM PST</code>)</h2><ol><li><strong><code>R-Gate</code> (<code>Ariadne-PRR</code>) &amp; <code>A-Gate</code> (<code>Ariadne-Arc</code>):</strong> Verify bilateral consent invariant (unverified or unilateral requests never leak contact cards) and end-to-end worker pipeline test suite passes.</li><li><strong><code>I-Gate</code> (<code>Ariadne-INT</code>):</strong> Merge <code>Car 2-A</code>, <code>Car 2-C</code>, <code>Car 2-D</code> via <code>gh pr merge --merge</code>, compile <code>changelog.d/*.md</code> into <code>CHANGELOG.md</code>, take pre-cutover SQLite backup, tag <code>v0.3.0</code>, reload <code>127.0.0.1:3420</code>.</li><li><strong><code>O-Gate</code> (<code>Ariadne-Obsr</code>):</strong> Certify <code>v0.3.0</code> metrics (<code>t1..t8</code>) and publish <code>/reports/v0.3.0/index.html</code> + update <code>/reports/index.html</code>.</li></ol>
+    <footer class="doc-footer">
+      Document: <code>TRAIN_2_CHARTER_v0.3.0.md</code> · Updated: <time>2026-11-05 12:03:11 PST</time> · Ariadne-PM (#149) · Static TangleClaw Watermark Active
+    </footer>
+  </main>
+</body>
+</html>

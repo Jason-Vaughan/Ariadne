@@ -1,0 +1,379 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Ariadne (`ARIADNE-HACK-2026`) — Interactive Parallel Roadmap Board · Ariadne Documentation (Powered by TangleClaw)</title>
+  <style>
+:root{color-scheme:light dark;--bg:#f6f8fa;--fg:#1f2328;--muted:#59636e;--line:#d0d7de;--panel:#ffffff;--code-bg:#f0f3f6;--link:#0969da;--accent:#1a7f37}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#8b949e;--line:#30363d;--panel:#161b22;--code-bg:#1f242c;--link:#58a6ff;--accent:#3fb950}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;position:relative;min-height:100vh}
+.tc-bg-watermark{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tc-bg-watermark img{width:min(82vw,860px);height:min(82vw,860px);object-fit:contain;opacity:.08;filter:saturate(1.1) contrast(1.05);user-select:none;-webkit-user-drag:none}
+@media(prefers-color-scheme:dark){.tc-bg-watermark img{opacity:.10;filter:drop-shadow(0 0 48px rgba(86,211,100,.18))}}
+header.doc-nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:.65rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;font-size:.88rem}
+.doc-brand{display:inline-flex;align-items:center;gap:.55rem;font-weight:700;color:var(--fg);text-decoration:none}
+.doc-brand img{width:24px;height:24px;border-radius:5px;object-fit:contain}
+.doc-links{display:flex;gap:1rem;flex-wrap:wrap;font-weight:600}
+main.doc-main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:2rem 1.25rem 5rem}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+h1,h2,h3,h4{line-height:1.28;margin-top:1.6em;margin-bottom:.5em}
+h1{font-size:1.95rem;margin-top:.4em;padding-bottom:.35rem;border-bottom:1px solid var(--line)}
+h2{font-size:1.42rem;padding-bottom:.25rem;border-bottom:1px solid var(--line)}
+h3{font-size:1.15rem}
+p,ul,ol,blockquote,pre,table{margin:0 0 1rem}
+ul,ol{padding-left:1.5rem}
+li+li{margin-top:.25rem}
+code{font:0.88em/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.14rem .38rem;border-radius:5px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:.95rem 1.1rem;overflow-x:auto}
+pre code{background:none;padding:0;font-size:.84rem}
+blockquote{margin-left:0;padding:.5rem 1rem;border-left:4px solid var(--link);background:color-mix(in srgb,var(--panel) 85%,transparent);border-radius:0 8px 8px 0;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:1.75rem 0}
+.table-wrap{overflow-x:auto;margin:1rem 0}
+table{width:100%;border-collapse:collapse;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.9rem}
+th,td{text-align:left;padding:.55rem .75rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--code-bg);font-weight:700}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.85rem;margin:1.25rem 0}
+.doc-card{display:block;padding:1rem;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 88%,transparent);transition:border-color .15s,transform .15s}
+.doc-card:hover{border-color:var(--link);transform:translateY(-2px);text-decoration:none}
+.doc-card strong{display:block;color:var(--fg);font-size:.98rem;margin-bottom:.25rem}
+.doc-card span{color:var(--muted);font-size:.82rem}
+footer.doc-footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.84rem}
+</style>
+</head>
+<body>
+  <div class="tc-bg-watermark" aria-hidden="true">
+    <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="">
+  </div>
+  <header class="doc-nav">
+    <a class="doc-brand" href="./">
+      <img src="../ariadne-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/ariadne-logo.png'" alt="Ariadne" style="height:32px;width:auto;border-radius:0;">
+      <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="TangleClaw">
+      <span>Ariadne Documentation · Orchestrated by TangleClaw</span>
+    </a>
+    <nav class="doc-links">
+      <a href="https://github.com/Jason-Vaughan/Ariadne">🐙 GitHub Repo</a>
+      <a href="../">🗺️ Roadmap Board</a>
+      <a href="../reports/">📊 Sprint Reports</a>
+      <a href="./">📚 All Docs (ARIADNE_ROADMAP.md)</a>
+      <a href="MASTER_SSOT.html">⭐ Master SSOT</a>
+    </nav>
+  </header>
+  <main class="doc-main">
+    <h1>Ariadne (<code>ARIADNE-HACK-2026</code>) — Interactive Parallel Roadmap Board</h1><p>Releases at the top. Issues are sorted into versions (<code>v0.1.0</code> → <code>v0.2.0</code> → <code>v0.3.0</code> → <code>v0.4.0</code> → <code>v1.0.0</code>) using <strong><code>TC-Lane-PM</code>&#x27;s Pairwise Disjoint File-Envelope Algorithm (<code>Envelope(A) ∩ Envelope(B) = ∅</code>)</strong> so that within every release version, all active Builder lanes (<code>Ariadne-Lane-A</code>, <code>Lane-B</code>, <code>Lane-C</code>, <code>Lane-D</code>) execute <strong>1-Issue Solo Dispatches (<code>1 Issue = 1 Builder Lane = 1 PR</code>)</strong> in parallel with <strong>zero shared-file collisions</strong> and no artificial multi-issue bundling.</p><blockquote><strong>Pre-Event Preparation State:</strong> All 15 Hackathon MVP issues (<code>#1</code>–<code>#12</code>, <code>#14</code>–<code>#16</code>) are staged and sorted below. Zero application code is written prior to Saturday, November 7, 2026 @ <code>09:30 AM PST</code> Operator <code>GO</code>.</blockquote><p>Each item shows its issue number and its state in words. The colours and what each state means are in the legend the page draws above the first release. Press any issue pill to read its detail and click through to its full specification.</p><p>_Data as of 2026-11-05 22:36 PST._ Sorted by <code>Ariadne-PM</code> (<code>#149</code>) per <code>TC-Lane-PM</code> (<code>#74</code>) File-Collision Sorting Methodology.</p><div class="table-wrap"><table><thead><tr><th>Release</th><th>Window (PST)</th><th>Name</th><th>Parallel Solo Lanes</th><th>Issues</th><th>Done</th><th>Pairwise File Overlap</th></tr></thead><tbody><tr><td><strong>v0.1.0</strong></td><td><code>09:30 – 10:05</code> <em>(35m)</em></td><td>Foundation, Contracts, Server &amp; Live Event Bus</td><td>4 (<code>Lane-A..D</code>)</td><td>4</td><td>0</td><td><strong><code>∅</code> (<code>0</code> shared files)</strong></td></tr><tr><td><strong>v0.2.0</strong></td><td><code>10:05 – 11:00</code> <em>(55m)</em></td><td>QR Onboarding, GitHub Connector, Scorer &amp; Stage Graph</td><td>4 (<code>Lane-A..D</code>)</td><td>4</td><td>0</td><td><strong><code>∅</code> (<code>0</code> shared files)</strong></td></tr><tr><td><strong>v0.3.0</strong></td><td><code>11:00 – 12:00</code> <em>(60m)</em></td><td>Capability AI, Match Explanations, Mobile UI &amp; Stage Modes</td><td>4 (<code>Lane-A..D</code>)</td><td>4</td><td>0</td><td><strong><code>∅</code> (<code>0</code> shared files)</strong></td></tr><tr><td><strong>v0.4.0</strong></td><td><code>12:00 – 13:00</code> <em>(60m)</em></td><td>Mutual Intro Room, Opportunity Agent &amp; Async Job Worker</td><td>3 (<code>Lane-A..C</code>)</td><td>3</td><td>0</td><td><strong><code>∅</code> (<code>0</code> shared files)</strong></td></tr><tr><td><strong>v1.0.0</strong></td><td><code>13:00 – 17:45</code> <em>(4h 45m)</em></td><td>Live QR Dogfooding, Stage Polish &amp; Judge Provenance Pack</td><td>4 (<code>Lane-A..D</code> + <code>Obsr</code>)</td><td>2 <em>(Slice 2)</em></td><td>0</td><td><strong><code>∅</code> (<code>0</code> shared files)</strong></td></tr></tbody></table></div><hr><h2>How the Issues Were Sorted (<code>TC-Lane-PM</code> 3-Bucket File-Collision Algorithm)</h2><ol><li><strong>Bucket 1 — Pure Disjoint Solo Issues (<code>Envelope(i) ∩ Envelope(j) = ∅</code>):</strong></li></ol><ul><li>When two issues touch completely separate directories (<code>src/github/*</code> vs <code>src/matching/*</code> vs <code>public/stage/*</code> vs <code>public/app/*</code>), they are placed in the <strong>same release version</strong> and dispatched <strong>solo in parallel (<code>1 Issue = 1 Lane = 1 PR</code>)</strong> — no multi-issue Cars or Trains needed.</li></ul><ol><li><strong>Bucket 2 — Shared-Subsystem Issues (<code>Envelope(i) ∩ Envelope(j) ≠ ∅</code>):</strong></li></ol><ul><li>When two issues touch the same subsystem files, they are <strong>sequenced into consecutive versions</strong> so two builders never touch the same file at the same time:</li><li><strong>Mobile Web (<code>public/app/*</code>):</strong> <code>#2 (A-002 Onboarding)</code> in <code>v0.2.0</code> → <code>#8 (A-008 Profile &amp; Match Cards)</code> in <code>v0.3.0</code> → <code>#12 (A-012 Private Intro Room)</code> in <code>v0.4.0</code>.</li><li><strong>AI Intelligence (<code>src/intelligence/*</code>):</strong> <code>#3 (A-003 GitHub Connector)</code> in <code>v0.2.0</code> → <code>#4 (A-004 Capability Agent)</code> in <code>v0.3.0</code> → <code>#5 (A-005 Opportunity Agent)</code> in <code>v0.4.0</code>.</li><li><strong>Matching Engine (<code>src/matching/*</code>):</strong> <code>#6 (A-006 Deterministic 40/30/20/10 Scorer)</code> in <code>v0.2.0</code> → <code>#7 (A-007 Match Explanation Agent)</code> in <code>v0.3.0</code> → <code>#16 (A-016 Continuous Rematch Worker)</code> in <code>v0.4.0</code>.</li><li><strong>16:9 Stage Visualizer (<code>public/stage/*</code>):</strong> <code>#10 (A-010 Network Graph &amp; KPI Ribbon)</code> in <code>v0.2.0</code> → <code>#11 (A-011 Activity Feed &amp; Spotlight Modes)</code> in <code>v0.3.0</code>.</li></ul><ol><li><strong>Bucket 3 — Shared Chokepoint / Entrypoint Isolation (<code>v0.1.0</code>):</strong></li></ol><ul><li><code>#1 (A-001 Contracts &amp; SQLite Schema)</code> and <code>#14 (A-014 Express Server &amp; Auto-Route Loader)</code> land in <code>v0.1.0</code> (<code>09:30–10:05 PST</code>). Because <code>#14</code> includes an auto-discovery route registry (<code>src/routes/*.ts</code>), <strong>zero</strong> feature issues in <code>v0.2.0</code>–<code>v0.4.0</code> ever need to edit <code>src/server.ts</code>, <code>src/db/schema.sql</code>, or <code>package.json</code>.</li></ul><hr><h2>v0.1.0 — Foundation, Contracts, Server &amp; Live Event Bus (<code>09:30 – 10:05 PST</code>)</h2><p><strong>0 of 4 cars done</strong> · 4 workstreams in parallel</p><ul><li>Freeze canonical TypeScript interfaces (<code>src/contracts/*</code>) and SQLite WAL schema (<code>src/db/schema.sql</code>).</li><li>Boot Express server on PortHub port <code>127.0.0.1:3420</code> with auto-mounted route loader and narrow public HTTPS tunnel (<code>cloudflared</code>/<code>ngrok</code>).</li><li>Stand up append-only SQLite event bus (<code>SSE GET /api/events/stream</code> + fallback <code>GET /api/events/poll</code>).</li><li>Publish live <code>/roadmap</code> and <code>/reports</code> (<code>v2.0.0</code> Sprint Reports Hub) static mounts.</li></ul><p><strong>Can start in parallel:</strong> Solo #1 (A-001): Contracts &amp; SQLite WAL Schema; Solo #14 (A-014): Self-Hosted <code>:3420</code> Server &amp; Auto-Route Loader; Solo #9 (A-009): SSE + Polling Fallback Event Bus; Solo #15 (A-015): Live Roadmap &amp; v2.0.0 Sprint Reports Hub.</p><ul><li><strong>Solo #1 (A-001): Contracts &amp; SQLite WAL Schema</strong> — 0 of 1 done · lane: Ariadne-Lane-A · Exclusive envelope: <code>src/contracts/types.ts</code>, <code>src/contracts/events.ts</code>, <code>src/db/schema.sql</code>, <code>tests/contracts.test.ts</code>.</li><li><strong>Solo #14 (A-014): Self-Hosted <code>:3420</code> Server &amp; Auto-Route Loader</strong> — 0 of 1 done · lane: Ariadne-Lane-B · Exclusive envelope: <code>src/server.ts</code>, <code>src/db/client.ts</code>, <code>src/routes/health.ts</code>, <code>scripts/tunnel.sh</code>, <code>tests/server.test.ts</code>.</li><li><strong>Solo #9 (A-009): SSE + Polling Fallback Event Bus</strong> — 0 of 1 done · lane: Ariadne-Lane-C · Exclusive envelope: <code>src/events/bus.ts</code>, <code>src/routes/events.ts</code>, <code>tests/events.test.ts</code>.</li><li><strong>Solo #15 (A-015): Live Roadmap &amp; v2.0.0 Sprint Reports Hub</strong> — 0 of 1 done · lane: Ariadne-Lane-D · Exclusive envelope: <code>public/reports/index.html</code>, <code>public/roadmap/index.html</code>, <code>scripts/build-sprint-report.js</code>, <code>tests/reports.test.ts</code>.</li></ul><pre><code>{
+ &quot;version&quot;: &quot;0.1.0&quot;,
+ &quot;trains&quot;: [
+  {
+   &quot;kind&quot;: &quot;bucket&quot;,
+   &quot;title&quot;: &quot;Solo #1 (A-001): Contracts &amp; SQLite WAL Schema [Envelope: src/contracts/*, src/db/schema.sql]&quot;,
+   &quot;owner&quot;: &quot;Ariadne-Lane-A&quot;,
+   &quot;verified&quot;: false,
+   &quot;cars&quot;: [
+    {
+     &quot;issue&quot;: 1,
+     &quot;closed&quot;: false,
+     &quot;state&quot;: &quot;open&quot;,
+     &quot;href&quot;: &quot;https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-001.md&quot;,
+     &quot;type&quot;: &quot;feature&quot;,
+     &quot;title&quot;: &quot;A-001: Core architecture, SQLite WAL schema &amp; data/event contracts&quot;
+    }
+   ],
+   &quot;sequencing&quot;: &quot;Solo parallel dispatch (1 issue = 1 lane = 1 PR). Zero shared-file overlap with Lanes B, C, or D.&quot;
+  },
+  {
+   &quot;kind&quot;: &quot;bucket&quot;,
+   &quot;title&quot;: &quot;Solo #14 (A-014): Self-Hosted :3420 Server &amp; Auto-Route Loader [Envelope: src/server.ts, src/db/client.ts]&quot;,
+   &quot;owner&quot;: &quot;Ariadne-Lane-B&quot;,
+   &quot;verified&quot;: false,
+   &quot;cars&quot;: [
+    {
+     &quot;issue&quot;: 14,
+     &quot;closed&quot;: false,
+     &quot;state&quot;: &quot;open&quot;,
+     &quot;href&quot;: &quot;https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-014.md&quot;,
+     &quot;type&quot;: &quot;feature&quot;,
+     &quot;title&quot;: &quot;A-014: Self-hosted server (:3420), SQLite WAL connection, narrow HTTPS tunnel &amp; resilience&quot;
+    }
+   ],
+   &quot;sequencing&quot;: &quot;Solo parallel dispatch (1 issue = 1 lane = 1 PR). Zero shared-file overlap with Lanes A, C, or D.&quot;
+  },
+  {
+   &quot;kind&quot;: &quot;bucket&quot;,
+   &quot;title&quot;: &quot;Solo #9 (A-009): SSE + Polling Fallback Event Bus [Envelope: src/events/bus.ts, src/routes/events.ts]&quot;,
+   &quot;owner&quot;: &quot;Ariadne-Lane-C&quot;,
+   &quot;verified&quot;: false,
+   &quot;cars&quot;: [
+    {
+     &quot;issue&quot;: 9,
+     &quot;closed&quot;: false,
+     &quot;state&quot;: &quot;open&quot;,
+     &quot;href&quot;: &quot;https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-009.md&quot;,
+     &quot;type&quot;: &quot;feature&quot;,
+     &quot;title&quot;: &quot;A-009: SQLite append-only live event stream (SSE + automatic HTTP polling fallback)&quot;
+    }
+   ],
+   &quot;sequencing&quot;: &quot;Solo parallel dispatch (1 issue = 1 lane = 1 PR). Zero shared-file overlap with Lanes A, B, or D.&quot;
+  },
+  {
+   &quot;kind&quot;: &quot;bucket&quot;,
+   &quot;title&quot;: &quot;Solo #15 (A-015): Live Roadmap &amp; v2.0.0 Sprint Reports Hub [Envelope: public/reports/*, public/roadmap/*]&quot;,
+   &quot;owner&quot;: &quot;Ariadne-Lane-D&quot;,
+   &quot;verified&quot;: false,
+   &quot;cars&quot;: [
+    {
+     &quot;issue&quot;: 15,
+     &quot;closed&quot;: false,
+     &quot;state&quot;: &quot;open&quot;,
+     &quot;href&quot;: &quot;https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-015.md&quot;,
+     &quot;type&quot;: &quot;feature&quot;,
+     &quot;title&quot;: &quot;A-015: Hackathon provenance &amp; Per-Version v2.0.0 Interactive Sprint Reports Hub&quot;
+    }
+   ],
+   &quot;sequencing&quot;: &quot;Solo parallel dispatch (1 issue = 1 lane = 1 PR). Zero shared-file overlap with Lanes A, B, or C.&quot;
+  }
+ ]
+}</code></pre><hr><h2>v0.2.0 — QR Onboarding, GitHub Connector, Scorer &amp; Stage Graph (<code>10:05 – 11:00 PST</code>)</h2><p><strong>0 of 4 cars done</strong> · 4 workstreams in parallel</p><ul><li>Deliver mobile QR onboarding (<code>/join</code>), GitHub identity validation, two-tier privacy consent, and <code>HttpOnly</code> session cookies (<code>#2</code> / <code>A-002</code>).</li><li>Deliver bounded 1-query GraphQL GitHub public-data connector, 30-minute SQLite snapshot cache, and prompt-injection sanitizer (<code>#3</code> / <code>A-003</code>).</li><li>Deliver deterministic 4-factor match scoring engine (<code>40/30/20/10</code> + <code>&lt;= 0.72</code> anti-clone threshold) with 5 unit test cases (<code>#6</code> / <code>A-006</code>).</li><li>Deliver 16:9 Presentation Visualizer Network Mode (<code>/stage</code>), pseudonymous node rendering (<code>Thread-XXXX</code>), and 6-KPI ribbon (<code>#10</code> / <code>A-010</code>).</li></ul><p><strong>Can start in parallel:</strong> Solo #2 (A-002): Mobile QR Onboarding &amp; Session Isolation; Solo #3 (A-003): Bounded GitHub Public-Data Connector &amp; Cache; Solo #6 (A-006): Deterministic 4-Factor Match Scoring Engine; Solo #10 (A-010): 16:9 Stage Visualizer Network Graph &amp; KPI Ribbon.</p><ul><li><strong>Solo #2 (A-002): Mobile QR Onboarding &amp; Session Isolation</strong> — 0 of 1 done · lane: Ariadne-Lane-A · Exclusive envelope: <code>src/routes/onboarding.ts</code>, <code>src/auth/session.ts</code>, <code>public/app/join.html</code>, <code>public/app/join.js</code>, <code>tests/onboarding.test.ts</code>.</li><li>Car dependencies: #2 waits on #1, #14.</li><li><strong>Solo #3 (A-003): Bounded GitHub Public-Data Connector &amp; Cache</strong> — 0 of 1 done · lane: Ariadne-Lane-B · Exclusive envelope: <code>src/github/connector.ts</code>, <code>src/github/cache.ts</code>, <code>src/github/sanitize.ts</code>, <code>tests/github-connector.test.ts</code>.</li><li>Car dependencies: #3 waits on #1.</li><li><strong>Solo #6 (A-006): Deterministic 4-Factor Match Scoring Engine</strong> — 0 of 1 done · lane: Ariadne-Lane-C · Exclusive envelope: <code>src/matching/scorer.ts</code>, <code>src/matching/anti-clone.ts</code>, <code>tests/scorer.test.ts</code>.</li><li>Car dependencies: #6 waits on #1.</li><li><strong>Solo #10 (A-010): 16:9 Stage Visualizer Network Graph &amp; KPI Ribbon</strong> — 0 of 1 done · lane: Ariadne-Lane-D · Exclusive envelope: <code>public/stage/index.html</code>, <code>public/stage/network-graph.js</code>, <code>public/stage/stage.css</code>, <code>src/routes/stage-snapshot.ts</code>, <code>tests/stage-snapshot.test.ts</code>.</li><li>Car dependencies: #10 waits on #1, #9.</li></ul><pre><code>{
+ &quot;version&quot;: &quot;0.2.0&quot;,
+ &quot;trains&quot;: [
+  {
+   &quot;kind&quot;: &quot;bucket&quot;,
+   &quot;title&quot;: &quot;Solo #2 (A-002): Mobile QR Onboarding &amp; Session Isolation [Envelope: src/routes/onboarding.ts, public/app/join.*]&quot;,
+   &quot;owner&quot;: &quot;Ariadne-Lane-A&quot;,
+   &quot;verified&quot;: false,
+   &quot;cars&quot;: [
+    {
+     &quot;issue&quot;: 2,
+     &quot;closed&quot;: false,
+     &quot;state&quot;: &quot;open&quot;,
+     &quot;href&quot;: &quot;https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-002.md&quot;,
+     &quot;type&quot;: &quot;feature&quot;,
+     &quot;title&quot;: &quot;A-002: Mobile QR onboarding, consent &amp; session isolation&quot;
+    }
+   ],
+   &quot;sequencing&quot;: &quot;Solo parallel dispatch (1 issue = 1 lane = 1 PR). Zero shared-file overlap with Lanes B, C, or D.&quot;
+  },
+  {
+   &quot;kind&quot;: &quot;bucket&quot;,
+   &quot;title&quot;: &quot;Solo #3 (A-003): Bounded GitHub Public-Data Connector &amp; Cache [Envelope: src/github/*]&quot;,
+   &quot;owner&quot;: &quot;Ariadne-Lane-B&quot;,
+   &quot;verified&quot;: false,
+   &quot;cars&quot;: [
+    {
+     &quot;issue&quot;: 3,
+     &quot;closed&quot;: false,
+     &quot;state&quot;: &quot;open&quot;,
+     &quot;href&quot;: &quot;https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-003.md&quot;,
+     &quot;type&quot;: &quot;feature&quot;,
+     &quot;title&quot;: &quot;A-003: Bounded GitHub public-data connector &amp; SQLite snapshot cache&quot;
+    }
+   ],
+   &quot;sequencing&quot;: &quot;Solo parallel dispatch (1 issue = 1 lane = 1 PR). Zero shared-file overlap with Lanes A, C, or D.&quot;
+  },
+  {
+   &quot;kind&quot;: &quot;bucket&quot;,
+   &quot;title&quot;: &quot;Solo #6 (A-006): Deterministic 4-Factor Match Scoring Engine [Envelope: src/matching/scorer.ts]&quot;,
+   &quot;owner&quot;: &quot;Ariadne-Lane-C&quot;,
+   &quot;verified&quot;: false,
+   &quot;cars&quot;: [
+    {
+     &quot;issue&quot;: 6,
+     &quot;closed&quot;: false,
+     &quot;state&quot;: &quot;open&quot;,
+     &quot;href&quot;: &quot;https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-006.md&quot;,
+     &quot;type&quot;: &quot;feature&quot;,
+     &quot;title&quot;: &quot;A-006: Deterministic 4-factor match scoring engine (40/30/20/10)&quot;
+    }
+   ],
+   &quot;sequencing&quot;: &quot;Solo parallel dispatch (1 issue = 1 lane = 1 PR). Zero shared-file overlap with Lanes A, B, or D.&quot;
+  },
+  {
+   &quot;kind&quot;: &quot;bucket&quot;,
+   &quot;title&quot;: &quot;Solo #10 (A-010): 16:9 Stage Visualizer Network Graph &amp; KPI Ribbon [Envelope: public/stage/network-graph.js, src/routes/stage-snapshot.ts]&quot;,
+   &quot;owner&quot;: &quot;Ariadne-Lane-D&quot;,
+   &quot;verified&quot;: false,
+   &quot;cars&quot;: [
+    {
+     &quot;issue&quot;: 10,
+     &quot;closed&quot;: false,
+     &quot;state&quot;: &quot;open&quot;,
+     &quot;href&quot;: &quot;https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-010.md&quot;,
+     &quot;type&quot;: &quot;feature&quot;,
+     &quot;title&quot;: &quot;A-010: 16:9 Presentation Visualizer — Network Mode &amp; KPI ribbon&quot;
+    }
+   ],
+   &quot;sequencing&quot;: &quot;Solo parallel dispatch (1 issue = 1 lane = 1 PR). Zero shared-file overlap with Lanes A, B, or C.&quot;
+  }
+ ]
+}</code></pre><hr><h2>v0.3.0 — Capability AI, Match Explanations, Mobile UI &amp; Stage Modes (<code>11:00 – 12:00 PST</code>)</h2><p><strong>0 of 4 cars done</strong> · 4 workstreams in parallel</p><ul><li>Deliver mobile participant profile (<code>/me</code>), live research progress stepper, and top-3 evidence-backed match cards with <code>Interested</code> / <code>Pass</code> actions (<code>#8</code> / <code>A-008</code>).</li><li>Deliver evidence-backed Capability Analysis Agent citing real GitHub repositories and activity (<code>#4</code> / <code>A-004</code>).</li><li>Deliver Match Research &amp; Proposal Explanation Agent generating concrete collaboration hypotheses (<code>#7</code> / <code>A-007</code>).</li><li>Deliver 16:9 Presentation Visualizer Activity Feed &amp; Spotlight Modes plus Operator privacy/hotkey HUD (<code>#11</code> / <code>A-011</code>).</li></ul><p><strong>Can start in parallel:</strong> Solo #8 (A-008): Mobile Profile &amp; Top-3 Match Results UI; Solo #4 (A-004): Evidence-Backed Capability Analysis Agent; Solo #7 (A-007): Match Research &amp; Proposal Explanation Agent; Solo #11 (A-011): 16:9 Stage Visualizer Activity &amp; Spotlight Modes.</p><ul><li><strong>Solo #8 (A-008): Mobile Profile &amp; Top-3 Match Results UI</strong> — 0 of 1 done · lane: Ariadne-Lane-A · Exclusive envelope: <code>public/app/me.html</code>, <code>public/app/me.js</code>, <code>public/app/app.css</code>, <code>src/routes/me.ts</code>, <code>tests/me-routes.test.ts</code>.</li><li>Car dependencies: #8 waits on #2, #9.</li><li><strong>Solo #4 (A-004): Evidence-Backed Capability Analysis Agent</strong> — 0 of 1 done · lane: Ariadne-Lane-B · Exclusive envelope: <code>src/intelligence/capability-agent.ts</code>, <code>src/intelligence/prompts.ts</code>, <code>tests/capability-agent.test.ts</code>.</li><li>Car dependencies: #4 waits on #3.</li><li><strong>Solo #7 (A-007): Match Research &amp; Proposal Explanation Agent</strong> — 0 of 1 done · lane: Ariadne-Lane-C · Exclusive envelope: <code>src/matching/explanation-agent.ts</code>, <code>src/matching/evidence-formatter.ts</code>, <code>tests/explanation-agent.test.ts</code>.</li><li>Car dependencies: #7 waits on #6.</li><li><strong>Solo #11 (A-011): 16:9 Stage Visualizer Activity &amp; Spotlight Modes</strong> — 0 of 1 done · lane: Ariadne-Lane-D · Exclusive envelope: <code>public/stage/spotlight.js</code>, <code>public/stage/activity-feed.js</code>, <code>public/stage/operator-controls.js</code>, <code>tests/stage-modes.test.ts</code>.</li><li>Car dependencies: #11 waits on #10.</li></ul><pre><code>{
+ &quot;version&quot;: &quot;0.3.0&quot;,
+ &quot;trains&quot;: [
+  {
+   &quot;kind&quot;: &quot;bucket&quot;,
+   &quot;title&quot;: &quot;Solo #8 (A-008): Mobile Profile &amp; Top-3 Match Results UI [Envelope: public/app/me.*, src/routes/me.ts]&quot;,
+   &quot;owner&quot;: &quot;Ariadne-Lane-A&quot;,
+   &quot;verified&quot;: false,
+   &quot;cars&quot;: [
+    {
+     &quot;issue&quot;: 8,
+     &quot;closed&quot;: false,
+     &quot;state&quot;: &quot;open&quot;,
+     &quot;href&quot;: &quot;https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-008.md&quot;,
+     &quot;type&quot;: &quot;feature&quot;,
+     &quot;title&quot;: &quot;A-008: Mobile participant profile &amp; top-3 match results interface&quot;
+    }
+   ],
+   &quot;sequencing&quot;: &quot;Solo parallel dispatch (1 issue = 1 lane = 1 PR). Sequenced after v0.2.0 #2 so public/app/* has zero concurrent writers.&quot;
+  },
+  {
+   &quot;kind&quot;: &quot;bucket&quot;,
+   &quot;title&quot;: &quot;Solo #4 (A-004): Evidence-Backed Capability Analysis Agent [Envelope: src/intelligence/capability-agent.ts]&quot;,
+   &quot;owner&quot;: &quot;Ariadne-Lane-B&quot;,
+   &quot;verified&quot;: false,
+   &quot;cars&quot;: [
+    {
+     &quot;issue&quot;: 4,
+     &quot;closed&quot;: false,
+     &quot;state&quot;: &quot;open&quot;,
+     &quot;href&quot;: &quot;https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-004.md&quot;,
+     &quot;type&quot;: &quot;feature&quot;,
+     &quot;title&quot;: &quot;A-004: Evidence-backed capability analysis agent&quot;
+    }
+   ],
+   &quot;sequencing&quot;: &quot;Solo parallel dispatch (1 issue = 1 lane = 1 PR). Sequenced after v0.2.0 #3 (GitHub connector).&quot;
+  },
+  {
+   &quot;kind&quot;: &quot;bucket&quot;,
+   &quot;title&quot;: &quot;Solo #7 (A-007): Match Research &amp; Proposal Explanation Agent [Envelope: src/matching/explanation-agent.ts]&quot;,
+   &quot;owner&quot;: &quot;Ariadne-Lane-C&quot;,
+   &quot;verified&quot;: false,
+   &quot;cars&quot;: [
+    {
+     &quot;issue&quot;: 7,
+     &quot;closed&quot;: false,
+     &quot;state&quot;: &quot;open&quot;,
+     &quot;href&quot;: &quot;https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-007.md&quot;,
+     &quot;type&quot;: &quot;feature&quot;,
+     &quot;title&quot;: &quot;A-007: Match research and proposal explanation agent&quot;
+    }
+   ],
+   &quot;sequencing&quot;: &quot;Solo parallel dispatch (1 issue = 1 lane = 1 PR). Sequenced after v0.2.0 #6 (Scorer).&quot;
+  },
+  {
+   &quot;kind&quot;: &quot;bucket&quot;,
+   &quot;title&quot;: &quot;Solo #11 (A-011): 16:9 Stage Visualizer Activity &amp; Spotlight Modes [Envelope: public/stage/spotlight.js, public/stage/activity-feed.js]&quot;,
+   &quot;owner&quot;: &quot;Ariadne-Lane-D&quot;,
+   &quot;verified&quot;: false,
+   &quot;cars&quot;: [
+    {
+     &quot;issue&quot;: 11,
+     &quot;closed&quot;: false,
+     &quot;state&quot;: &quot;open&quot;,
+     &quot;href&quot;: &quot;https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-011.md&quot;,
+     &quot;type&quot;: &quot;feature&quot;,
+     &quot;title&quot;: &quot;A-011: 16:9 Presentation Visualizer — Activity &amp; Spotlight modes&quot;
+    }
+   ],
+   &quot;sequencing&quot;: &quot;Solo parallel dispatch (1 issue = 1 lane = 1 PR). Sequenced after v0.2.0 #10 so public/stage/* has zero concurrent writers.&quot;
+  }
+ ]
+}</code></pre><hr><h2>v0.4.0 — Mutual Intro Room, Opportunity Agent &amp; Async Job Worker (<code>12:00 – 13:00 PST</code>)</h2><p><strong>0 of 3 cars done</strong> · 3 workstreams in parallel</p><ul><li>Deliver web-native double-opt-in Mutual Introduction state machine (<code>approval_a = 1 AND approval_b = 1</code>), contact card reveal gate, and private Web Introduction Room (<code>/me/matches/:id</code>) (<code>#12</code> / <code>A-012</code>).</li><li>Deliver Opportunity &amp; Bottleneck Discovery Agent extracting high-value complementary collaboration needs (<code>#5</code> / <code>A-005</code>).</li><li>Deliver in-process SQLite-leased async job worker, continuous incremental rematching, and 24-persona golden seed fixture (<code>#16</code> / <code>A-016</code>).</li><li><strong>Complete all 15 Hackathon MVP issues by <code>13:00 PM PST</code> (1:00 PM)!</strong></li></ul><p><strong>Can start in parallel:</strong> Solo #12 (A-012): Mutual-Introduction Workflow &amp; Private Intro Room; Solo #5 (A-005): Opportunity &amp; Bottleneck Discovery Agent; Solo #16 (A-016): Async SQLite Job Worker &amp; Continuous Rematching.</p><ul><li><strong>Solo #12 (A-012): Mutual-Introduction Workflow &amp; Private Intro Room</strong> — 0 of 1 done · lane: Ariadne-Lane-A · Exclusive envelope: <code>src/routes/introductions.ts</code>, <code>src/matching/intro-state-machine.ts</code>, <code>public/app/intro-room.js</code>, <code>tests/introductions.test.ts</code>.</li><li>Car dependencies: #12 waits on #8.</li><li><strong>Solo #5 (A-005): Opportunity &amp; Bottleneck Discovery Agent</strong> — 0 of 1 done · lane: Ariadne-Lane-B · Exclusive envelope: <code>src/intelligence/opportunity-agent.ts</code>, <code>tests/opportunity-agent.test.ts</code>.</li><li>Car dependencies: #5 waits on #4.</li><li><strong>Solo #16 (A-016): Async SQLite Job Worker &amp; Continuous Rematching</strong> — 0 of 1 done · lane: Ariadne-Lane-C · Exclusive envelope: <code>src/worker/job-runner.ts</code>, <code>src/worker/seed-personas.ts</code>, <code>data/golden-seed-24.json</code>, <code>tests/worker.test.ts</code>.</li><li>Car dependencies: #16 waits on #3, #4, #6, #7.</li></ul><pre><code>{
+ &quot;version&quot;: &quot;0.4.0&quot;,
+ &quot;trains&quot;: [
+  {
+   &quot;kind&quot;: &quot;bucket&quot;,
+   &quot;title&quot;: &quot;Solo #12 (A-012): Mutual-Introduction Workflow &amp; Private Intro Room [Envelope: src/routes/introductions.ts, public/app/intro-room.js]&quot;,
+   &quot;owner&quot;: &quot;Ariadne-Lane-A&quot;,
+   &quot;verified&quot;: false,
+   &quot;cars&quot;: [
+    {
+     &quot;issue&quot;: 12,
+     &quot;closed&quot;: false,
+     &quot;state&quot;: &quot;open&quot;,
+     &quot;href&quot;: &quot;https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-012.md&quot;,
+     &quot;type&quot;: &quot;feature&quot;,
+     &quot;title&quot;: &quot;A-012: Web-native mutual-introduction workflow &amp; private intro room&quot;
+    }
+   ],
+   &quot;sequencing&quot;: &quot;Solo parallel dispatch (1 issue = 1 lane = 1 PR). Sequenced after v0.3.0 #8.&quot;
+  },
+  {
+   &quot;kind&quot;: &quot;bucket&quot;,
+   &quot;title&quot;: &quot;Solo #5 (A-005): Opportunity &amp; Bottleneck Discovery Agent [Envelope: src/intelligence/opportunity-agent.ts]&quot;,
+   &quot;owner&quot;: &quot;Ariadne-Lane-B&quot;,
+   &quot;verified&quot;: false,
+   &quot;cars&quot;: [
+    {
+     &quot;issue&quot;: 5,
+     &quot;closed&quot;: false,
+     &quot;state&quot;: &quot;open&quot;,
+     &quot;href&quot;: &quot;https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-005.md&quot;,
+     &quot;type&quot;: &quot;feature&quot;,
+     &quot;title&quot;: &quot;A-005: Opportunity and bottleneck discovery agent&quot;
+    }
+   ],
+   &quot;sequencing&quot;: &quot;Solo parallel dispatch (1 issue = 1 lane = 1 PR). Sequenced after v0.3.0 #4 so src/intelligence/* has zero concurrent writers.&quot;
+  },
+  {
+   &quot;kind&quot;: &quot;bucket&quot;,
+   &quot;title&quot;: &quot;Solo #16 (A-016): Async SQLite Job Worker &amp; Continuous Rematching [Envelope: src/worker/*, data/golden-seed-24.json]&quot;,
+   &quot;owner&quot;: &quot;Ariadne-Lane-C&quot;,
+   &quot;verified&quot;: false,
+   &quot;cars&quot;: [
+    {
+     &quot;issue&quot;: 16,
+     &quot;closed&quot;: false,
+     &quot;state&quot;: &quot;open&quot;,
+     &quot;href&quot;: &quot;https://cursatory.tail123678.ts.net:8443/plans/149/ISSUE_A-016.md&quot;,
+     &quot;type&quot;: &quot;feature&quot;,
+     &quot;title&quot;: &quot;A-016: In-process async job worker &amp; continuous rematching&quot;
+    }
+   ],
+   &quot;sequencing&quot;: &quot;Solo parallel dispatch (1 issue = 1 lane = 1 PR). Zero shared-file overlap with Lanes A or B.&quot;
+  }
+ ]
+}</code></pre><hr><h2>v1.0.0 — Live QR Dogfooding, Stage Polish &amp; Judge Provenance Pack (<code>13:00 – 17:45 PST</code>)</h2><p><strong>0 of 2 cars done</strong> · 2 workstreams in parallel <em>(plus 4h 45m runway for live dogfooding bug fixes &amp; UI polish)</em></p><ul><li>4 hours and 45 minutes dedicated to live QR room dogfooding, mobile UX polish, 60fps stage animations, rate-limit chaos rehearsal, and final judge presentation readiness.</li><li>Publish final <code>v2.0.0</code> Interactive Sprint Reports (<code>v0.1.0.html</code>..<code>v1.0.0.html</code>) and GitHub Pages (<code>gh-pages</code>) public roadmap &amp; provenance ledger (<code>#14</code> Slice 2 + <code>#15</code> Slice 2).</li></ul><p><strong>Can start in parallel:</strong> Final Resilience &amp; Demo Rehearsal (#14 Slice 2); Final v2.0.0 Judge Sprint Reports &amp; Provenance Ledger (#15 Slice 2).</p><ul><li><strong>Final Resilience &amp; Demo Rehearsal (#14 Slice 2)</strong> — 0 of 1 done · lane: Ariadne-INT · Offline snapshot cache rehearsal, SQLite WAL backup check, and 3-minute stage demo dry-run.</li><li><strong>Final v2.0.0 Judge Sprint Reports &amp; Provenance Ledger (#15 Slice 2)</strong> — 0 of 1 done · lane: Ariadne-Obsr · Generates <code>public/reports/v1.0.0.html</code>, updates <code>public/reports/index.html</code>, and publishes to <code>gh-pages</code>.</li></ul><pre><code>{
+ &quot;version&quot;: &quot;1.0.0&quot;,
+ &quot;trains&quot;: [
+  {
+   &quot;kind&quot;: &quot;bucket&quot;,
+   &quot;title&quot;: &quot;Final Resilience, Tunnel Verification &amp; Stage Demo Rehearsal (#14 Slice 2)&quot;,
+   &quot;owner&quot;: &quot;Ariadne-INT&quot;,
+   &quot;verified&quot;: false,
+   &quot;cars&quot;: [
+    {
+     &quot;issue&quot;: 14,
+     &quot;closed&quot;: false,
+     &quot;state&quot;: &quot;open&quot;,
+     &quot;href&quot;: &quot;https://cursatory.tail123678.ts.net:8443/plans/149/DEMO_RUNBOOK.md&quot;,
+     &quot;type&quot;: &quot;chore&quot;,
+     &quot;title&quot;: &quot;A-014 (Slice 2): Offline fallback verification, SQLite WAL backup &amp; 3-minute stage demo rehearsal&quot;
+    }
+   ],
+   &quot;sequencing&quot;: &quot;Runs across the 13:00–17:45 PST polish window alongside live dogfooding bug-fix PRs.&quot;
+  },
+  {
+   &quot;kind&quot;: &quot;bucket&quot;,
+   &quot;title&quot;: &quot;Final v2.0.0 Judge Sprint Reports &amp; Provenance Publication (#15 Slice 2)&quot;,
+   &quot;owner&quot;: &quot;Ariadne-Obsr&quot;,
+   &quot;verified&quot;: false,
+   &quot;cars&quot;: [
+    {
+     &quot;issue&quot;: 15,
+     &quot;closed&quot;: false,
+     &quot;state&quot;: &quot;open&quot;,
+     &quot;href&quot;: &quot;https://cursatory.tail123678.ts.net:8443/plans/149/PROVENANCE_AND_JUDGING.md&quot;,
+     &quot;type&quot;: &quot;documentation&quot;,
+     &quot;title&quot;: &quot;A-015 (Slice 2): Publish v0.1.0–v1.0.0 Sprint Reports (v2.0.0 standard) &amp; H-Day Provenance Proof&quot;
+    }
+   ],
+   &quot;sequencing&quot;: &quot;Publishes after each version tag and finalizes v1.0.0 report + gh-pages push before 17:45 PST.&quot;
+  }
+ ]
+}</code></pre><hr><h2>Not scheduled (Deferred to Post-Hackathon V2 Roadmap)</h2><p><strong>2 issues</strong> deliberately excluded from the Saturday Hackathon MVP per the <strong>Web-Only Self-Hosted Hackathon MVP Architecture Amendment</strong>.</p><div class="table-wrap"><table><thead><tr><th>Issue</th><th>Type</th><th>State</th><th>Reason for Deferral</th></tr></thead><tbody><tr><td><a href="ISSUE_A-013.html">A-013 (#13)</a></td><td>feature</td><td>deferred</td><td>Discord event bot &amp; thread creation superseded by Web-Native Mutual Introduction Room (<code>A-012</code>, <code>/me/matches/:id</code>).</td></tr><tr><td><a href="ISSUE_A-017.html">A-017 (#17)</a></td><td>feature</td><td>deferred</td><td>Medusa runtime coordination adapter superseded by in-process SQLite-leased async worker (<code>A-016</code>).</td></tr></tbody></table></div>
+    <footer class="doc-footer">
+      Document: <code>ARIADNE_ROADMAP.md</code> · Updated: <time>2026-11-05 22:40:21 PST</time> · Ariadne-PM (#149) · Static TangleClaw Watermark Active
+    </footer>
+  </main>
+</body>
+</html>

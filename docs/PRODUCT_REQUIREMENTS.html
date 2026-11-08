@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Product Requirements Document (PRD) — ARIADNE (`ARIADNE-HACK-2026`) · Ariadne Documentation (Powered by TangleClaw)</title>
+  <style>
+:root{color-scheme:light dark;--bg:#f6f8fa;--fg:#1f2328;--muted:#59636e;--line:#d0d7de;--panel:#ffffff;--code-bg:#f0f3f6;--link:#0969da;--accent:#1a7f37}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#8b949e;--line:#30363d;--panel:#161b22;--code-bg:#1f242c;--link:#58a6ff;--accent:#3fb950}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;position:relative;min-height:100vh}
+.tc-bg-watermark{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tc-bg-watermark img{width:min(82vw,860px);height:min(82vw,860px);object-fit:contain;opacity:.08;filter:saturate(1.1) contrast(1.05);user-select:none;-webkit-user-drag:none}
+@media(prefers-color-scheme:dark){.tc-bg-watermark img{opacity:.10;filter:drop-shadow(0 0 48px rgba(86,211,100,.18))}}
+header.doc-nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:.65rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;font-size:.88rem}
+.doc-brand{display:inline-flex;align-items:center;gap:.55rem;font-weight:700;color:var(--fg);text-decoration:none}
+.doc-brand img{width:24px;height:24px;border-radius:5px;object-fit:contain}
+.doc-links{display:flex;gap:1rem;flex-wrap:wrap;font-weight:600}
+main.doc-main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:2rem 1.25rem 5rem}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+h1,h2,h3,h4{line-height:1.28;margin-top:1.6em;margin-bottom:.5em}
+h1{font-size:1.95rem;margin-top:.4em;padding-bottom:.35rem;border-bottom:1px solid var(--line)}
+h2{font-size:1.42rem;padding-bottom:.25rem;border-bottom:1px solid var(--line)}
+h3{font-size:1.15rem}
+p,ul,ol,blockquote,pre,table{margin:0 0 1rem}
+ul,ol{padding-left:1.5rem}
+li+li{margin-top:.25rem}
+code{font:0.88em/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.14rem .38rem;border-radius:5px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:.95rem 1.1rem;overflow-x:auto}
+pre code{background:none;padding:0;font-size:.84rem}
+blockquote{margin-left:0;padding:.5rem 1rem;border-left:4px solid var(--link);background:color-mix(in srgb,var(--panel) 85%,transparent);border-radius:0 8px 8px 0;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:1.75rem 0}
+.table-wrap{overflow-x:auto;margin:1rem 0}
+table{width:100%;border-collapse:collapse;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.9rem}
+th,td{text-align:left;padding:.55rem .75rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--code-bg);font-weight:700}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.85rem;margin:1.25rem 0}
+.doc-card{display:block;padding:1rem;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 88%,transparent);transition:border-color .15s,transform .15s}
+.doc-card:hover{border-color:var(--link);transform:translateY(-2px);text-decoration:none}
+.doc-card strong{display:block;color:var(--fg);font-size:.98rem;margin-bottom:.25rem}
+.doc-card span{color:var(--muted);font-size:.82rem}
+footer.doc-footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.84rem}
+</style>
+</head>
+<body>
+  <div class="tc-bg-watermark" aria-hidden="true">
+    <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="">
+  </div>
+  <header class="doc-nav">
+    <a class="doc-brand" href="./">
+      <img src="../ariadne-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/ariadne-logo.png'" alt="Ariadne" style="height:32px;width:auto;border-radius:0;">
+      <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="TangleClaw">
+      <span>Ariadne Documentation · Orchestrated by TangleClaw</span>
+    </a>
+    <nav class="doc-links">
+      <a href="https://github.com/Jason-Vaughan/Ariadne">🐙 GitHub Repo</a>
+      <a href="../">🗺️ Roadmap Board</a>
+      <a href="../reports/">📊 Sprint Reports</a>
+      <a href="./">📚 All Docs (PRODUCT_REQUIREMENTS.md)</a>
+      <a href="MASTER_SSOT.html">⭐ Master SSOT</a>
+    </nav>
+  </header>
+  <main class="doc-main">
+    <h1>Product Requirements Document (PRD) — ARIADNE (<code>ARIADNE-HACK-2026</code>)</h1><p><em>Amended: Web-Only Self-Hosted Hackathon MVP</em></p><h2>1. Product Overview</h2><p><strong>Ariadne</strong> (<em>&quot;Find Your Thread.&quot;</em>) is an AI-native professional discovery network built as a single, self-hosted web application running on the TangleClaw host (isolated from the TangleClaw control plane and exposed through a narrowly scoped public HTTPS tunnel). It features two interfaces connected to the same SQLite-backed Ariadne backend:</p><ol><li><strong>Mobile Participant Interface (<code>/join</code>, <code>/me</code>, <code>/me/matches/:id</code>):</strong> QR onboarding, GitHub identity submission, consent controls, live research progress, top-3 match results, <code>Interested</code>/<code>Pass</code> controls, and mutually approved private web introductions.</li><li><strong>Presentation Visualizer (<code>/stage</code>, <code>/reports</code>):</strong> Full-screen <code>16:9</code> live network graph, participant activity, agent analysis states, evidence-backed connections, introduction status, and interactive per-version TangleClaw Sprint Reports for judges.</li></ol><hr><h2>2. Target User Journey (12-Step Web-Only MVP Flow)</h2><ol><li><strong>QR Scan:</strong> Participant scans the on-screen 16:9 stage QR code (<code>https://&lt;ariadne-tunnel-url&gt;/join</code>).</li><li><strong>Mobile Onboarding:</strong> A fast, mobile-friendly Ariadne page opens.</li><li><strong>Identity Input:</strong> Participant enters their GitHub username or profile URL (with 1-click GitHub OAuth or challenge verification to bind ownership for introductions).</li><li><strong>Explicit Consent:</strong> Participant grants permission for analysis and matching using public GitHub information:</li></ol><ul><li>Required checkbox: Consent to analyze public GitHub activity for event matching.</li><li>Optional toggle: Consent to display real GitHub handle/avatar on the public stage visualizer (defaults to <strong>OFF / Pseudonymous <code>Thread-XXXX</code></strong>).</li><li>Optional field: Preferred contact note/link (e.g., email, X/LinkedIn, or phone/table location) revealed <strong>exclusively</strong> inside a mutually approved web introduction room.</li></ul><ol><li><strong>Immediate Provisional Profile &amp; Stage Appearance (<code>&lt; 1.5s</code>):</strong></li></ol><ul><li>Provisional profile appears immediately on <code>/me</code>, and an anonymized node (<code>Thread-XXXX</code>) spawns on the 16:9 Presentation Visualizer via SSE (<code>participant.registered</code>).</li></ul><ol><li><strong>Bounded GitHub &amp; Capability Analysis (<code>10–30s</code> async worker):</strong></li></ol><ul><li>Ariadne&#x27;s background worker analyzes recent public GitHub activity and constructs a structured capability and opportunity profile in SQLite.</li></ul><ol><li><strong>Autonomous Match Discovery:</strong></li></ol><ul><li>Ariadne discovers up to 3 promising collaborations (<code>score &gt;= 45</code>) with other event participants.</li></ul><ol><li><strong>Evidence-Backed Match Presentation:</strong></li></ol><ul><li>Each proposed match on <code>/me</code> explains the complementary capabilities, relevant projects, 40/30/20/10 scoring breakdown, confidence limitations, supporting GitHub links, and a concrete suggested first collaboration. (If fewer than 3 meaningful matches exist, show fewer—never fabricate matches).</li></ul><ol><li><strong>Participant Decision (<code>Interested</code> / <code>Pass</code>):</strong></li></ol><ul><li>Participant taps <strong>Interested</strong> or <strong>Pass</strong> on each match card.</li></ul><ol><li><strong>Private Counterpart Proposal:</strong></li></ol><ul><li>When Participant A taps <strong>Interested</strong>, an incoming <strong>Collaboration Proposal</strong> banner appears privately on Participant B&#x27;s <code>/me</code> interface.</li></ul><ol><li><strong>Mutually Approved Web Introduction:</strong></li></ol><ul><li>If both participants approve (<code>Interested</code>), Ariadne unlocks a private <strong>Mutual Introduction Room</strong> (<code>/me/matches/:id</code>) for the pair containing their verified GitHub identities, shared contact notes, matched repositories, copyable starter prompt, and a lightweight shared icebreaker note box.</li></ul><ol><li><strong>Live Stage Reflection:</strong></li></ol><ul><li>The 16:9 Presentation Visualizer animates the match progression (<code>candidate</code> → <code>proposed</code> → <code>completed</code>) without exposing private information.</li></ul><blockquote><strong>Scope Simplification:</strong> There is no interview requirement and <strong>no Discord, Medusa, or Morpheus dependency</strong> in the hackathon MVP. All three are deferred to the post-hackathon roadmap.</blockquote><hr><h2>3. Functional Requirements by Interface</h2><h3>3.1 Mobile Participant Interface (<code>/join</code>, <code>/me</code>, <code>/me/matches/:id</code>)</h3><ul><li><strong>Onboarding &amp; Consent (<code>A-002</code>):</strong> Normalize GitHub username/URL, enforce mandatory consent checkbox, default stage display to pseudonymous, issue isolated signed session cookie, and provide a persistent <strong>&quot;Withdraw &amp; Delete My Data&quot;</strong> button (<code>DELETE /api/participants/me</code>).</li><li><strong>Research Progress &amp; Profile (<code>A-004</code>, <code>A-005</code>):</strong> Live SSE + polling fallback checklist (<code>Fetching public repos</code> → <code>Extracting capabilities</code> → <code>Finding opportunities</code> → <code>Scoring matches</code>). Clearly distinguish <strong>Observed Evidence</strong> from <strong>AI Inferences</strong> and allow dismissing inaccurate inferences.</li><li><strong>Match Results &amp; Web Introduction Room (<code>A-008</code>, <code>A-012</code>):</strong> Show 0–3 top matches with 4-factor score bars and GitHub evidence links. Enforce verified ownership before outbound <code>Interested</code> proposals. Unlock the private Web Introduction Room only after bilateral approval.</li></ul><h3>3.2 Presentation Visualizer (<code>/stage</code>, <code>/reports</code>)</h3><ul><li><strong>16:9 Stage Modes (<code>A-010</code>, <code>A-011</code>):</strong></li></ul><ol><li><strong>Network Mode (<code>1</code>):</strong> Force-directed participant nodes, analysis state rings, and match edges.</li><li><strong>Activity Mode (<code>2</code>):</strong> Structured live agent event feed (<code>github.fetch.completed</code>, <code>profile.analysis.completed</code>, <code>opportunity.identified</code>, <code>match.evaluated</code>).</li><li><strong>Spotlight Mode (<code>3</code>):</strong> Deep-dive comparison of a selected match pair with 4-factor breakdown and collaboration thesis.</li></ol><ul><li><strong>Operator Controls:</strong> Keyboard hotkeys for mode switching (<code>1/2/3</code>), hands-free auto-cycle (<code>Space</code>), match stepping (<code>N/P</code>), and global strict pseudonymity override (<code>S</code>).</li><li><strong>Judge Provenance &amp; Per-Version Sprint Reports (<code>/provenance</code>, <code>/reports</code>):</strong> Built-in viewer serving the TangleClaw Sprint Reporting Standard <code>v2.0.0</code> HTML reports for <code>v0.1.0</code>, <code>v0.2.0</code>, <code>v0.3.0</code>, and <code>v1.0.0</code>.</li></ul>
+    <footer class="doc-footer">
+      Document: <code>PRODUCT_REQUIREMENTS.md</code> · Updated: <time>2026-11-05 11:59:04 PST</time> · Ariadne-PM (#149) · Static TangleClaw Watermark Active
+    </footer>
+  </main>
+</body>
+</html>

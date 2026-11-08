@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>[feature] A-010: Interactive Stage Visualizer Shell, Top-3 Web of Connections, Golden Arcs &amp; Seed Pool Toggle · Ariadne Documentation (Powered by TangleClaw)</title>
+  <style>
+:root{color-scheme:light dark;--bg:#f6f8fa;--fg:#1f2328;--muted:#59636e;--line:#d0d7de;--panel:#ffffff;--code-bg:#f0f3f6;--link:#0969da;--accent:#1a7f37}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#8b949e;--line:#30363d;--panel:#161b22;--code-bg:#1f242c;--link:#58a6ff;--accent:#3fb950}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;position:relative;min-height:100vh}
+.tc-bg-watermark{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tc-bg-watermark img{width:min(82vw,860px);height:min(82vw,860px);object-fit:contain;opacity:.08;filter:saturate(1.1) contrast(1.05);user-select:none;-webkit-user-drag:none}
+@media(prefers-color-scheme:dark){.tc-bg-watermark img{opacity:.10;filter:drop-shadow(0 0 48px rgba(86,211,100,.18))}}
+header.doc-nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:.65rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;font-size:.88rem}
+.doc-brand{display:inline-flex;align-items:center;gap:.55rem;font-weight:700;color:var(--fg);text-decoration:none}
+.doc-brand img{width:24px;height:24px;border-radius:5px;object-fit:contain}
+.doc-links{display:flex;gap:1rem;flex-wrap:wrap;font-weight:600}
+main.doc-main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:2rem 1.25rem 5rem}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+h1,h2,h3,h4{line-height:1.28;margin-top:1.6em;margin-bottom:.5em}
+h1{font-size:1.95rem;margin-top:.4em;padding-bottom:.35rem;border-bottom:1px solid var(--line)}
+h2{font-size:1.42rem;padding-bottom:.25rem;border-bottom:1px solid var(--line)}
+h3{font-size:1.15rem}
+p,ul,ol,blockquote,pre,table{margin:0 0 1rem}
+ul,ol{padding-left:1.5rem}
+li+li{margin-top:.25rem}
+code{font:0.88em/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.14rem .38rem;border-radius:5px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:.95rem 1.1rem;overflow-x:auto}
+pre code{background:none;padding:0;font-size:.84rem}
+blockquote{margin-left:0;padding:.5rem 1rem;border-left:4px solid var(--link);background:color-mix(in srgb,var(--panel) 85%,transparent);border-radius:0 8px 8px 0;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:1.75rem 0}
+.table-wrap{overflow-x:auto;margin:1rem 0}
+table{width:100%;border-collapse:collapse;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.9rem}
+th,td{text-align:left;padding:.55rem .75rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--code-bg);font-weight:700}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.85rem;margin:1.25rem 0}
+.doc-card{display:block;padding:1rem;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 88%,transparent);transition:border-color .15s,transform .15s}
+.doc-card:hover{border-color:var(--link);transform:translateY(-2px);text-decoration:none}
+.doc-card strong{display:block;color:var(--fg);font-size:.98rem;margin-bottom:.25rem}
+.doc-card span{color:var(--muted);font-size:.82rem}
+footer.doc-footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.84rem}
+</style>
+</head>
+<body>
+  <div class="tc-bg-watermark" aria-hidden="true">
+    <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="">
+  </div>
+  <header class="doc-nav">
+    <a class="doc-brand" href="./">
+      <img src="../ariadne-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/ariadne-logo.png'" alt="Ariadne" style="height:32px;width:auto;border-radius:0;">
+      <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="TangleClaw">
+      <span>Ariadne Documentation · Orchestrated by TangleClaw</span>
+    </a>
+    <nav class="doc-links">
+      <a href="https://github.com/Jason-Vaughan/Ariadne">🐙 GitHub Repo</a>
+      <a href="../">🗺️ Roadmap Board</a>
+      <a href="../reports/">📊 Sprint Reports</a>
+      <a href="./">📚 All Docs (ISSUE_A-010.md)</a>
+      <a href="MASTER_SSOT.html">⭐ Master SSOT</a>
+    </nav>
+  </header>
+  <main class="doc-main">
+    <h1>[feature] A-010: Interactive Stage Visualizer Shell, Top-3 Web of Connections, Golden Arcs &amp; Seed Pool Toggle</h1><ul><li><strong>Issue ID:</strong> <code>A-010</code></li><li><strong>Priority:</strong> <code>P0</code></li><li><strong>Assigned Lane &amp; Car:</strong> <code>Ariadne-Lane-D</code> (<code>Car 1-D</code>)</li><li><strong>Milestone / Train:</strong> <code>Train 1 — Core Pipeline &amp; Stage Shell (v0.2.0)</code></li><li><strong>Dependencies:</strong> <code>A-009</code></li></ul><h2>1. Description</h2><p>Build the <code>1920x1080</code> (<code>16:9</code>) interactive Stage Visualizer dashboard shell (<code>/stage</code>), persistent 6-metric top KPI ribbon, <strong>Clickable 4-View Navigation Bar (<code>[1: Pipeline]</code>, <code>[2: Fingerprints]</code>, <code>[3: Web of Connections]</code>, <code>[4: Spotlight]</code>)</strong>, <strong><code>[📱 QR Overlay: REQUIRES GITHUB PROFILE]</code></strong> modal (<code>Q</code>), <strong><code>[🌱 Seed AI Devs: OFF / ON (+25 Profiles)]</code></strong> toggle button (<code>S</code>), and <strong>View 3: Sparse Top-3 (<code>k = 3</code>) Web of Connections</strong> force-directed graph with <strong>Glowing Golden Arcs</strong> for mutual matches.</p><h2>2. Rationale</h2><p>At a hackathon of AI peers, drawing an all-to-all match graph creates an unreadable hairball. Capping rendered edges to each participant&#x27;s <strong>Top 3 Complementary Matches (<code>k = 3</code>)</strong> creates a crystal-clear Web of Connections. In addition, the 1-click <strong><code>[🌱 Seed AI Devs: OFF/ON]</code></strong> button gives the presenter an &quot;Ace Up Their Sleeve&quot;: if only 3–5 attendees scan the QR code live, toggling Seed Mode merges 25 realistic SF AI builder profiles into the live matching pool so the live attendees match with each other AND the 25 seeded builders on stage.</p><h2>3. Dependencies</h2><ul><li>Depends on <code>A-009</code> (<code>GET /api/events/stream</code> and <code>GET /api/events/poll</code>).</li></ul><h2>4. Implementation Boundaries</h2><ul><li><strong>In Scope:</strong> <code>src/app/stage/page.tsx</code>, <code>src/components/stage/KpiRibbon.tsx</code>, <code>src/components/stage/StageHeaderControls.tsx</code> (4 clickable view tabs + QR modal button + Seed Pool toggle button), <code>src/components/stage/NetworkGraph.tsx</code> (Top-3 edge cap + Golden Arcs + Stage Celebration Banner), <code>src/components/stage/QrJoinBanner.tsx</code> (with bold <code>⚡ SCAN TO JOIN — REQUIRES GITHUB PROFILE</code>), and <code>POST /api/stage/seed-toggle</code> (toggles the 25 curated AI builder profiles in/out of the active pool).</li><li><strong>Out of Scope:</strong> View 1 Pipeline Assembly Line, View 2 Fingerprints Gallery, and View 4 Spotlight deep-dive (<code>A-011</code>).</li></ul><h2>5. Acceptance Criteria</h2><ul><li>[ ] Renders at <code>1920x1080</code> (<code>16:9</code>) with clickable top navigation buttons for all 4 views (<code>[1: Under-the-Hood Pipeline]</code>, <code>[2: Builder Fingerprints]</code>, <code>[3: Web of Connections]</code>, <code>[4: Match Spotlight]</code>) plus keyboard shortcuts (<code>1/2/3/4/Q/S/Space</code>).</li><li>[ ] <strong>QR Join Modal (<code>[📱 QR Overlay]</code> / <code>Q</code>):</strong> Displays a giant scannable QR code with a high-contrast badge reading <strong><code>⚡ SCAN TO JOIN — REQUIRES GITHUB PROFILE</code></strong> and a live <code>&quot;N Builders Scanned In&quot;</code> counter.</li><li>[ ] <strong>Seed AI Devs Toggle (<code>[🌱 Seed AI Devs: OFF/ON]</code> / <code>S</code>):</strong> Clicking toggles 25 pre-curated SF AI developer profiles (<code>is_seed = 1</code>) into/out of the active matching pool in <code>&lt; 300ms</code>, matching real live scanners against both live peers and seeded AI builders.</li><li>[ ] <strong>Top-3 (<code>k = 3</code>) Web of Connections (<code>View 3</code>):</strong> Renders at most the Top 3 highest-scoring match edges per node with 3 distinct visual states:</li></ul><ol><li><code>candidate</code> (Suggested Top-3 Match): Dashed cyan-slate line.</li><li><code>proposed_by_a/b</code> (1-Sided Interest): Solid pulsing amber line.</li><li><code>completed</code> (<strong>Mutual Match — &quot;Golden Arc&quot;</strong>): Thick glowing gold arc with an expanding ripple animation + 5-second top-of-screen <strong>Golden Thread Celebration Banner</strong> (<code>&quot;⚡ NEW GOLDEN THREAD: @userA ↔ @userB&quot;</code>).</li></ol><h2>6. Test Requirements</h2><ul><li>Component and API tests verifying Top-3 (<code>k = 3</code>) edge capping (no node exceeds 3 rendered primary edges), Seed Pool toggle (<code>OFF ↔ ON</code>) inclusion/exclusion in live matching, Golden Arc transition on <code>introduction.completed</code>, and QR overlay rendering.</li></ul><h2>7. Security &amp; Privacy Considerations</h2><ul><li>Enforce pseudonymous labels (<code>Thread-XXXX</code>) whenever <code>public_display_consent === false</code> (or when privacy override <code>P</code> is active).</li></ul><h2>8. Expected Demonstration Impact</h2><p>Gives the Presenter total stage command: show the QR code (<code>REQUIRES GITHUB PROFILE</code>), flip on the 25 Seed AI Devs if the test crowd is small, and watch the Top-3 Web of Connections light up with glowing Golden Arcs.</p>
+    <footer class="doc-footer">
+      Document: <code>ISSUE_A-010.md</code> · Updated: <time>2026-11-06 10:25:32 PST</time> · Ariadne-PM (#149) · Static TangleClaw Watermark Active
+    </footer>
+  </main>
+</body>
+</html>

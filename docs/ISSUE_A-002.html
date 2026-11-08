@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>[feature] A-002: Public QR onboarding — Zero-OAuth 1-tap GitHub handle + optional public website entry · Ariadne Documentation (Powered by TangleClaw)</title>
+  <style>
+:root{color-scheme:light dark;--bg:#f6f8fa;--fg:#1f2328;--muted:#59636e;--line:#d0d7de;--panel:#ffffff;--code-bg:#f0f3f6;--link:#0969da;--accent:#1a7f37}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#8b949e;--line:#30363d;--panel:#161b22;--code-bg:#1f242c;--link:#58a6ff;--accent:#3fb950}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;position:relative;min-height:100vh}
+.tc-bg-watermark{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tc-bg-watermark img{width:min(82vw,860px);height:min(82vw,860px);object-fit:contain;opacity:.08;filter:saturate(1.1) contrast(1.05);user-select:none;-webkit-user-drag:none}
+@media(prefers-color-scheme:dark){.tc-bg-watermark img{opacity:.10;filter:drop-shadow(0 0 48px rgba(86,211,100,.18))}}
+header.doc-nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:.65rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;font-size:.88rem}
+.doc-brand{display:inline-flex;align-items:center;gap:.55rem;font-weight:700;color:var(--fg);text-decoration:none}
+.doc-brand img{width:24px;height:24px;border-radius:5px;object-fit:contain}
+.doc-links{display:flex;gap:1rem;flex-wrap:wrap;font-weight:600}
+main.doc-main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:2rem 1.25rem 5rem}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+h1,h2,h3,h4{line-height:1.28;margin-top:1.6em;margin-bottom:.5em}
+h1{font-size:1.95rem;margin-top:.4em;padding-bottom:.35rem;border-bottom:1px solid var(--line)}
+h2{font-size:1.42rem;padding-bottom:.25rem;border-bottom:1px solid var(--line)}
+h3{font-size:1.15rem}
+p,ul,ol,blockquote,pre,table{margin:0 0 1rem}
+ul,ol{padding-left:1.5rem}
+li+li{margin-top:.25rem}
+code{font:0.88em/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.14rem .38rem;border-radius:5px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:.95rem 1.1rem;overflow-x:auto}
+pre code{background:none;padding:0;font-size:.84rem}
+blockquote{margin-left:0;padding:.5rem 1rem;border-left:4px solid var(--link);background:color-mix(in srgb,var(--panel) 85%,transparent);border-radius:0 8px 8px 0;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:1.75rem 0}
+.table-wrap{overflow-x:auto;margin:1rem 0}
+table{width:100%;border-collapse:collapse;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.9rem}
+th,td{text-align:left;padding:.55rem .75rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--code-bg);font-weight:700}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.85rem;margin:1.25rem 0}
+.doc-card{display:block;padding:1rem;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 88%,transparent);transition:border-color .15s,transform .15s}
+.doc-card:hover{border-color:var(--link);transform:translateY(-2px);text-decoration:none}
+.doc-card strong{display:block;color:var(--fg);font-size:.98rem;margin-bottom:.25rem}
+.doc-card span{color:var(--muted);font-size:.82rem}
+footer.doc-footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.84rem}
+</style>
+</head>
+<body>
+  <div class="tc-bg-watermark" aria-hidden="true">
+    <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="">
+  </div>
+  <header class="doc-nav">
+    <a class="doc-brand" href="./">
+      <img src="../ariadne-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/ariadne-logo.png'" alt="Ariadne" style="height:32px;width:auto;border-radius:0;">
+      <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="TangleClaw">
+      <span>Ariadne Documentation · Orchestrated by TangleClaw</span>
+    </a>
+    <nav class="doc-links">
+      <a href="https://github.com/Jason-Vaughan/Ariadne">🐙 GitHub Repo</a>
+      <a href="../">🗺️ Roadmap Board</a>
+      <a href="../reports/">📊 Sprint Reports</a>
+      <a href="./">📚 All Docs (ISSUE_A-002.md)</a>
+      <a href="MASTER_SSOT.html">⭐ Master SSOT</a>
+    </nav>
+  </header>
+  <main class="doc-main">
+    <h1>[feature] A-002: Public QR onboarding — Zero-OAuth 1-tap GitHub handle + optional public website entry</h1><ul><li><strong>Issue ID:</strong> <code>A-002</code></li><li><strong>Priority:</strong> <code>P0</code></li><li><strong>Assigned Lane &amp; Car:</strong> <code>Ariadne-Lane-A</code> (<code>Car 1-A</code>)</li><li><strong>Milestone / Train:</strong> <code>Train 1 — Core Pipeline &amp; Stage Shell (v0.2.0)</code></li><li><strong>Dependencies:</strong> <code>A-001</code></li></ul><h2>1. Description</h2><p>Build the mobile-first QR landing and onboarding flow (<code>/join</code>) with a prominent <strong><code>⚡ REQUIRES GITHUB PROFILE</code></strong> badge, <strong>Zero-OAuth 1-Tap GitHub <code>@username</code> / URL entry</strong> (required), an <strong>optional Public Website / Portfolio URL field (<code>website_url</code>)</strong> (e.g., <code>https://jasonvaughan.com</code> — must be open to the public web with no login required), an optional 1-line <em>&quot;What I&#x27;m building or looking for today&quot;</em> note, explicit data-processing &amp; stage-display consent controls, provisional profile page (<code>/me</code>), and immediate emission of <code>participant.registered</code>.</p><h2>2. Rationale</h2><p>On congested hackathon venue Wi-Fi, requiring a full GitHub OAuth redirect + 2FA on mobile causes ~50% drop-off during a 3-minute stage pitch. By requiring a public GitHub <code>@username</code> directly (<code>Zero-OAuth</code>) and allowing an <strong>optional public personal website / portfolio URL</strong> (like <code>jasonvaughan.com</code>), attendees join in <code>&lt; 1 second</code> and give Ariadne&#x27;s agents both their code repositories AND their personal portfolio/bio to synthesize a much richer 6-Axis Builder Fingerprint.</p><h2>3. Dependencies</h2><ul><li>Depends on <code>A-001</code> (<code>Participant</code> contract including <code>website_url?: string | null</code>, SQLite schema, and <code>participant.registered</code> event contract).</li></ul><h2>4. Implementation Boundaries</h2><ul><li><strong>In Scope:</strong> <code>src/routes/onboarding.ts</code>, <code>src/auth/session.ts</code>, <code>public/app/join.html</code>, <code>public/app/join.js</code>, <code>tests/onboarding.test.ts</code>.</li><li><strong>Out of Scope:</strong> Deep GitHub API + public website fetching (<code>A-003</code>), LLM profile synthesis (<code>A-004</code>), or match scoring (<code>A-006</code>).</li></ul><h2>5. Acceptance Criteria</h2><ul><li>[ ] Displays a clear, high-contrast <strong><code>⚡ REQUIRES GITHUB PROFILE</code></strong> banner at the top of <code>/join</code>.</li><li>[ ] <strong>Required Field 1:</strong> Accepts any valid GitHub handle (<code>octocat</code>, <code>@octocat</code>) or profile URL (<code>https://github.com/octocat</code>) with zero OAuth login wall required.</li><li>[ ] <strong>Optional Field 2 (<code>Public Website / Portfolio URL</code>):</strong> Accepts an optional public <code>http://</code> or <code>https://</code> website URL (e.g., <code>jasonvaughan.com</code> or <code>https://jasonvaughan.com</code>, auto-prefixing <code>https://</code> if scheme is omitted) with helper text: <em>&quot;Optional: Add a personal website or portfolio (must be publicly accessible with no login required, e.g. jasonvaughan.com).&quot;</em> Rejects private/loopback IPs (<code>localhost</code>, <code>127.*</code>, <code>10.*</code>, <code>192.168.*</code>, <code>169.254.*</code>) and known login-walled URLs.</li><li>[ ] <strong>Optional Field 3:</strong> Accepts an optional 1-line collaboration goal (<code>&lt;= 160 chars</code>).</li><li>[ ] Submission is blocked unless the explicit public-analysis consent checkbox is checked.</li><li>[ ] Submitting creates a persistent <code>Participant</code> record (storing <code>github_username</code> and normalized <code>website_url</code>), sets a signed <code>HttpOnly</code> session cookie, emits <code>participant.registered</code>, and redirects to <code>/me</code> in <code>&lt; 1.0s</code>.</li><li>[ ] <strong>Hard Room Capacity Admission Gate (<code>maxRoomCapacity</code>, default <code>30</code>):</strong> When active non-seed participants reach <code>maxRoomCapacity</code> (or when the Operator locks intake via <code>/stage</code> or <code>/admin</code>), <code>/join</code> and <code>POST /api/participants</code> display a friendly mobile notice: <strong><code>&quot;🚧 System is currently at capacity (30/30) — please try back later!&quot;</code></strong> with a <strong><code>[🔄 Try Again]</code></strong> button (while existing sessions and pre-warmed VIP/Judge handles continue through unimpeded).</li><li>[ ] Participant can withdraw and delete their profile at any time via a clear <em>&quot;Withdraw &amp; Delete My Data&quot;</em> action (<code>DELETE /api/participants/me</code>), which immediately frees a capacity slot.</li></ul><h2>6. Test Requirements</h2><ul><li>Unit/API tests verifying GitHub username/URL normalization, optional <code>website_url</code> normalization (<code>jasonvaughan.com</code> → <code>https://jasonvaughan.com</code>) and SSRF/loopback rejection, rejection of empty/invalid handles or unconsented submissions (<code>400</code>), session cookie creation, and complete data purge upon <code>DELETE /api/participants/me</code>.</li></ul><h2>7. Security &amp; Privacy Considerations</h2><ul><li>Enforce IP/cookie rate limiting on <code>POST /api/participants</code>.</li><li>Ensure the optional <em>&quot;Display my @github handle on the 16:9 stage visualizer&quot;</em> checkbox is clearly labeled.</li><li>Request zero private repository scopes if optional GitHub OAuth is used (<code>read:user</code> only).</li></ul><h2>8. Expected Demonstration Impact</h2><p>Enables frictionless live audience participation during the hackathon: attendees scan the QR code, type their GitHub <code>@username</code> in one tap, and watch their card enter <strong>Stage 1: GitHub Crawl</strong> on the 16:9 big screen within 1 second.</p>
+    <footer class="doc-footer">
+      Document: <code>ISSUE_A-002.md</code> · Updated: <time>2026-11-07 10:27:38 PST</time> · Ariadne-PM (#149) · Static TangleClaw Watermark Active
+    </footer>
+  </main>
+</body>
+</html>

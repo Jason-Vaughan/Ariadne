@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Dependency DAG, Release Trains &amp; Bundled Cars Plan — ARIADNE (`ARIADNE-HACK-2026`) · Ariadne Documentation (Powered by TangleClaw)</title>
+  <style>
+:root{color-scheme:light dark;--bg:#f6f8fa;--fg:#1f2328;--muted:#59636e;--line:#d0d7de;--panel:#ffffff;--code-bg:#f0f3f6;--link:#0969da;--accent:#1a7f37}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#8b949e;--line:#30363d;--panel:#161b22;--code-bg:#1f242c;--link:#58a6ff;--accent:#3fb950}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;position:relative;min-height:100vh}
+.tc-bg-watermark{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tc-bg-watermark img{width:min(82vw,860px);height:min(82vw,860px);object-fit:contain;opacity:.08;filter:saturate(1.1) contrast(1.05);user-select:none;-webkit-user-drag:none}
+@media(prefers-color-scheme:dark){.tc-bg-watermark img{opacity:.10;filter:drop-shadow(0 0 48px rgba(86,211,100,.18))}}
+header.doc-nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:.65rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;font-size:.88rem}
+.doc-brand{display:inline-flex;align-items:center;gap:.55rem;font-weight:700;color:var(--fg);text-decoration:none}
+.doc-brand img{width:24px;height:24px;border-radius:5px;object-fit:contain}
+.doc-links{display:flex;gap:1rem;flex-wrap:wrap;font-weight:600}
+main.doc-main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:2rem 1.25rem 5rem}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+h1,h2,h3,h4{line-height:1.28;margin-top:1.6em;margin-bottom:.5em}
+h1{font-size:1.95rem;margin-top:.4em;padding-bottom:.35rem;border-bottom:1px solid var(--line)}
+h2{font-size:1.42rem;padding-bottom:.25rem;border-bottom:1px solid var(--line)}
+h3{font-size:1.15rem}
+p,ul,ol,blockquote,pre,table{margin:0 0 1rem}
+ul,ol{padding-left:1.5rem}
+li+li{margin-top:.25rem}
+code{font:0.88em/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.14rem .38rem;border-radius:5px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:.95rem 1.1rem;overflow-x:auto}
+pre code{background:none;padding:0;font-size:.84rem}
+blockquote{margin-left:0;padding:.5rem 1rem;border-left:4px solid var(--link);background:color-mix(in srgb,var(--panel) 85%,transparent);border-radius:0 8px 8px 0;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:1.75rem 0}
+.table-wrap{overflow-x:auto;margin:1rem 0}
+table{width:100%;border-collapse:collapse;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.9rem}
+th,td{text-align:left;padding:.55rem .75rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--code-bg);font-weight:700}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.85rem;margin:1.25rem 0}
+.doc-card{display:block;padding:1rem;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 88%,transparent);transition:border-color .15s,transform .15s}
+.doc-card:hover{border-color:var(--link);transform:translateY(-2px);text-decoration:none}
+.doc-card strong{display:block;color:var(--fg);font-size:.98rem;margin-bottom:.25rem}
+.doc-card span{color:var(--muted);font-size:.82rem}
+footer.doc-footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.84rem}
+</style>
+</head>
+<body>
+  <div class="tc-bg-watermark" aria-hidden="true">
+    <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="">
+  </div>
+  <header class="doc-nav">
+    <a class="doc-brand" href="./">
+      <img src="../ariadne-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/ariadne-logo.png'" alt="Ariadne" style="height:32px;width:auto;border-radius:0;">
+      <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="TangleClaw">
+      <span>Ariadne Documentation · Orchestrated by TangleClaw</span>
+    </a>
+    <nav class="doc-links">
+      <a href="https://github.com/Jason-Vaughan/Ariadne">🐙 GitHub Repo</a>
+      <a href="../">🗺️ Roadmap Board</a>
+      <a href="../reports/">📊 Sprint Reports</a>
+      <a href="./">📚 All Docs (DEPENDENCY_DAG.md)</a>
+      <a href="MASTER_SSOT.html">⭐ Master SSOT</a>
+    </nav>
+  </header>
+  <main class="doc-main">
+    <h1>Dependency DAG, Release Trains &amp; Bundled Cars Plan — ARIADNE (<code>ARIADNE-HACK-2026</code>)</h1><p><em>Amended: Web-Only MVP + TC-Lane-PM Multi-Issue Car Bundling (<code>Rule #294</code>)</em></p><h2>1. Why Multi-Issue Bundled Cars Beat Single-Issue Waves</h2><p>Per advisory consultation with <code>TC-Lane-PM</code> (<code>Rule #294</code> — <em>Single-Wave Multi-Issue Builder Car Bundling</em>):</p><ul><li>With Discord (<code>A-013</code>) and Medusa (<code>A-017</code>) moved to the post-hackathon roadmap, the Ariadne MVP consists of <strong>15 issues</strong> (<code>A-001</code>..<code>A-012</code>, <code>A-014</code>..<code>A-016</code>).</li><li>Dispatching 15 individual single-issue PRs would cost ~3 hours in PR review queues, branch resets, and cross-lane rebases.</li><li>Instead, we freeze <code>src/contracts/*</code> and <code>src/db/schema.ts</code> in <strong>Train 0 (<code>v0.1.0</code> at 10:15 AM)</strong>, and then bundle co-located issues per Builder lane into <strong>File-Disjoint Multi-Issue Cars</strong> so <strong>all 4 Builders execute simultaneously in Train 1 (<code>v0.2.0</code>)</strong>, landing <strong>10 of the 15 MVP issues by 12:00 PM PST</strong> and completing the entire functional MVP in <strong>Train 2 (<code>v0.3.0</code>) by 13:45 PM PST</strong>—leaving <strong>4 full hours (<code>13:45–17:45 PST</code>)</strong> for bug fixes, UI tweaks, live dogfooding, and Judge Sprint Reports!</li></ul><hr><h2>2. Four-Train Dependency &amp; Car Execution Graph</h2><pre><code>flowchart TD
+    subgraph Train0[&quot;Train 0 (v0.1.0): Foundation, SQLite WAL &amp; Contracts (09:30 - 10:15 PST)&quot;]
+        Car0[&quot;Car 0-INT (Ariadne-INT + Arc)\nIssues: A-001 + A-014 (Slice 1) + A-015 (Slice 1)\nOutput: Frozen src/contracts/*, SQLite WAL schema, /api/health, PortHub 3420&quot;]
+    end
+
+    subgraph Train1[&quot;Train 1 (v0.2.0): Parallel Core Build — 10 Issues in 4 File-Disjoint Cars (10:15 - 12:00 PST)&quot;]
+        Car1A[&quot;Car 1-A (Ariadne-Lane-A)\nIssues: A-002 + A-008 (UI Shell)\nQR Onboarding, Consent, Withdrawal &amp; Mobile Results Shell&quot;]
+        Car1B[&quot;Car 1-B (Ariadne-Lane-B)\nIssues: A-003 + A-004 + A-005\nGitHub Connector + Capability Agent + Opportunity Agent&quot;]
+        Car1C[&quot;Car 1-C (Ariadne-Lane-C)\nIssues: A-006 + A-007\n40/30/20/10 Scorer + Match Research &amp; Proposal Agent&quot;]
+        Car1D[&quot;Car 1-D (Ariadne-Lane-D)\nIssues: A-009 + A-010 + A-011\nSQLite Event Bus (SSE + Poll) + 16:9 Stage Visualizer (All 3 Modes)&quot;]
+    end
+
+    subgraph Train2[&quot;Train 2 (v0.3.0): End-to-End Integration, Mutual Intros &amp; Rematching (12:00 - 13:45 PST)&quot;]
+        Car2A[&quot;Car 2-A (Ariadne-Lane-A)\nIssues: A-008 (Live Wiring) + A-012\nInterested/Pass State Machine &amp; Private Web Intro Room&quot;]
+        Car2C[&quot;Car 2-C (Ariadne-Lane-C)\nIssue: A-016 + Async Worker Pipeline\nSQLite Job Runner Wiring (Lane B -&gt; Lane C -&gt; SSE) &amp; Continuous Rematching&quot;]
+        Car2D[&quot;Car 2-D (Ariadne-Lane-D)\nStage Live Intro Animations, Pseudonymity Hotkey &amp; Judge HUD&quot;]
+    end
+
+    subgraph Train3[&quot;Train 3 (v1.0.0): Bug Fixes, UI Polish &amp; Judge Sprint Reports (13:45 - 17:45 PST — 4 Hours!)&quot;]
+        Car3Pol[&quot;Parallel Polish &amp; Bug-Fix Cars (Lanes A..D)\nUX Tweaks, Edge-Case Hardening &amp; Stage Polish&quot;]
+        Car3Obs[&quot;Car 3-INT/Obsr (A-014 Slice 2 + A-015 Slice 2)\nTunnel Verification, SQLite Snapshot &amp; v0.1.0..v1.0.0 HTML Sprint Reports&quot;]
+    end
+
+    Car0 --&gt; Car1A &amp; Car1B &amp; Car1C &amp; Car1D
+    Car1A &amp; Car1B &amp; Car1C &amp; Car1D --&gt; Car2A &amp; Car2C &amp; Car2D
+    Car2A &amp; Car2C &amp; Car2D --&gt; Car3Pol &amp; Car3Obs</code></pre><hr><h2>3. Train-by-Train Car Allocation &amp; File-Disjoint Envelopes</h2><div class="table-wrap"><table><thead><tr><th>Train / Version</th><th>Window (PST)</th><th>Car ID</th><th>Lane</th><th>Bundled Issues</th><th>Exclusive File Write Envelope</th></tr></thead><tbody><tr><td><strong>Train 0 (<code>v0.1.0</code>)</strong></td><td><code>09:30–10:15</code></td><td><strong><code>Car 0-INT</code></strong></td><td><code>Ariadne-INT</code> <em>(+ <code>Arc</code>)</em></td><td><code>A-001</code>, <code>A-014</code> (S1), <code>A-015</code> (S1)</td><td><code>package.json</code>, <code>src/contracts/*</code>, <code>src/db/*</code>, <code>src/app/api/health/*</code>, <code>docs/provenance/*</code>, <code>changelog.d/A-001.md</code></td></tr><tr><td><strong>Train 1 (<code>v0.2.0</code>)</strong></td><td><code>10:15–12:00</code></td><td><strong><code>Car 1-A</code></strong></td><td><code>Ariadne-Lane-A</code></td><td><code>A-002</code>, <code>A-008</code> (Shell)</td><td><code>src/app/join/*</code>, <code>src/app/me/*</code>, <code>src/app/api/participants/*</code>, <code>src/app/api/auth/*</code>, <code>tests/lane-a/*</code>, <code>changelog.d/A-002.md</code></td></tr><tr><td><strong>Train 1 (<code>v0.2.0</code>)</strong></td><td><code>10:15–12:00</code></td><td><strong><code>Car 1-B</code></strong></td><td><code>Ariadne-Lane-B</code></td><td><code>A-003</code>, <code>A-004</code>, <code>A-005</code></td><td><code>src/lib/github/*</code>, <code>src/lib/agents/profile-research.ts</code>, <code>src/lib/agents/opportunity-discovery.ts</code>, <code>tests/lane-b/*</code>, <code>changelog.d/A-003-004-005.md</code></td></tr><tr><td><strong>Train 1 (<code>v0.2.0</code>)</strong></td><td><code>10:15–12:00</code></td><td><strong><code>Car 1-C</code></strong></td><td><code>Ariadne-Lane-C</code></td><td><code>A-006</code>, <code>A-007</code></td><td><code>src/lib/scoring/*</code>, <code>src/lib/agents/match-evaluator.ts</code>, <code>src/lib/agents/intro-writer.ts</code>, <code>tests/lane-c/*</code>, <code>changelog.d/A-006-007.md</code></td></tr><tr><td><strong>Train 1 (<code>v0.2.0</code>)</strong></td><td><code>10:15–12:00</code></td><td><strong><code>Car 1-D</code></strong></td><td><code>Ariadne-Lane-D</code></td><td><code>A-009</code>, <code>A-010</code>, <code>A-011</code></td><td><code>src/lib/events/*</code>, <code>src/app/api/events/*</code>, <code>src/app/stage/*</code>, <code>src/components/stage/*</code>, <code>tests/lane-d/*</code>, <code>changelog.d/A-009-010-011.md</code></td></tr><tr><td><strong>Train 2 (<code>v0.3.0</code>)</strong></td><td><code>12:00–13:45</code></td><td><strong><code>Car 2-A</code></strong></td><td><code>Ariadne-Lane-A</code></td><td><code>A-008</code> (Live), <code>A-012</code></td><td><code>src/app/me/*</code>, <code>src/app/api/matches/*</code>, <code>src/lib/intros/*</code>, <code>tests/lane-a/intros.test.ts</code>, <code>changelog.d/A-008-012.md</code></td></tr><tr><td><strong>Train 2 (<code>v0.3.0</code>)</strong></td><td><code>12:00–13:45</code></td><td><strong><code>Car 2-C</code></strong></td><td><code>Ariadne-Lane-C</code></td><td><code>A-016</code> + Worker</td><td><code>src/lib/jobs/*</code>, <code>src/lib/scoring/rematcher.ts</code>, <code>src/app/api/worker/*</code>, <code>tests/lane-c/rematcher.test.ts</code>, <code>changelog.d/A-016.md</code></td></tr><tr><td><strong>Train 2 (<code>v0.3.0</code>)</strong></td><td><code>12:00–13:45</code></td><td><strong><code>Car 2-D</code></strong></td><td><code>Ariadne-Lane-D</code></td><td>Stage Wiring &amp; Polish</td><td><code>src/app/stage/*</code>, <code>src/components/stage/*</code>, <code>src/app/reports/*</code></td></tr><tr><td><strong>Train 3 (<code>v1.0.0</code>)</strong></td><td><code>13:45–17:45</code></td><td><strong><code>Car 3-*</code></strong></td><td>All Lanes + <code>Obsr</code>/<code>INT</code></td><td><code>A-014</code> (S2), <code>A-015</code> (S2), Polish &amp; Bug Fixes</td><td>Disjoint polish assignments + <code>docs/reports/v0.1.0..v1.0.0/index.html</code> (<code>Sprint Reporting Standard v2.0.0</code>)</td></tr></tbody></table></div><hr><h2>4. Zero-Collision Shared-File Prevention Rules</h2><ol><li><strong>Frozen Root &amp; Contracts after <code>v0.1.0</code>:</strong> No Builder lane (<code>Lane-A</code>..<code>D</code>) ever modifies <code>package.json</code>, <code>tsconfig.json</code>, <code>src/contracts/*</code>, or <code>src/db/schema.ts</code>.</li><li><strong>Changelog Fragments (<code>changelog.d/&lt;issue&gt;.md</code>):</strong> Builders never edit root <code>CHANGELOG.md</code> on feature branches. Each Car writes its entry to <code>changelog.d/&lt;car-issues&gt;.md</code>, and <code>Ariadne-INT</code> compiles root <code>CHANGELOG.md</code> during each Train release cut (<code>v0.1.0</code>, <code>v0.2.0</code>, <code>v0.3.0</code>, <code>v1.0.0</code>).</li><li><strong>Pre-Flight Architect Ruling (<code>A-Gate</code>):</strong> Before <code>Ariadne-PM</code> dispatches any Car, <code>Ariadne-Arc</code> posts the exact exported function names and file write envelope on the issue(s), enabling same-wave file-disjoint merging without ancestor rebases.</li></ol>
+    <footer class="doc-footer">
+      Document: <code>DEPENDENCY_DAG.md</code> · Updated: <time>2026-11-05 11:59:04 PST</time> · Ariadne-PM (#149) · Static TangleClaw Watermark Active
+    </footer>
+  </main>
+</body>
+</html>

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>[feature] A-003: GitHub + optional public website connector, Multi-PAT pool, 24h SQLite cache &amp; VIP pre-warmer · Ariadne Documentation (Powered by TangleClaw)</title>
+  <style>
+:root{color-scheme:light dark;--bg:#f6f8fa;--fg:#1f2328;--muted:#59636e;--line:#d0d7de;--panel:#ffffff;--code-bg:#f0f3f6;--link:#0969da;--accent:#1a7f37}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#8b949e;--line:#30363d;--panel:#161b22;--code-bg:#1f242c;--link:#58a6ff;--accent:#3fb950}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;position:relative;min-height:100vh}
+.tc-bg-watermark{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tc-bg-watermark img{width:min(82vw,860px);height:min(82vw,860px);object-fit:contain;opacity:.08;filter:saturate(1.1) contrast(1.05);user-select:none;-webkit-user-drag:none}
+@media(prefers-color-scheme:dark){.tc-bg-watermark img{opacity:.10;filter:drop-shadow(0 0 48px rgba(86,211,100,.18))}}
+header.doc-nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:.65rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;font-size:.88rem}
+.doc-brand{display:inline-flex;align-items:center;gap:.55rem;font-weight:700;color:var(--fg);text-decoration:none}
+.doc-brand img{width:24px;height:24px;border-radius:5px;object-fit:contain}
+.doc-links{display:flex;gap:1rem;flex-wrap:wrap;font-weight:600}
+main.doc-main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:2rem 1.25rem 5rem}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+h1,h2,h3,h4{line-height:1.28;margin-top:1.6em;margin-bottom:.5em}
+h1{font-size:1.95rem;margin-top:.4em;padding-bottom:.35rem;border-bottom:1px solid var(--line)}
+h2{font-size:1.42rem;padding-bottom:.25rem;border-bottom:1px solid var(--line)}
+h3{font-size:1.15rem}
+p,ul,ol,blockquote,pre,table{margin:0 0 1rem}
+ul,ol{padding-left:1.5rem}
+li+li{margin-top:.25rem}
+code{font:0.88em/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.14rem .38rem;border-radius:5px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:.95rem 1.1rem;overflow-x:auto}
+pre code{background:none;padding:0;font-size:.84rem}
+blockquote{margin-left:0;padding:.5rem 1rem;border-left:4px solid var(--link);background:color-mix(in srgb,var(--panel) 85%,transparent);border-radius:0 8px 8px 0;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:1.75rem 0}
+.table-wrap{overflow-x:auto;margin:1rem 0}
+table{width:100%;border-collapse:collapse;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.9rem}
+th,td{text-align:left;padding:.55rem .75rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--code-bg);font-weight:700}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.85rem;margin:1.25rem 0}
+.doc-card{display:block;padding:1rem;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 88%,transparent);transition:border-color .15s,transform .15s}
+.doc-card:hover{border-color:var(--link);transform:translateY(-2px);text-decoration:none}
+.doc-card strong{display:block;color:var(--fg);font-size:.98rem;margin-bottom:.25rem}
+.doc-card span{color:var(--muted);font-size:.82rem}
+footer.doc-footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.84rem}
+</style>
+</head>
+<body>
+  <div class="tc-bg-watermark" aria-hidden="true">
+    <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="">
+  </div>
+  <header class="doc-nav">
+    <a class="doc-brand" href="./">
+      <img src="../ariadne-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/ariadne-logo.png'" alt="Ariadne" style="height:32px;width:auto;border-radius:0;">
+      <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="TangleClaw">
+      <span>Ariadne Documentation · Orchestrated by TangleClaw</span>
+    </a>
+    <nav class="doc-links">
+      <a href="https://github.com/Jason-Vaughan/Ariadne">🐙 GitHub Repo</a>
+      <a href="../">🗺️ Roadmap Board</a>
+      <a href="../reports/">📊 Sprint Reports</a>
+      <a href="./">📚 All Docs (ISSUE_A-003.md)</a>
+      <a href="MASTER_SSOT.html">⭐ Master SSOT</a>
+    </nav>
+  </header>
+  <main class="doc-main">
+    <h1>[feature] A-003: GitHub + optional public website connector, Multi-PAT pool, 24h SQLite cache &amp; VIP pre-warmer</h1><ul><li><strong>Issue ID:</strong> <code>A-003</code></li><li><strong>Priority:</strong> <code>P0</code></li><li><strong>Assigned Lane &amp; Car:</strong> <code>Ariadne-Lane-B</code> (<code>Car 1-B</code>)</li><li><strong>Milestone / Train:</strong> <code>Train 1 — Core Pipeline &amp; Stage Shell (v0.2.0)</code></li><li><strong>Dependencies:</strong> <code>A-001</code></li></ul><h2>1. Description</h2><p>Implement the bounded GitHub + optional Public Website connector (<code>src/github/*</code>) that retrieves a participant&#x27;s public GitHub profile metadata, top/recent non-fork repositories, truncated <code>README.md</code> excerpts, language distributions, and—when provided—fetches and extracts clean text from their <strong>optional public personal website / portfolio URL (<code>website_url</code>, e.g. <code>https://jasonvaughan.com</code>)</strong>, normalizing both into verifiable <code>EvidenceReceipt</code> records (<code>source_type: &#x27;github_repo&#x27; | &#x27;github_profile&#x27; | &#x27;public_website&#x27;</code>) and computing an initial <strong>6-Axis Builder Fingerprint</strong> (<code>Systems/Infra</code>, <code>Agent Orchestration</code>, <code>LLM/Eval</code>, <code>Frontend/UX</code>, <code>Product/GTM</code>, <code>Data/Pipelines</code>). Includes <strong>Multi-PAT Token Rotation (<code>GITHUB_TOKENS</code>)</strong>, a <strong>24-hour SQLite Snapshot Cache</strong>, and a <strong>VIP / Judge Pre-Warm Endpoint (<code>POST /api/admin/prewarm</code>)</strong>.</p><h2>2. Rationale</h2><p>When 40–150 people scan the QR code simultaneously during a stage pitch, Ariadne must never hit GitHub API rate limits or stall on slow network calls. Furthermore, many builders showcase their bio, essays, and flagship projects on a personal website (<code>jasonvaughan.com</code>). Combining public GitHub repositories with an optional public website crawl (bounded to a <code>3.0s</code> timeout and <code>100 KB</code> text limit, automatically skipping login-gated pages) produces dramatically richer Builder Fingerprints and match evidence pills.</p><h2>3. Dependencies</h2><ul><li>Depends on <code>A-001</code> (<code>EvidenceReceipt</code> contract, <code>github_snapshots</code> table, event contracts <code>github.fetch.started</code>, <code>github.fetch.completed</code>, <code>analysis.failed</code>).</li></ul><h2>4. Implementation Boundaries</h2><ul><li><strong>In Scope:</strong> <code>src/github/connector.ts</code> (with <code>GITHUB_TOKENS</code> round-robin rotation + bounded public <code>website_url</code> fetcher), <code>src/github/cache.ts</code>, <code>src/github/sanitize.ts</code>, <code>tests/github-connector.test.ts</code>, and <code>POST /api/admin/prewarm</code>.</li><li><strong>Out of Scope:</strong> Gemini Flash deep capability synthesis (<code>A-004</code>) or opportunity inference (<code>A-005</code>).</li></ul><h2>5. Acceptance Criteria</h2><ul><li>[ ] Supports comma-separated <code>GITHUB_TOKENS</code> (or single <code>GITHUB_TOKEN</code>) with automatic token rotation on <code>X-RateLimit-Remaining &lt; 50</code> or <code>403/429</code>.</li><li>[ ] Retrieves public profile, up to 10 non-fork public repositories, languages, topics, and truncated <code>README.md</code> (<code>&lt;= 3,500 chars</code>), emitting <code>github.fetch.started</code> and <code>github.fetch.completed</code> with repo count and duration (<code>ms</code>).</li><li>[ ] <strong>Optional Public Website / Portfolio Fetcher (<code>website_url</code>):</strong> When <code>participant.website_url</code> is present, fetches it in parallel with the GitHub API call (<code>3.0s</code> timeout, <code>max 100 KB</code> body, SSRF block on private/loopback IPs, strips <code>&lt;script&gt;</code>/<code>&lt;style&gt;</code>/HTML tags to extract <code>&lt;title&gt;</code>, <code>&lt;meta name=&quot;description&quot;&gt;</code>, headings, and body text <code>&lt;= 3,500 chars</code>). If the site requires a login (<code>401/403</code> or login redirect) or times out, gracefully skips the website without failing the GitHub crawl.</li><li>[ ] Computes a deterministic baseline <strong>6-Axis Builder Fingerprint</strong> (<code>0–100</code> across <code>Systems/Infra</code>, <code>Agent Orchestration</code>, <code>LLM/Eval</code>, <code>Frontend/UX</code>, <code>Product/GTM</code>, <code>Data/Pipelines</code>) from repo languages/topics + website keywords in <code>&lt; 50ms</code> so Stage 1 progressive UX renders immediately.</li><li>[ ] Serves repeat or pre-warmed handles from the 24-hour <code>github_snapshots</code> SQLite cache in <code>&lt; 10ms</code> (<code>0</code> external API calls).</li><li>[ ] <code>POST /api/admin/prewarm</code> accepts <code>{ handles: [&quot;user1&quot;, &quot;user2&quot;, ...], websites?: { &quot;user1&quot;: &quot;https://jasonvaughan.com&quot; } }</code> and caches their snapshots in the background before demo time.</li></ul><h2>6. Test Requirements</h2><ul><li>Unit tests covering Multi-PAT token rotation, GraphQL/REST response normalization, optional <code>website_url</code> HTML-to-text extraction, graceful fallback when a website is unreachable or login-gated, SSRF private-IP rejection, 24-hour SQLite cache hits, 6-axis Builder Fingerprint calculation, <code>POST /api/admin/prewarm</code>, and HTML/prompt-injection sanitization.</li></ul><h2>7. Security &amp; Privacy Considerations</h2><ul><li>Query <strong>only</strong> public endpoints; filter out any private repository references.</li><li>Sanitize all external GitHub text before storing or passing downstream.</li></ul><h2>8. Expected Demonstration Impact</h2><p>Powers <strong>Column 1 (<code>GitHub Crawl</code>)</strong> and <strong>Column 3 (<code>Builder Fingerprint</code>)</strong> on the 16:9 Stage Visualizer with sub-second cached speed and bulletproof rate-limit headroom.</p>
+    <footer class="doc-footer">
+      Document: <code>ISSUE_A-003.md</code> · Updated: <time>2026-11-07 10:27:38 PST</time> · Ariadne-PM (#149) · Static TangleClaw Watermark Active
+    </footer>
+  </main>
+</body>
+</html>

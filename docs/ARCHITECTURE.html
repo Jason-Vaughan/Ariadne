@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Architecture Specification &amp; ADRs — ARIADNE (`ARIADNE-HACK-2026`) · Ariadne Documentation (Powered by TangleClaw)</title>
+  <style>
+:root{color-scheme:light dark;--bg:#f6f8fa;--fg:#1f2328;--muted:#59636e;--line:#d0d7de;--panel:#ffffff;--code-bg:#f0f3f6;--link:#0969da;--accent:#1a7f37}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#8b949e;--line:#30363d;--panel:#161b22;--code-bg:#1f242c;--link:#58a6ff;--accent:#3fb950}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;position:relative;min-height:100vh}
+.tc-bg-watermark{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tc-bg-watermark img{width:min(82vw,860px);height:min(82vw,860px);object-fit:contain;opacity:.08;filter:saturate(1.1) contrast(1.05);user-select:none;-webkit-user-drag:none}
+@media(prefers-color-scheme:dark){.tc-bg-watermark img{opacity:.10;filter:drop-shadow(0 0 48px rgba(86,211,100,.18))}}
+header.doc-nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:.65rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;font-size:.88rem}
+.doc-brand{display:inline-flex;align-items:center;gap:.55rem;font-weight:700;color:var(--fg);text-decoration:none}
+.doc-brand img{width:24px;height:24px;border-radius:5px;object-fit:contain}
+.doc-links{display:flex;gap:1rem;flex-wrap:wrap;font-weight:600}
+main.doc-main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:2rem 1.25rem 5rem}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+h1,h2,h3,h4{line-height:1.28;margin-top:1.6em;margin-bottom:.5em}
+h1{font-size:1.95rem;margin-top:.4em;padding-bottom:.35rem;border-bottom:1px solid var(--line)}
+h2{font-size:1.42rem;padding-bottom:.25rem;border-bottom:1px solid var(--line)}
+h3{font-size:1.15rem}
+p,ul,ol,blockquote,pre,table{margin:0 0 1rem}
+ul,ol{padding-left:1.5rem}
+li+li{margin-top:.25rem}
+code{font:0.88em/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.14rem .38rem;border-radius:5px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:.95rem 1.1rem;overflow-x:auto}
+pre code{background:none;padding:0;font-size:.84rem}
+blockquote{margin-left:0;padding:.5rem 1rem;border-left:4px solid var(--link);background:color-mix(in srgb,var(--panel) 85%,transparent);border-radius:0 8px 8px 0;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:1.75rem 0}
+.table-wrap{overflow-x:auto;margin:1rem 0}
+table{width:100%;border-collapse:collapse;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.9rem}
+th,td{text-align:left;padding:.55rem .75rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--code-bg);font-weight:700}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.85rem;margin:1.25rem 0}
+.doc-card{display:block;padding:1rem;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 88%,transparent);transition:border-color .15s,transform .15s}
+.doc-card:hover{border-color:var(--link);transform:translateY(-2px);text-decoration:none}
+.doc-card strong{display:block;color:var(--fg);font-size:.98rem;margin-bottom:.25rem}
+.doc-card span{color:var(--muted);font-size:.82rem}
+footer.doc-footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.84rem}
+</style>
+</head>
+<body>
+  <div class="tc-bg-watermark" aria-hidden="true">
+    <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="">
+  </div>
+  <header class="doc-nav">
+    <a class="doc-brand" href="./">
+      <img src="../ariadne-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/ariadne-logo.png'" alt="Ariadne" style="height:32px;width:auto;border-radius:0;">
+      <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="TangleClaw">
+      <span>Ariadne Documentation · Orchestrated by TangleClaw</span>
+    </a>
+    <nav class="doc-links">
+      <a href="https://github.com/Jason-Vaughan/Ariadne">🐙 GitHub Repo</a>
+      <a href="../">🗺️ Roadmap Board</a>
+      <a href="../reports/">📊 Sprint Reports</a>
+      <a href="./">📚 All Docs (ARCHITECTURE.md)</a>
+      <a href="MASTER_SSOT.html">⭐ Master SSOT</a>
+    </nav>
+  </header>
+  <main class="doc-main">
+    <h1>Architecture Specification &amp; ADRs — ARIADNE (<code>ARIADNE-HACK-2026</code>)</h1><p><em>Updated for <code>v1.0.0</code> Final As-Built Release (<code>24/24</code> Shipped Issues · <code>563/563</code> Automated Tests Passing)</em></p><blockquote>[!IMPORTANT]</blockquote><blockquote><strong>As-Built <code>v1.0.0</code> Summary (<code>main</code> @ <code>2b42cde</code>):</strong></blockquote><blockquote>- <strong>1-Tap Frictionless Mobile Onboarding (<code>/join</code> — <code>A-002</code>, <code>A-021</code>, <code>A-025</code>):</strong> Zero-OAuth <code>@github</code> handle entry with notice-based public analysis disclosure (no mandatory processing-consent checkbox) and pre-checked stage display opt-in.</blockquote><blockquote>- <strong>Calibrated 6-Axis Superpower Engine &amp; Bounded Complementarity Scorer (<code>A-003</code>, <code>A-004</code>, <code>A-006</code>, <code>A-026</code>):</strong> <code>35/30/15/10/10</code> 5-component match formula with <code>&lt;= 38</code> anti-clone cap, context-aware <code>JS/TS</code> routing, and disambiguated <code>Agent Orchestration</code> vs. <code>LLM/Eval</code> axes.</blockquote><blockquote>- <strong>Dual SSE + 2.5s Cloudflare Tunnel Polling (<code>/me</code> &amp; <code>/me/matches/:id</code> — <code>A-008</code>, <code>A-012</code>, <code>A-019</code>):</strong> Instant progressive updates even when Cloudflare quick-tunnels buffer SSE frames.</blockquote><blockquote>- <strong>4-View 16:9 Stage Visualizer (<code>/stage/</code> — <code>A-010</code>, <code>A-011</code>, <code>A-018</code>, <code>A-020</code>, <code>A-022</code>, <code>A-023</code>, <code>A-024</code>):</strong> View 1 Live Pipeline (default), View 2 Hexagonal Fingerprints, View 3 Web of Connections (<code>+25</code> seed toggle <code>S</code>), View 4 Match Spotlight, Draggable Floating QR (<code>A</code>), 4-Tab Stage Explainer Modal (<code>I</code>), and 2-Click Presenter Room Reset (<code>🧹</code>).</blockquote><h2>1. Executive Architecture Specification</h2><h3>Core Stack: <strong>Single Self-Hosted Node.js (<code>v22.22.3</code>) Web Application + SQLite (<code>WAL</code> Mode) + In-Process Bounded Async Workers + SSE with Polling Fallback + Narrow Public HTTPS Tunnel</strong></h3><p>Superseding earlier cloud/Discord/Medusa designs, Ariadne runs as a <strong>single, self-hosted web application on the TangleClaw host (<code>cursatory</code>), strictly isolated from the TangleClaw control plane</strong>:</p><ol><li><strong>Two Interfaces Served by One Backend (<code>127.0.0.1:3420</code>):</strong></li></ol><ul><li><strong>Mobile Participant Interface (<code>/join</code>, <code>/me</code>, <code>/me/matches/:id</code>):</strong> QR onboarding, GitHub identity submission, consent controls, live research progress, top-3 match results with 40/30/20/10 breakdown, <code>Interested</code>/<code>Pass</code> decisions, and mutually approved private web introductions.</li><li><strong>Presentation Visualizer (<code>/stage</code>):</strong> Full-screen <code>16:9</code> (<code>1920x1080</code>) live network graph, participant activity feed, agent analysis states, evidence-backed connections, and introduction status. Operator-controlled with privacy-safe pseudonymous defaults (<code>Thread-XXXX</code>).</li></ul><ol><li><strong>SQLite (<code>WAL</code> Mode) Persistence:</strong></li></ol><ul><li>Single-file local database (<code>data/ariadne.sqlite</code> with <code>PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL; PRAGMA busy_timeout = 5000;</code>) using Node.js <code>v22.22.3</code> (<code>better-sqlite3</code> or built-in <code>node:sqlite</code>).</li><li>Zero external cloud database provisioning, zero network latency on reads/writes, and instant file-copy snapshots at every Train boundary (<code>v0.1.0</code>, <code>v0.2.0</code>, <code>v0.3.0</code>, <code>v1.0.0</code>).</li></ul><ol><li><strong>In-Process Asynchronous Worker Queue (<code>async_jobs</code> table):</strong></li></ol><ul><li>HTTP intake (<code>POST /api/participants</code>) writes the participant row and enqueues a job in SQLite in <code>&lt; 15ms</code>, returning immediately to the mobile browser.</li><li>An in-process bounded worker loop claims pending jobs (<code>status = &#x27;queued&#x27;</code>), executes bounded GitHub API retrieval and structured AI agent evaluation with strict timeouts (<code>10s</code> GitHub / <code>12s</code> AI), writes results to SQLite, and emits live events.</li></ul><ol><li><strong>Live Browser Updates via SSE + Reconnect/Polling Fallback:</strong></li></ol><ul><li>Primary: <code>GET /api/events/stream?after=&lt;seq_id&gt;</code> (Server-Sent Events with <code>Last-Event-ID</code> automatic replay from SQLite <code>domain_events</code>).</li><li>Fallback: <code>GET /api/events/poll?after=&lt;seq_id&gt;</code> (JSON catch-up endpoint automatically polled every <code>3s</code> if cellular/venue proxies buffer SSE streams).</li></ul><ol><li><strong>Narrowly Scoped Public HTTPS Tunnel:</strong></li></ol><ul><li>Local server binds strictly to <code>127.0.0.1:3420</code> (registered in TangleClaw PortHub).</li><li>Exposed publicly via <code>/opt/homebrew/bin/cloudflared tunnel --url http://127.0.0.1:3420</code> (or named Cloudflare/ngrok tunnel pointing <strong>solely</strong> to <code>127.0.0.1:3420</code>).</li><li><strong>Strict Isolation Invariant:</strong> The tunnel forwards only to <code>127.0.0.1:3420</code>. TangleClaw&#x27;s control plane (<code>:3102</code>, <code>:3100</code>, <code>:8443</code>), agent terminals, and internal Medusa ports (<code>:3009</code>, <code>:3010</code>) are never reachable from the public tunnel.</li></ul><ol><li><strong>Zero External Messaging Dependencies in MVP:</strong></li></ol><ul><li>Discord, Medusa, and Morpheus integrations are removed from the hackathon critical path and placed on the post-hackathon roadmap.</li></ul><hr><h2>2. System Topology</h2><pre><code>flowchart TD
+    subgraph PublicAttendees[&quot;Hackathon Attendees (Mobile Browser)&quot;]
+        QR[&quot;Scan Stage QR Code&quot;] --&gt; MobileUI[&quot;Mobile Interface (/join, /me)&quot;]
+    end
+
+    subgraph StageDisplay[&quot;16:9 Auditorium Stage Display&quot;]
+        StageUI[&quot;Presentation Visualizer (/stage)\nNetwork · Activity · Spotlight · Provenance&quot;]
+    end
+
+    subgraph NarrowTunnel[&quot;Narrowly Scoped Public HTTPS Tunnel&quot;]
+        CF[&quot;cloudflared / ngrok HTTPS Edge\n(Forwards ONLY to 127.0.0.1:3420)&quot;]
+    end
+
+    subgraph AriadneHost[&quot;Ariadne Self-Hosted App (127.0.0.1:3420 — Isolated from TC Control Plane)&quot;]
+        Router[&quot;HTTP &amp; Auth Session Layer&quot;]
+        SSE[&quot;SSE Stream + Polling Fallback\n(/api/events/stream &amp; /api/events/poll)&quot;]
+        Gov[&quot;Verification &amp; Governance Layer\n(Consent, Citations, Bilateral Intro Gate)&quot;]
+        Worker[&quot;In-Process Async Worker Pool&quot;]
+        Scorer[&quot;Deterministic 4-Factor Scorer (40/30/20/10)&quot;]
+        Agents[&quot;Bounded Agent Tasks\n(Profile Research · Opportunity · Match Eval · Intro)&quot;]
+        SQLite[(&quot;SQLite WAL Database\n(data/ariadne.sqlite)&quot;)]
+    end
+
+    subgraph ExternalAPI[&quot;External Read-Only API&quot;]
+        GH[&quot;GitHub Public GraphQL/REST API&quot;]
+    end
+
+    MobileUI &lt;--&gt; CF
+    StageUI &lt;--&gt; CF
+    CF &lt;--&gt; Router
+    CF &lt;--&gt; SSE
+    Router --&gt; Gov
+    Gov --&gt; SQLite
+    Worker &lt;--&gt; SQLite
+    Worker --&gt; Agents
+    Agents &lt;--&gt; GH
+    Worker --&gt; Scorer
+    Scorer --&gt; Agents
+    Agents --&gt; Gov
+    Gov --&gt; SSE</code></pre><hr><h2>3. Architecture Decision Records (ADRs)</h2><h3>ADR-A: Self-Hosted Web Application &amp; Dual Interfaces</h3><ul><li><strong>Decision:</strong> Single TypeScript/Node.js web application serving both the mobile participant interface (<code>/join</code>, <code>/me</code>, <code>/me/matches/:id</code>) and the <code>16:9</code> presentation visualizer (<code>/stage</code>, <code>/provenance</code>).</li><li><strong>Licensing Note:</strong> Repository licensing remains deferred (<code>UNLICENSED</code> / TBD placeholder until Operator decides).</li><li><strong>Session Isolation:</strong> Each participant receives a cryptographically signed <code>HttpOnly</code>, <code>Secure</code>, <code>SameSite=Lax</code> cookie (<code>ariadne_session</code>) bound to their isolated <code>participant_id</code>.</li></ul><h3>ADR-B: GitHub Intelligence (<code>src/lib/github/*</code>)</h3><ul><li><strong>Decision:</strong> Bounded single-flight fetcher using server-side <code>ARIADNE_GITHUB_TOKEN</code> (<code>5,000 req/hr</code>) with SQLite snapshot caching (<code>github_snapshots</code>, 30-minute TTL).</li><li><strong>Scope:</strong> Strictly public endpoints; zero private repo scopes; hard <code>10s</code> timeout; HTML/markdown sanitization before storage or prompt construction.</li></ul><h3>ADR-C: Participant Intelligence &amp; Epistemic Labeling (<code>src/lib/intelligence/*</code>)</h3><ul><li><strong>Decision:</strong> Store every capability and project need in SQLite with explicit <code>epistemic_type</code> (<code>SELF_REPORTED</code>, <code>OBSERVED_FACT</code>, <code>AI_INFERENCE</code>), <code>confidence</code> (<code>0.0–1.0</code>), <code>uncertainty_note</code>, and foreign-key links to <code>evidence_receipts</code>.</li></ul><h3>ADR-D: Bounded Asynchronous Agent Workers (<code>src/lib/agents/*</code>)</h3><ul><li><strong>Decision:</strong> Run Profile Research, Opportunity Discovery, Match Evaluation, and Introduction Writer as bounded asynchronous tasks invoked by the in-process SQLite job worker, guarded by a deterministic Verification Layer (<code>verifyAndGovern</code>) and backed by a deterministic heuristic fallback if an LLM call times out.</li></ul><h3>ADR-E: Event System (<code>SSE</code> + Polling Fallback) (<code>src/lib/events/*</code>)</h3><ul><li><strong>Decision:</strong> Append-only <code>domain_events</code> table in SQLite (<code>seq_id INTEGER PRIMARY KEY AUTOINCREMENT</code>). Clients subscribe via <code>GET /api/events/stream?after=&lt;seq_id&gt;</code> and automatically fall back to <code>GET /api/events/poll?after=&lt;seq_id&gt;</code> if an intermediate proxy drops chunked streams.</li></ul><h3>ADR-F: Web-Native Mutual Introductions (Superseding Discord/Medusa MVP)</h3><ul><li><strong>Decision:</strong> All match proposals (<code>Interested</code> / <code>Pass</code>) and mutually approved introductions happen directly inside the mobile web application (<code>/me/matches/:id</code>). When both verified participants approve, Ariadne unlocks their shared <strong>Mutual Introduction Room</strong> containing verified GitHub links, optional user-supplied contact notes/handles, cited repositories, and a copyable collaboration icebreaker.</li><li><strong>Post-Hackathon Roadmap:</strong> Discord bot notifications, Medusa A2A negotiation, and Morpheus integration are deferred to post-hackathon versions.</li></ul><h3>ADR-G: PortHub Reservations &amp; Control-Plane Isolation</h3><ul><li><strong>Decision:</strong> Reserve local ports in TangleClaw PortHub before binding:</li><li><code>3420</code> (<code>loopback</code> + narrow tunnel target): Ariadne Production/Demo Server</li><li><code>3421</code> (<code>loopback</code>): Ariadne Integration / Test Server</li><li><code>4420</code> (<code>loopback</code>): Automated Test Runner</li><li>Zero routes, environment variables, or file paths from TangleClaw (<code>:3102</code>, <code>:3100</code>, <code>:8443</code>) or Medusa (<code>:3009</code>, <code>:3010</code>) are mounted or referenced by the Ariadne process.</li></ul>
+    <footer class="doc-footer">
+      Document: <code>ARCHITECTURE.md</code> · Updated: <time>2026-11-07 20:23:32 PST</time> · Ariadne-PM (#149) · Static TangleClaw Watermark Active
+    </footer>
+  </main>
+</body>
+</html>

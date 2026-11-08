@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Interactive Roadmap Board &amp; Sprint Reports Hub Specification — ARIADNE (`ARIADNE-HACK-2026`) · Ariadne Documentation (Powered by TangleClaw)</title>
+  <style>
+:root{color-scheme:light dark;--bg:#f6f8fa;--fg:#1f2328;--muted:#59636e;--line:#d0d7de;--panel:#ffffff;--code-bg:#f0f3f6;--link:#0969da;--accent:#1a7f37}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#8b949e;--line:#30363d;--panel:#161b22;--code-bg:#1f242c;--link:#58a6ff;--accent:#3fb950}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;position:relative;min-height:100vh}
+.tc-bg-watermark{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tc-bg-watermark img{width:min(82vw,860px);height:min(82vw,860px);object-fit:contain;opacity:.08;filter:saturate(1.1) contrast(1.05);user-select:none;-webkit-user-drag:none}
+@media(prefers-color-scheme:dark){.tc-bg-watermark img{opacity:.10;filter:drop-shadow(0 0 48px rgba(86,211,100,.18))}}
+header.doc-nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:.65rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;font-size:.88rem}
+.doc-brand{display:inline-flex;align-items:center;gap:.55rem;font-weight:700;color:var(--fg);text-decoration:none}
+.doc-brand img{width:24px;height:24px;border-radius:5px;object-fit:contain}
+.doc-links{display:flex;gap:1rem;flex-wrap:wrap;font-weight:600}
+main.doc-main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:2rem 1.25rem 5rem}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+h1,h2,h3,h4{line-height:1.28;margin-top:1.6em;margin-bottom:.5em}
+h1{font-size:1.95rem;margin-top:.4em;padding-bottom:.35rem;border-bottom:1px solid var(--line)}
+h2{font-size:1.42rem;padding-bottom:.25rem;border-bottom:1px solid var(--line)}
+h3{font-size:1.15rem}
+p,ul,ol,blockquote,pre,table{margin:0 0 1rem}
+ul,ol{padding-left:1.5rem}
+li+li{margin-top:.25rem}
+code{font:0.88em/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.14rem .38rem;border-radius:5px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:.95rem 1.1rem;overflow-x:auto}
+pre code{background:none;padding:0;font-size:.84rem}
+blockquote{margin-left:0;padding:.5rem 1rem;border-left:4px solid var(--link);background:color-mix(in srgb,var(--panel) 85%,transparent);border-radius:0 8px 8px 0;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:1.75rem 0}
+.table-wrap{overflow-x:auto;margin:1rem 0}
+table{width:100%;border-collapse:collapse;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.9rem}
+th,td{text-align:left;padding:.55rem .75rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--code-bg);font-weight:700}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.85rem;margin:1.25rem 0}
+.doc-card{display:block;padding:1rem;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 88%,transparent);transition:border-color .15s,transform .15s}
+.doc-card:hover{border-color:var(--link);transform:translateY(-2px);text-decoration:none}
+.doc-card strong{display:block;color:var(--fg);font-size:.98rem;margin-bottom:.25rem}
+.doc-card span{color:var(--muted);font-size:.82rem}
+footer.doc-footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.84rem}
+</style>
+</head>
+<body>
+  <div class="tc-bg-watermark" aria-hidden="true">
+    <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="">
+  </div>
+  <header class="doc-nav">
+    <a class="doc-brand" href="./">
+      <img src="../ariadne-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/ariadne-logo.png'" alt="Ariadne" style="height:32px;width:auto;border-radius:0;">
+      <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="TangleClaw">
+      <span>Ariadne Documentation · Orchestrated by TangleClaw</span>
+    </a>
+    <nav class="doc-links">
+      <a href="https://github.com/Jason-Vaughan/Ariadne">🐙 GitHub Repo</a>
+      <a href="../">🗺️ Roadmap Board</a>
+      <a href="../reports/">📊 Sprint Reports</a>
+      <a href="./">📚 All Docs (ROADMAP_AND_REPORTS_HUB_SPEC.md)</a>
+      <a href="MASTER_SSOT.html">⭐ Master SSOT</a>
+    </nav>
+  </header>
+  <main class="doc-main">
+    <h1>Interactive Roadmap Board &amp; Sprint Reports Hub Specification — ARIADNE (<code>ARIADNE-HACK-2026</code>)</h1><p><em>Modeled on <code>TC-Lane-PM</code> Supplement (<code>TangleClaw-Shared/roadmap-board/</code> &amp; <code>sprint-reports/</code>)</em></p><blockquote><strong>Pre-Event Compliance Note:</strong> Per Section 0 (<em>Critical Directive — No Code, UI Pages, or Scripts Before Hackathon Day</em>), this document specifies the exact structure, data bindings, and reference templates on <code>cursatory</code> that <code>Ariadne-INT</code> and <code>Ariadne-Obsr</code> will instantiate after the Operator&#x27;s Saturday 09:30 AM PST <code>GO</code>.</blockquote><hr><h2>1. Host Reference Templates (Verified Present on <code>cursatory</code>)</h2><p><code>TC-Lane-PM</code> provided the following canonical files on this machine for <code>Ariadne-Obsr</code> and <code>Ariadne-INT</code> to adapt at H-Day kickoff (<code>Car 0-INT</code>, <code>A-015</code> Slice 1):</p><ol><li><strong>Canonical Sprint Reporting Standard (<code>v2.0.0</code>):</strong></li></ol><ul><li><code>/Users/jasonvaughan/Documents/Projects/Shared/TangleClaw-Shared/sprint-reports/SPRINT_REPORT_STANDARD.md</code></li><li><code>/Users/jasonvaughan/Documents/Projects/Shared/TangleClaw-Shared/sprint-reports/SPRINT_REPORT_CONTRACT.md</code></li><li><code>/Users/jasonvaughan/Documents/Projects/Shared/TangleClaw-Shared/sprint-reports/metrics_schema.py</code> &amp; <code>metrics-schema.json</code></li><li><code>/Users/jasonvaughan/Documents/Projects/Shared/TangleClaw-Shared/sprint-reports/validate-sprint-report.py</code></li><li><code>/Users/jasonvaughan/Documents/Projects/Shared/TangleClaw-Shared/sprint-reports/generators/gen_v5660.py</code> (Single-Version Report Generator)</li><li><code>/Users/jasonvaughan/Documents/Projects/Shared/TangleClaw-Shared/sprint-reports/generators/gen_v5650_v5660_retro.py</code> (Multi-Version Train Retrospective Generator)</li><li><code>/Users/jasonvaughan/Documents/Projects/Shared/TangleClaw-Shared/sprint-reports/index.html</code> (Sprint Reports Hub Index)</li></ul><ol><li><strong>Interactive Roadmap Board Reference:</strong></li></ol><ul><li><code>/Users/jasonvaughan/Documents/Projects/Shared/TangleClaw-Shared/roadmap-board/index.html</code></li><li><code>/Users/jasonvaughan/Documents/Projects/Shared/TangleClaw-Shared/roadmap-board/sync-board.sh</code></li></ul><hr><h2>2. Ariadne Interactive Roadmap Board (<code>/roadmap/index.html</code>)</h2><p>Served live from the self-hosted Ariadne server (<code>http://127.0.0.1:3420/roadmap</code> and public tunnel <code>https://&lt;ariadne-url&gt;/roadmap</code>) and updated at every Train dispatch and Train reconciliation (<code>Rule #289</code> / <code>Rule #304</code>):</p><h3>2.1 Header &amp; Top KPI Ribbon</h3><ul><li><strong>Header:</strong> <code>ARIADNE — Autonomous Hackathon Roadmap Board (Find Your Thread)</code></li><li><strong>Quick Links:</strong> <code>← Live 16:9 Stage Visualizer (/stage)</code> · <code>Autonomous Sprint Reports Hub (/reports/)</code> · <code>Latest: v0.X.0 Sprint Report</code> · <code>Provenance Ledger (/provenance)</code></li><li><strong>KPI Cards (<code>5</code>):</strong></li></ul><ol><li><strong>Active Release Train:</strong> <code>Train 0 (v0.1.0)</code> → <code>Train 1 (v0.2.0)</code> → <code>Train 2 (v0.3.0)</code> → <code>Train 3 (v1.0.0)</code></li><li><strong>MVP Issues Completed:</strong> <code>X / 15</code> (<code>0%</code> → <code>20%</code> → <code>87%</code> → <code>100%</code>)</li><li><strong>Bundled Cars Merged:</strong> <code>X / 8</code> (<code>Car 0-INT</code>, <code>Car 1-A..D</code>, <code>Car 2-A/C/D</code>)</li><li><strong>Fleet Lanes Active:</strong> <code>8–9</code> (<code>PM</code>, <code>Arc</code>, <code>PRR</code>, <code>INT</code>, <code>Obsr</code>, <code>Lane-A..D</code>)</li><li><strong>Pre-Event Code Commits:</strong> <code>0</code> <em>(Verified by <code>PRE_EVENT_MANIFEST.sha256</code>)</em></li></ol><h3>2.2 Four Expandable Train Sections</h3><p>Each Train card displays its scheduled PST window, target release tag, link to its Sprint Charter and <code>v2.0.0</code> Sprint Report, and a table of its Bundled Cars and Issues:</p><ul><li><strong>Train 0 (<code>v0.1.0</code> · <code>09:30–10:15 PST</code>):</strong> <code>Car 0-INT</code> (<code>A-001</code>, <code>A-014</code> S1, <code>A-015</code> S1)</li><li><strong>Train 1 (<code>v0.2.0</code> · <code>10:15–12:00 PST</code>):</strong> <code>Car 1-A</code> (<code>A-002</code>, <code>A-008</code> shell), <code>Car 1-B</code> (<code>A-003</code>, <code>A-004</code>, <code>A-005</code>), <code>Car 1-C</code> (<code>A-006</code>, <code>A-007</code>), <code>Car 1-D</code> (<code>A-009</code>, <code>A-010</code>, <code>A-011</code>)</li><li><strong>Train 2 (<code>v0.3.0</code> · <code>12:00–13:45 PST</code>):</strong> <code>Car 2-A</code> (<code>A-008</code> live, <code>A-012</code>), <code>Car 2-C</code> (<code>A-016</code> + async worker), <code>Car 2-D</code> (Stage intro animations &amp; HUD)</li><li><strong>Train 3 (<code>v1.0.0</code> · <code>13:45–17:45 PST</code>):</strong> <code>Car 3-A..D</code> (Dogfooding polish &amp; bug fixes), <code>Car 3-INT</code> (<code>A-014</code> S2, <code>A-015</code> S2)</li><li><strong>Post-Hackathon Deferred Section:</strong> <code>A-013</code> (Discord bot), <code>A-017</code> (Medusa adapter), Morpheus integration.</li></ul><hr><h2>3. Ariadne Sprint Reports Hub (<code>/reports/index.html</code>)</h2><p>Served at <code>https://&lt;ariadne-url&gt;/reports/</code> and linked directly from the 16:9 Stage Visualizer (<code>R</code> hotkey) so hackathon judges can inspect the engineering telemetry of every release:</p><h3>3.1 Hub Index Cards (<code>5</code> Report Cards Populated Across H-Day)</h3><ol><li><strong>Cumulative Highlight Card:</strong> <strong><code>v0.1.0 – v1.0.0 Hackathon Train Retrospective</code></strong> (<code>/reports/v0.1.0-v1.0.0-retrospective/index.html</code>) — Full-day longitudinal rollup across all 4 Trains (<code>09:30 – 17:45 PST</code>), total LOC, total automated tests, 4-lane parallelism speedup, and 100% H-Day provenance proof.</li><li><strong><code>v1.0.0</code> (<code>Train 3</code> — Final Production Release &amp; Judge Freeze · <code>17:30 PST</code>)</strong> (<code>/reports/v1.0.0/index.html</code>)</li><li><strong><code>v0.3.0</code> (<code>Train 2</code> — End-to-End Wiring, Web Mutual Intros &amp; Rematching · <code>13:45 PST</code>)</strong> (<code>/reports/v0.3.0/index.html</code>)</li><li><strong><code>v0.2.0</code> (<code>Train 1</code> — 10-Issue Parallel 4-Car Core Build · <code>12:00 PST</code>)</strong> (<code>/reports/v0.2.0/index.html</code>)</li><li><strong><code>v0.1.0</code> (<code>Train 0</code> — Frozen Contracts, SQLite WAL &amp; <code>:3420</code> Bootstrap · <code>10:15 PST</code>)</strong> (<code>/reports/v0.1.0/index.html</code>)</li></ol><h3>3.2 Mandatory <code>v2.0.0</code> Validation Gate Before Publishing Each Report</h3><p>At each Train boundary (<code>t8_observer_certification_completed</code>), <code>Ariadne-Obsr</code> runs:</p><ol><li><code>python3 scripts/gen_sprint_report.py --version v0.X.0</code> (emitting the 8 canonical sections <code>#overview</code>, <code>#architecture</code>, <code>#velocity</code>, <code>#deliverables</code>, <code>#telemetry</code>, <code>#postmortem</code>, <code>#waves</code>, <code>#next-sprint</code> and the embedded <code>tc-sprint-metrics-json</code> block with <code>t1..t8</code>).</li><li>Structural verification ensuring <code>0</code> missing timestamps, <code>100%</code> issue/PR accounting, and live <code>HTTP 200</code> readback on <code>http://127.0.0.1:3420/reports/v0.X.0/</code>.</li></ol>
+    <footer class="doc-footer">
+      Document: <code>ROADMAP_AND_REPORTS_HUB_SPEC.md</code> · Updated: <time>2026-11-05 18:21:31 PST</time> · Ariadne-PM (#149) · Static TangleClaw Watermark Active
+    </footer>
+  </main>
+</body>
+</html>

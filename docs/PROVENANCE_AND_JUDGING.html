@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Provenance &amp; Per-Version Judge Reporting Specification — ARIADNE (`ARIADNE-HACK-2026`) · Ariadne Documentation (Powered by TangleClaw)</title>
+  <style>
+:root{color-scheme:light dark;--bg:#f6f8fa;--fg:#1f2328;--muted:#59636e;--line:#d0d7de;--panel:#ffffff;--code-bg:#f0f3f6;--link:#0969da;--accent:#1a7f37}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#8b949e;--line:#30363d;--panel:#161b22;--code-bg:#1f242c;--link:#58a6ff;--accent:#3fb950}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;position:relative;min-height:100vh}
+.tc-bg-watermark{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tc-bg-watermark img{width:min(82vw,860px);height:min(82vw,860px);object-fit:contain;opacity:.08;filter:saturate(1.1) contrast(1.05);user-select:none;-webkit-user-drag:none}
+@media(prefers-color-scheme:dark){.tc-bg-watermark img{opacity:.10;filter:drop-shadow(0 0 48px rgba(86,211,100,.18))}}
+header.doc-nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:.65rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;font-size:.88rem}
+.doc-brand{display:inline-flex;align-items:center;gap:.55rem;font-weight:700;color:var(--fg);text-decoration:none}
+.doc-brand img{width:24px;height:24px;border-radius:5px;object-fit:contain}
+.doc-links{display:flex;gap:1rem;flex-wrap:wrap;font-weight:600}
+main.doc-main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:2rem 1.25rem 5rem}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+h1,h2,h3,h4{line-height:1.28;margin-top:1.6em;margin-bottom:.5em}
+h1{font-size:1.95rem;margin-top:.4em;padding-bottom:.35rem;border-bottom:1px solid var(--line)}
+h2{font-size:1.42rem;padding-bottom:.25rem;border-bottom:1px solid var(--line)}
+h3{font-size:1.15rem}
+p,ul,ol,blockquote,pre,table{margin:0 0 1rem}
+ul,ol{padding-left:1.5rem}
+li+li{margin-top:.25rem}
+code{font:0.88em/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.14rem .38rem;border-radius:5px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:.95rem 1.1rem;overflow-x:auto}
+pre code{background:none;padding:0;font-size:.84rem}
+blockquote{margin-left:0;padding:.5rem 1rem;border-left:4px solid var(--link);background:color-mix(in srgb,var(--panel) 85%,transparent);border-radius:0 8px 8px 0;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:1.75rem 0}
+.table-wrap{overflow-x:auto;margin:1rem 0}
+table{width:100%;border-collapse:collapse;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.9rem}
+th,td{text-align:left;padding:.55rem .75rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--code-bg);font-weight:700}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.85rem;margin:1.25rem 0}
+.doc-card{display:block;padding:1rem;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 88%,transparent);transition:border-color .15s,transform .15s}
+.doc-card:hover{border-color:var(--link);transform:translateY(-2px);text-decoration:none}
+.doc-card strong{display:block;color:var(--fg);font-size:.98rem;margin-bottom:.25rem}
+.doc-card span{color:var(--muted);font-size:.82rem}
+footer.doc-footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.84rem}
+</style>
+</head>
+<body>
+  <div class="tc-bg-watermark" aria-hidden="true">
+    <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="">
+  </div>
+  <header class="doc-nav">
+    <a class="doc-brand" href="./">
+      <img src="../ariadne-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/ariadne-logo.png'" alt="Ariadne" style="height:32px;width:auto;border-radius:0;">
+      <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="TangleClaw">
+      <span>Ariadne Documentation · Orchestrated by TangleClaw</span>
+    </a>
+    <nav class="doc-links">
+      <a href="https://github.com/Jason-Vaughan/Ariadne">🐙 GitHub Repo</a>
+      <a href="../">🗺️ Roadmap Board</a>
+      <a href="../reports/">📊 Sprint Reports</a>
+      <a href="./">📚 All Docs (PROVENANCE_AND_JUDGING.md)</a>
+      <a href="MASTER_SSOT.html">⭐ Master SSOT</a>
+    </nav>
+  </header>
+  <main class="doc-main">
+    <h1>Provenance &amp; Per-Version Judge Reporting Specification — ARIADNE (<code>ARIADNE-HACK-2026</code>)</h1><p><em>Amended: Incorporating TangleClaw Sprint Reporting Standard <code>v2.0.0</code> (<code>Rule #283.5</code>)</em></p><h2>1. Purpose</h2><p>Objective B of the hackathon is proving to judges that a single human Operator directed a TangleClaw autonomous engineering fleet to plan, build, review, test, integrate, and ship Ariadne within the Saturday build window (<code>09:30 AM – 18:00 PM PST</code>).</p><p>To make this proof undeniable and visually compelling, Ariadne adopts <strong>TangleClaw&#x27;s Canonical Interactive Sprint Reporting Standard <code>v2.0.0</code></strong> (modeled on <code>/Users/jasonvaughan/Documents/Projects/Shared/TangleClaw-Shared/sprint-reports/SPRINT_REPORT_STANDARD.md</code> and <code>metrics_schema.py</code>).</p><hr><h2>2. Three-Bucket Provenance Classification</h2><div class="table-wrap"><table><thead><tr><th>Bucket</th><th>Time Window</th><th>What It Contains</th><th>Verification Proof</th></tr></thead><tbody><tr><td><strong>Bucket 1: Pre-Existing Open-Source Platform (<code>TangleClaw</code>)</strong></td><td>Built prior to Nov 7, 2026</td><td>TangleClaw orchestration engine, PortHub, Medusa local switchboard, Chunk-Boundary Protocol v1.0.0 (<code>#1889</code>), and Sprint Report Generator Standard <code>v2.0.0</code>.</td><td>Public Git history and tagged releases (<code>v5.66.0</code> / <code>v5.67.0</code>) in the TangleClaw repository.</td></tr><tr><td><strong>Bucket 2: Pre-Event Planning Package (<code>Ariadne-PM</code>)</strong></td><td>Prepared Nov 5–6, 2026 (Before 09:30 AM Nov 7)</td><td>The 17 Markdown planning specifications and 15 MVP issue drafts (<code>ISSUE_BACKLOG/A-001.md</code>..<code>A-016.md</code>). <strong>Zero executable application code.</strong></td><td>Cryptographic SHA-256 manifest (<code>PRE_EVENT_MANIFEST.sha256</code>) committed as initial tag <code>v0.0.0-planning-baseline</code> at H-Day kickoff.</td></tr><tr><td><strong>Bucket 3: H-Day Autonomous Fleet Implementation (<code>Ariadne</code>)</strong></td><td><strong>Nov 7, 2026 · 09:30 AM – 17:45 PM PST</strong></td><td>100% of Ariadne TypeScript source code, SQLite WAL database layer, mobile &amp; 16:9 stage interfaces, GitHub connector, AI agents, 40/30/20/10 scorer, SSE/polling bus, and unit/integration tests.</td><td>Primary-source Git commit timestamps (<code>t2 &gt;= 09:30 PST</code>), GitHub PR review receipts, and per-version <code>v2.0.0</code> Interactive HTML Sprint Reports (<code>v0.1.0</code>..<code>v1.0.0</code>).</td></tr></tbody></table></div><hr><h2>3. Per-Version Interactive Sprint Reporting Mechanism (<code>v2.0.0</code> Standard)</h2><p>At the completion of every Release Train on Saturday (<code>v0.1.0</code>, <code>v0.2.0</code>, <code>v0.3.0</code>, <code>v1.0.0</code>), <code>Ariadne-Obsr</code> and <code>Ariadne-INT</code> run a Python report generator modeled on <code>/Users/jasonvaughan/Documents/Projects/Shared/TangleClaw-Shared/sprint-reports/generators/gen_v5660.py</code> and <code>metrics_schema.py</code> to publish an interactive HTML report served live at <code>https://&lt;ariadne-url&gt;/reports/v0.X.0/</code> and indexed at <code>https://&lt;ariadne-url&gt;/reports/</code>:</p><h3>3.1 Mandatory 8-Timestamp Ledger Per Version (<code>t1..t8</code>)</h3><p>Every version report embeds a machine-verifiable <code>&lt;script id=&quot;tc-sprint-metrics-json&quot; type=&quot;application/json&quot;&gt;</code> block and visual timeline table recording:</p><ol><li><code>t1_first_activity</code>: Train authorization / dispatch timestamp (<code>&gt;= 09:30 AM PST</code> for <code>v0.1.0</code>).</li><li><code>t2_first_branch_commit</code>: Earliest Git commit timestamp on the Train&#x27;s first feature Car (<code>git log --format=%aI</code>).</li><li><code>t3_first_pr_opened</code>: Timestamp when the first Car PR opens.</li><li><code>t4_final_feature_pr_merged</code>: Timestamp when the final Car PR of the Train merges to <code>main</code>.</li><li><code>t5_release_pr_merged</code>: Timestamp when <code>Ariadne-INT</code> merges the compiled <code>CHANGELOG.md</code> &amp; version bump PR.</li><li><code>t6_release_tag_published</code>: Timestamp when annotated tag <code>v0.X.0</code> is pushed to GitHub.</li><li><code>t7_live_deploy_completed</code>: Timestamp when the pre-cutover SQLite WAL backup SHA-256 is recorded and <code>http://127.0.0.1:3420/api/health</code> returns <code>200 OK</code> on the new version.</li><li><code>t8_observer_certification_completed</code>: Timestamp when <code>Ariadne-Obsr</code> certifies <code>O-Gate PASS</code>.</li></ol><h3>3.2 Canonical 8-Section Interactive Report Structure for Judges</h3><p>Each generated report (<code>v0.1.0</code>, <code>v0.2.0</code>, <code>v0.3.0</code>, <code>v1.0.0</code>, plus the cumulative <code>v0.1.0-v1.0.0-hackathon-retrospective</code>) includes:</p><ul><li><strong>Hero &amp; Plain-English Summary Card (<code>#overview</code> &amp; <code>#plain-english</code>):</strong> Explains in clear, judge-friendly English what shipped in that Train, Total Wall Clock (<code>t1 → t7</code>), Full Engineering Window (<code>T_eng = t2 → t7</code>), First-Time Gate Pass Rate, and Autonomous Delivery Efficiency (<code>ADE</code>).</li><li><strong>Section 1 (<code>#architecture</code>):</strong> 9-node SVG diagram of the Ariadne Fleet (<code>Ariadne-PM</code>, <code>Ariadne-Arc</code>, <code>Ariadne-PRR</code>, <code>Ariadne-INT</code>, <code>Ariadne-Obsr</code>, <code>Ariadne-Lane-A..D</code>).</li><li><strong>Section 2 (<code>#velocity</code>):</strong> Canonical 8-timestamp ledger (<code>t1..t8</code>) and Car-by-Car build/review/merge latency table.</li><li><strong>Section 3 (<code>#deliverables</code>):</strong> Car-by-Car SVG bar chart (<code>+LOC / -LOC</code> and Net New Tests per PR) + deep-dive cards with clickable GitHub PR links.</li><li><strong>Section 4 (<code>#telemetry</code>):</strong> Longitudinal Train-over-Train comparison table (<code>v0.1.0</code> vs <code>v0.2.0</code> vs <code>v0.3.0</code> vs <code>v1.0.0</code>) showing throughput (<code>Issues/Hr</code>), parallel 4-lane speedup, and zero <code>CHANGELOG.md</code> collisions via <code>changelog.d/</code> fragments.</li><li><strong>Section 5 (<code>#postmortem</code>):</strong> 4-Gate Governance Audit Table (<code>Gate 1: A-Gate Architect</code>, <code>Gate 2: R-Gate PRR</code>, <code>Gate 3: I-Gate Integrator</code>, <code>Gate 4: O-Gate Observer</code>) + 16-Row <code>Rule #283</code> Empirical Evaluation Table.</li><li><strong>Section 6 (<code>#waves</code>):</strong> Interactive Car &amp; PR Explorer with filter buttons by Lane (<code>Lane-A..D</code>, <code>INT</code>) and live search.</li><li><strong>Section 7 (<code>#next-sprint</code>):</strong> Actionable guardrails carried into the next Train.</li></ul>
+    <footer class="doc-footer">
+      Document: <code>PROVENANCE_AND_JUDGING.md</code> · Updated: <time>2026-11-05 11:59:04 PST</time> · Ariadne-PM (#149) · Static TangleClaw Watermark Active
+    </footer>
+  </main>
+</body>
+</html>

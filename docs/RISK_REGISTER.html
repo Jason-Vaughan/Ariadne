@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Risk Register &amp; Mitigation Matrix — ARIADNE (`ARIADNE-HACK-2026`) · Ariadne Documentation (Powered by TangleClaw)</title>
+  <style>
+:root{color-scheme:light dark;--bg:#f6f8fa;--fg:#1f2328;--muted:#59636e;--line:#d0d7de;--panel:#ffffff;--code-bg:#f0f3f6;--link:#0969da;--accent:#1a7f37}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#8b949e;--line:#30363d;--panel:#161b22;--code-bg:#1f242c;--link:#58a6ff;--accent:#3fb950}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;position:relative;min-height:100vh}
+.tc-bg-watermark{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tc-bg-watermark img{width:min(82vw,860px);height:min(82vw,860px);object-fit:contain;opacity:.08;filter:saturate(1.1) contrast(1.05);user-select:none;-webkit-user-drag:none}
+@media(prefers-color-scheme:dark){.tc-bg-watermark img{opacity:.10;filter:drop-shadow(0 0 48px rgba(86,211,100,.18))}}
+header.doc-nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:.65rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;font-size:.88rem}
+.doc-brand{display:inline-flex;align-items:center;gap:.55rem;font-weight:700;color:var(--fg);text-decoration:none}
+.doc-brand img{width:24px;height:24px;border-radius:5px;object-fit:contain}
+.doc-links{display:flex;gap:1rem;flex-wrap:wrap;font-weight:600}
+main.doc-main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:2rem 1.25rem 5rem}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+h1,h2,h3,h4{line-height:1.28;margin-top:1.6em;margin-bottom:.5em}
+h1{font-size:1.95rem;margin-top:.4em;padding-bottom:.35rem;border-bottom:1px solid var(--line)}
+h2{font-size:1.42rem;padding-bottom:.25rem;border-bottom:1px solid var(--line)}
+h3{font-size:1.15rem}
+p,ul,ol,blockquote,pre,table{margin:0 0 1rem}
+ul,ol{padding-left:1.5rem}
+li+li{margin-top:.25rem}
+code{font:0.88em/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.14rem .38rem;border-radius:5px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:.95rem 1.1rem;overflow-x:auto}
+pre code{background:none;padding:0;font-size:.84rem}
+blockquote{margin-left:0;padding:.5rem 1rem;border-left:4px solid var(--link);background:color-mix(in srgb,var(--panel) 85%,transparent);border-radius:0 8px 8px 0;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:1.75rem 0}
+.table-wrap{overflow-x:auto;margin:1rem 0}
+table{width:100%;border-collapse:collapse;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.9rem}
+th,td{text-align:left;padding:.55rem .75rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--code-bg);font-weight:700}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.85rem;margin:1.25rem 0}
+.doc-card{display:block;padding:1rem;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 88%,transparent);transition:border-color .15s,transform .15s}
+.doc-card:hover{border-color:var(--link);transform:translateY(-2px);text-decoration:none}
+.doc-card strong{display:block;color:var(--fg);font-size:.98rem;margin-bottom:.25rem}
+.doc-card span{color:var(--muted);font-size:.82rem}
+footer.doc-footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.84rem}
+</style>
+</head>
+<body>
+  <div class="tc-bg-watermark" aria-hidden="true">
+    <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="">
+  </div>
+  <header class="doc-nav">
+    <a class="doc-brand" href="./">
+      <img src="../ariadne-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/ariadne-logo.png'" alt="Ariadne" style="height:32px;width:auto;border-radius:0;">
+      <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="TangleClaw">
+      <span>Ariadne Documentation · Orchestrated by TangleClaw</span>
+    </a>
+    <nav class="doc-links">
+      <a href="https://github.com/Jason-Vaughan/Ariadne">🐙 GitHub Repo</a>
+      <a href="../">🗺️ Roadmap Board</a>
+      <a href="../reports/">📊 Sprint Reports</a>
+      <a href="./">📚 All Docs (RISK_REGISTER.md)</a>
+      <a href="MASTER_SSOT.html">⭐ Master SSOT</a>
+    </nav>
+  </header>
+  <main class="doc-main">
+    <h1>Risk Register &amp; Mitigation Matrix — ARIADNE (<code>ARIADNE-HACK-2026</code>)</h1><p><em>Amended: Web-Only Self-Hosted Hackathon MVP</em></p><div class="table-wrap"><table><thead><tr><th>ID</th><th>Risk Category</th><th>Threat Description</th><th>Likelihood</th><th>Impact</th><th>Pre-Engineered Mitigation &amp; Fallback</th></tr></thead><tbody><tr><td><strong>R-01</strong></td><td><strong>Venue Wi-Fi / Proxy Buffering</strong></td><td>Conference Wi-Fi or reverse proxy buffers chunked SSE streams or drops packets during the stage demo.</td><td><strong>High</strong></td><td><strong>High</strong></td><td>1. Dual-transport live updates: SSE (<code>GET /api/events/stream</code>) automatically falls back to JSON polling (<code>GET /api/events/poll?after=&lt;seq_id&gt;</code>) every <code>3s</code>.&lt;br&gt;2. Stage laptop can render <code>/stage</code> directly from <code>http://127.0.0.1:3420/stage</code> on the host with <code>0ms</code> network latency, while attendees connect over cellular via the narrow HTTPS tunnel.</td></tr><tr><td><strong>R-02</strong></td><td><strong>Control-Plane Exposure via Public Tunnel</strong></td><td>Misconfigured tunnel exposes TangleClaw&#x27;s <code>:3102</code> server, <code>:3100</code> ttyd, <code>:8443</code> Caddy ingress, or <code>:3009</code> Medusa hub.</td><td><strong>Low</strong></td><td><strong>Critical</strong></td><td>1. Never use <code>tailscale funnel</code> on <code>:8443</code>.&lt;br&gt;2. Bind Ariadne exclusively to <code>127.0.0.1:3420</code> (PortHub-registered) and point <code>cloudflared tunnel --url http://127.0.0.1:3420</code> solely at <code>3420</code>.&lt;br&gt;3. Automated <code>A-014</code> security test verifies no TangleClaw env vars or ports are reachable through the Ariadne process.</td></tr><tr><td><strong>R-03</strong></td><td><strong>GitHub API Rate Limits</strong></td><td>Unauthenticated GitHub REST calls cap at <code>60 req/hr</code> per IP.</td><td><strong>High</strong> (if unauthenticated)</td><td><strong>Critical</strong></td><td>1. Authenticated server-side <code>ARIADNE_GITHUB_TOKEN</code> (<code>5,000 GraphQL points/hr</code>).&lt;br&gt;2. Single-query GraphQL snapshot uses <strong>1 point per user</strong>.&lt;br&gt;3. SQLite <code>github_snapshots</code> table caches profiles for <code>30 minutes</code> (<code>0</code> points on repeat views).</td></tr><tr><td><strong>R-04</strong></td><td><strong>LLM Latency or Timeout Under Load</strong></td><td>Concurrent participant submissions slow down AI profile/match synthesis.</td><td><strong>Medium</strong></td><td><strong>High</strong></td><td>1. In-process SQLite job queue decouples HTTP intake (<code>&lt; 15ms</code>) from background AI tasks.&lt;br&gt;2. Hard <code>12s</code> timeout per AI task; on timeout, <code>Car 1-B</code> and <code>Car 1-C</code> fall back to deterministic repo metadata extraction and template synthesis.</td></tr><tr><td><strong>R-05</strong></td><td><strong>GitHub Account Impersonation</strong></td><td>Someone enters another person&#x27;s GitHub handle and tries to send outbound introduction requests.</td><td><strong>Medium</strong></td><td><strong>High</strong></td><td>Two-Tier Identity (<code>PRIVACY_AND_SECURITY.md</code>): unverified username entry allows read-only profile preview, while outbound <code>Interested</code> proposals and Mutual Intro Room unlocking require <code>ownership_verified === true</code> via 1-click GitHub OAuth or bio challenge token.</td></tr><tr><td><strong>R-06</strong></td><td><strong>Privacy / Unconsented Stage Exposure</strong></td><td>An attendee scans the QR code to try the app but does not want their handle/photo projected on the 16:9 screen.</td><td><strong>Medium</strong></td><td><strong>High</strong></td><td>1. Mandatory opt-in consent before any GitHub fetch.&lt;br&gt;2. Stage nodes default to pseudonymous (<code>Thread-XXXX</code>) unless <code>public_display_consent</code> is checked.&lt;br&gt;3. Stage hotkey <code>S</code> forces 100% pseudonymity globally.</td></tr><tr><td><strong>R-07</strong></td><td><strong>Prompt Injection via Untrusted GitHub Content</strong></td><td>A repository <code>README.md</code> or open issue contains adversarial prompt text.</td><td><strong>Low–Med</strong></td><td><strong>High</strong></td><td>1. Strip HTML/scripts and truncate excerpts (<code>&lt;= 3,500 chars</code>).&lt;br&gt;2. Wrap external text in <code>&lt;untrusted_github_evidence&gt;</code> tags.&lt;br&gt;3. Verification Gate checks that every cited <code>evidence_url</code> exists in the participant&#x27;s SQLite <code>evidence_receipts</code> rows.</td></tr><tr><td><strong>R-08</strong></td><td><strong>Intra-Wave Merge Collisions Across Builders</strong></td><td>Four parallel Builder lanes conflict on <code>CHANGELOG.md</code>, <code>package.json</code>, or shared contracts.</td><td><strong>Medium</strong></td><td><strong>High</strong></td><td>1. Freeze <code>src/contracts/*</code> and <code>package.json</code> in <code>Train 0 (v0.1.0)</code> at <code>10:15 AM</code>.&lt;br&gt;2. Bundle related issues into file-disjoint Cars (<code>TC Rule #294</code>).&lt;br&gt;3. Builders write <code>changelog.d/&lt;car&gt;.md</code> fragments instead of editing root <code>CHANGELOG.md</code>.</td></tr><tr><td><strong>R-09</strong></td><td><strong>SQLite Lock Contention or Corruption on Cutover</strong></td><td>Concurrent reads/writes or an abrupt process restart during a Train cutover.</td><td><strong>Low</strong></td><td><strong>High</strong></td><td>Enable <code>PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000;</code> in <code>Car 0-INT</code>, and run atomic <code>sqlite3 .backup</code> before every Train cutover (<code>v0.1.0</code>..<code>v1.0.0</code>).</td></tr></tbody></table></div>
+    <footer class="doc-footer">
+      Document: <code>RISK_REGISTER.md</code> · Updated: <time>2026-11-05 11:59:04 PST</time> · Ariadne-PM (#149) · Static TangleClaw Watermark Active
+    </footer>
+  </main>
+</body>
+</html>

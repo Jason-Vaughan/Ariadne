@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>[feature] A-016: Two-stage progressive pipeline, Parallel Gemini Flash worker pool &amp; Onsite Capacity Controller · Ariadne Documentation (Powered by TangleClaw)</title>
+  <style>
+:root{color-scheme:light dark;--bg:#f6f8fa;--fg:#1f2328;--muted:#59636e;--line:#d0d7de;--panel:#ffffff;--code-bg:#f0f3f6;--link:#0969da;--accent:#1a7f37}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1117;--fg:#e6edf3;--muted:#8b949e;--line:#30363d;--panel:#161b22;--code-bg:#1f242c;--link:#58a6ff;--accent:#3fb950}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,sans-serif;position:relative;min-height:100vh}
+.tc-bg-watermark{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.tc-bg-watermark img{width:min(82vw,860px);height:min(82vw,860px);object-fit:contain;opacity:.08;filter:saturate(1.1) contrast(1.05);user-select:none;-webkit-user-drag:none}
+@media(prefers-color-scheme:dark){.tc-bg-watermark img{opacity:.10;filter:drop-shadow(0 0 48px rgba(86,211,100,.18))}}
+header.doc-nav{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--panel) 88%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);padding:.65rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;font-size:.88rem}
+.doc-brand{display:inline-flex;align-items:center;gap:.55rem;font-weight:700;color:var(--fg);text-decoration:none}
+.doc-brand img{width:24px;height:24px;border-radius:5px;object-fit:contain}
+.doc-links{display:flex;gap:1rem;flex-wrap:wrap;font-weight:600}
+main.doc-main{position:relative;z-index:1;max-width:980px;margin:0 auto;padding:2rem 1.25rem 5rem}
+a{color:var(--link);text-decoration:none}a:hover{text-decoration:underline}
+h1,h2,h3,h4{line-height:1.28;margin-top:1.6em;margin-bottom:.5em}
+h1{font-size:1.95rem;margin-top:.4em;padding-bottom:.35rem;border-bottom:1px solid var(--line)}
+h2{font-size:1.42rem;padding-bottom:.25rem;border-bottom:1px solid var(--line)}
+h3{font-size:1.15rem}
+p,ul,ol,blockquote,pre,table{margin:0 0 1rem}
+ul,ol{padding-left:1.5rem}
+li+li{margin-top:.25rem}
+code{font:0.88em/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;background:var(--code-bg);padding:.14rem .38rem;border-radius:5px}
+pre{background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:.95rem 1.1rem;overflow-x:auto}
+pre code{background:none;padding:0;font-size:.84rem}
+blockquote{margin-left:0;padding:.5rem 1rem;border-left:4px solid var(--link);background:color-mix(in srgb,var(--panel) 85%,transparent);border-radius:0 8px 8px 0;color:var(--muted)}
+hr{border:0;border-top:1px solid var(--line);margin:1.75rem 0}
+.table-wrap{overflow-x:auto;margin:1rem 0}
+table{width:100%;border-collapse:collapse;background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:.9rem}
+th,td{text-align:left;padding:.55rem .75rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--code-bg);font-weight:700}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.85rem;margin:1.25rem 0}
+.doc-card{display:block;padding:1rem;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 88%,transparent);transition:border-color .15s,transform .15s}
+.doc-card:hover{border-color:var(--link);transform:translateY(-2px);text-decoration:none}
+.doc-card strong{display:block;color:var(--fg);font-size:.98rem;margin-bottom:.25rem}
+.doc-card span{color:var(--muted);font-size:.82rem}
+footer.doc-footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--line);color:var(--muted);font-size:.84rem}
+</style>
+</head>
+<body>
+  <div class="tc-bg-watermark" aria-hidden="true">
+    <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="">
+  </div>
+  <header class="doc-nav">
+    <a class="doc-brand" href="./">
+      <img src="../ariadne-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/ariadne-logo.png'" alt="Ariadne" style="height:32px;width:auto;border-radius:0;">
+      <img src="../tangleclaw-logo.png" onerror="this.onerror=null;this.src='https://raw.githubusercontent.com/Jason-Vaughan/project-assets/main/tangleclaw-logo.png'" alt="TangleClaw">
+      <span>Ariadne Documentation · Orchestrated by TangleClaw</span>
+    </a>
+    <nav class="doc-links">
+      <a href="https://github.com/Jason-Vaughan/Ariadne">🐙 GitHub Repo</a>
+      <a href="../">🗺️ Roadmap Board</a>
+      <a href="../reports/">📊 Sprint Reports</a>
+      <a href="./">📚 All Docs (ISSUE_A-016.md)</a>
+      <a href="MASTER_SSOT.html">⭐ Master SSOT</a>
+    </nav>
+  </header>
+  <main class="doc-main">
+    <h1>[feature] A-016: Two-stage progressive pipeline, Parallel Gemini Flash worker pool &amp; Onsite Capacity Controller</h1><ul><li><strong>Issue ID:</strong> <code>A-016</code></li><li><strong>Priority:</strong> <code>P0</code></li><li><strong>Assigned Lane &amp; Car:</strong> <code>Ariadne-Lane-C</code> (<code>Car 2-C</code>)</li><li><strong>Milestone / Train:</strong> <code>Train 2 — End-to-End Integration &amp; Mutual Intros (v0.3.0)</code></li><li><strong>Dependencies:</strong> <code>A-003</code>..<code>A-007</code>, <code>A-009</code></li></ul><h2>1. Description</h2><p>Implement the <strong>Two-Stage Progressive Match Pipeline</strong> and <strong>Parallel Gemini Flash (<code>gemini-2.5-flash</code>) Worker Pool</strong> (<code>src/lib/jobs/runner.ts</code> + <code>src/lib/scoring/rematcher.ts</code>), paired with the <strong>Onsite Room Capacity Controller (<code>/admin</code> + <code>POST /api/admin/capacity</code>)</strong> so the Operator can dynamically dial the expected crowd size (<code>30</code>, <code>80</code>, <code>150</code>, <code>300+</code> concurrent QR scanners) onsite and auto-scale worker concurrency, GitHub fetch mode, and continuous rematching.</p><h2>2. Rationale</h2><p>During the live stage pitch, dozens of attendees will scan the QR code within the same 30-second window. A <strong>Two-Stage Progressive UX</strong> guarantees that every attendee gets their <strong>Stage 1 deterministic 6-axis Builder Fingerprint + Top-3 Matches + repo evidence pills in <code>&lt; 500ms</code></strong>, while the <strong>Stage 2 Parallel Gemini Flash Worker Pool</strong> fans out <code>8..32</code> concurrent workers in the background to stream deep capability/bottleneck/thesis enrichments over SSE (<code>2–5s</code>) with zero blocking or rate-limit bottlenecks.</p><h2>3. Dependencies</h2><ul><li>Depends on <code>A-003</code>..<code>A-007</code> and <code>A-009</code>.</li></ul><h2>4. Implementation Boundaries</h2><ul><li><strong>In Scope:</strong> <code>src/lib/jobs/runner.ts</code> (Two-Stage execution + configurable <code>WORKER_CONCURRENCY</code> pool using <code>GEMINI_API_KEY</code> <code>gemini-2.5-flash</code> with deterministic fallback), <code>src/lib/scoring/rematcher.ts</code> (Top-3 continuous rematching preserving acted-upon matches), <code>src/app/admin/page.tsx</code>, and <code>src/app/api/admin/capacity/route.ts</code> (live room-size presets: <code>30</code>, <code>80</code>, <code>150</code>, <code>300+</code> + VIP pre-warm trigger UI + Seed Pool toggle button).</li><li><strong>Out of Scope:</strong> Modifying frozen <code>src/contracts/*</code>.</li></ul><h2>5. Acceptance Criteria</h2><ul><li>[ ] <strong>Stage 1 (<code>&lt; 500ms</code> Instant Deterministic Match):</strong> Immediately upon <code>github.fetch.completed</code>, computes the participant&#x27;s baseline 6-Axis Builder Fingerprint and runs <code>A-006</code> (<code>40/30/20/10</code>) against all active pool members to emit their initial <strong>Top-3 Matches + repo evidence pills</strong> in <code>&lt; 500ms</code>.</li><li>[ ] <strong>Stage 2 (<code>2–5s</code> Parallel Gemini Flash Fan-Out):</strong> Fans out <code>A-004</code> (capabilities), <code>A-005</code> (bottlenecks), and <code>A-007</code> (match explanations) across a parallel worker pool (<code>Promise.allSettled</code> bounded by <code>workerConcurrency</code>, defaulting to <code>GEMINI_MODEL=gemini-2.5-flash</code>) and streams <code>match.enriched</code> events via SSE to <code>/me</code> and <code>/stage</code>.</li><li>[ ] <strong>Zero-Downtime Deterministic Fallback:</strong> If <code>GEMINI_API_KEY</code> is absent, rate-limited, or times out (<code>&gt; 6s</code>), Stage 1 deterministic capabilities, bottlenecks, and evidence-backed match explanations remain 100% functional with zero user-visible errors.</li><li>[ ] <strong>Onsite Room Capacity &amp; Hard Admission Cap Controller (<code>/admin</code>, <code>/stage</code> View 5 &amp; <code>POST /api/admin/capacity</code>):</strong></li><li>Defaults <code>maxRoomCapacity</code> to <strong><code>30</code></strong> (with 1-click presets <strong><code>[15]</code></strong>, <strong><code>[30]</code></strong>, <strong><code>[50]</code></strong>, <strong><code>[100]</code></strong>, plus <strong><code>[🔒 Lock Intake]</code></strong>).</li><li>Enforces the hard admission cap on new QR joins (<code>429 ROOM_AT_CAPACITY</code> -&gt; friendly <em>&quot;System is at capacity — please try back later&quot;</em> notice on <code>/join</code>), while always admitting pre-warmed VIP/Judge handles.</li><li>Dynamically scales <code>workerConcurrency</code> (<code>8</code> → <code>16</code> → <code>24</code> → <code>32</code> parallel Gemini Flash workers) and <code>githubFetchMode</code> (<code>full-graphql</code> vs <code>fast-rest-top5</code>) to match the selected cap.</li><li>[ ] <strong>Continuous Rematching:</strong> Preserves any match where either participant has already tapped <code>Interested</code> or <code>Pass</code>.</li></ul><h2>6. Test Requirements</h2><ul><li>Unit/integration tests verifying: (1) <code>&lt; 500ms</code> Stage 1 deterministic match emission before Stage 2 LLM completion, (2) parallel worker concurrency scaling via <code>POST /api/admin/capacity</code>, (3) graceful deterministic fallback when LLM times out, and (4) preservation of acted-upon matches during continuous rematching.</li></ul><h2>7. Security &amp; Privacy Considerations</h2><ul><li>Immediately exclude any participant with <code>consent_status === &#x27;withdrawn&#x27;</code> from worker and rematching passes.</li></ul><h2>8. Expected Demonstration Impact</h2><p>Gives the Operator a live onsite capacity dial (<code>/admin</code>) and guarantees that whether 10 people or 200 people scan the QR code at once, everyone sees matches on their phone in <code>&lt; 500ms</code> while the 16:9 Stage Visualizer shows parallel Gemini Flash workers flying through the queue.</p>
+    <footer class="doc-footer">
+      Document: <code>ISSUE_A-016.md</code> · Updated: <time>2026-11-06 10:37:56 PST</time> · Ariadne-PM (#149) · Static TangleClaw Watermark Active
+    </footer>
+  </main>
+</body>
+</html>
