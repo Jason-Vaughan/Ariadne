@@ -11,8 +11,14 @@ to file paths — this maps the layout itself.
 ## Structure
 
 - `ISSUE_BACKLOG/` — Pre-hackathon H-Day GitHub issue drafts (`A-001.md` through `A-017.md` + `INDEX.md`), ready for publication after explicit Operator H-Day GO.
-- `.tangleclaw/plans/` — Mirrored planning specifications served via TangleClaw MagicDNS (`/plans/149/<file>.md`).
-- Root Markdown specifications (`PROJECT_CHARTER.md`, `PRODUCT_REQUIREMENTS.md`, `ARCHITECTURE.md`, `DATA_AND_EVENTS_CONTRACT.md`, `MATCH_SCORING_SPEC.md`, `GITHUB_INTELLIGENCE_SPEC.md`, `VISUALIZER_SPEC.md`, `PRIVACY_AND_SECURITY.md`, `FLEET_CHARTER.md`, `DEPENDENCY_DAG.md`, `RELEASE_PLAN.md`, `HACKATHON_RUNBOOK.md`, `DEMO_RUNBOOK.md`, `PROVENANCE_AND_JUDGING.md`, `PREFLIGHT_CHECKLIST.md`, `RISK_REGISTER.md`, `OPERATOR_APPROVAL_PACKET.md`) — Pre-event architecture and operational planning package for `ARIADNE-HACK-2026`.
+- `changelog.d/` — Per-issue Keep-a-Changelog fragments (`<issue>.<slug>.<type>.md`) compiled into `CHANGELOG.md` at release wrap.
+- `data/` — Seed persona fixtures (`golden-seed-24.json`), runtime worker settings, and local SQLite WAL database storage.
+- `public/` — Static web assets served on `:3420`: mobile participant app (`/join`, `/me`, `/me/matches/:id`), 16:9 venue stage visualizer (`/stage`), public roadmap (`/roadmap`), and sprint reports (`/reports`).
+- `roadmap-board/` — Canonical roadmap JSON (`roadmap2-data.json`), brand assets (`ariadne-logo.png`, `tangleclaw-logo.png`), and public roadmap sync scripts.
+- `scripts/` — Build and operational scripts, including `build-sprint-report.js` (generates `/roadmap` and `/reports` hub) and `tunnel.sh` (Cloudflare Tunnel helper).
+- `sprint-reports/` — TangleClaw Sprint Report Standard v2.0.0 Python reporting pipeline (`metrics_schema.py`, `validate-sprint-report.py`, `generators/`) and canonical HTML reports (`v0.1.0`–`v1.0.0`).
+- `src/` — TypeScript backend (`server.ts`, SQLite WAL `db/`, frozen `contracts/`, SSE `events/`, `github/` connector & cache, two-stage `intelligence/` agents, `matching/` scorer & explanations, HTTP `routes/`, and background `worker/`).
+- `tests/` — Node `--test` TypeScript unit and integration test suites covering contracts, routes, GitHub ingestion, agents, scorer, stage views, worker, and sprint report builders.
 
 ## Shared directories / doc groups
 
