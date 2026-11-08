@@ -70,17 +70,13 @@
       <input id="goal" name="goal" type="text" maxlength="160" placeholder="Looking for a WebRTC co-hacker">
       <p class="field-error" id="goal-error" role="alert"></p>
 
-      <label class="check">
-        <input type="checkbox" id="consent_processing" name="consent_processing" required>
-        <span>I agree that Ariadne may analyze my <strong>public</strong> GitHub profile and website to suggest collaborators. Required.</span>
-      </label>
-      <p class="field-error" id="consent_processing-error" role="alert"></p>
 
       <label class="check">
         <input type="checkbox" id="stage_display_consent" name="stage_display_consent" checked>
         <span>Display my @github handle on the 16:9 stage visualizer (uncheck for anonymous alias).</span>
       </label>
 
+      <p class="help" id="analysis-notice">By joining, you agree Ariadne analyzes your <strong>public</strong> GitHub profile (and website, if given) to suggest collaborators. Withdraw and delete your data anytime from /me.</p>
       <button type="submit" id="submit">Join</button>
       <p class="status" id="status" aria-live="polite"></p>
     </form>

@@ -5,7 +5,7 @@
   const capacityMessage = document.getElementById('capacity-message');
   const submit = document.getElementById('submit');
   const status = document.getElementById('status');
-  const fields = ['github', 'website_url', 'goal', 'consent_processing'];
+  const fields = ['github', 'website_url', 'goal'];
   let guestEntry = false;
 
   /**
@@ -60,10 +60,6 @@
   async function onSubmit(event) {
     event.preventDefault();
     clearErrors();
-    if (!document.getElementById('consent_processing').checked) {
-      document.getElementById('consent_processing-error').textContent = 'Please tick this box to join.';
-      return;
-    }
     submit.disabled = true;
     status.textContent = 'Joining…';
     try {

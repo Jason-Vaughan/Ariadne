@@ -134,8 +134,8 @@ describe('join page behaviour', () => {
   const script = readFileSync(join(REPO_ROOT, 'public', 'app', 'join.js'), 'utf8');
   const ids = [
     'join-form', 'capacity', 'capacity-message', 'submit', 'status', 'github', 'website_url', 'goal',
-    'consent_processing', 'stage_display_consent', 'retry', 'prewarm-entry',
-    'github-error', 'website_url-error', 'goal-error', 'consent_processing-error',
+    'stage_display_consent', 'retry', 'prewarm-entry',
+    'github-error', 'website_url-error', 'goal-error',
   ];
 
   interface FakeElement {
@@ -214,7 +214,6 @@ describe('join page behaviour', () => {
         url.endsWith('/admission') ? [200, { open: true, active: 0, max: 30, locked: false, message: null }] : [201, { participant: {}, redirect: '/me' }],
       );
       elements.github!.value = 'octocat';
-      elements.consent_processing!.checked = true;
       elements.stage_display_consent!.checked = checked;
       await submitForm(elements);
       const post = requests.find((r) => r.url === '/api/participants');
@@ -231,7 +230,6 @@ describe('join page behaviour', () => {
     assert.equal(elements.capacity!.hidden, false);
 
     elements.github!.value = 'judge-one';
-    elements.consent_processing!.checked = true;
     await submitForm(elements);
     const post = requests.find((r) => r.url === '/api/participants');
     assert.equal((post?.body as { github: string }).github, 'judge-one');
@@ -244,19 +242,22 @@ describe('join page behaviour', () => {
     );
     elements['prewarm-entry']!.listeners.click!();
     elements.github!.value = 'walk-in';
-    elements.consent_processing!.checked = true;
     await submitForm(elements);
     assert.equal(elements['join-form']!.hidden, false);
     assert.match(elements.status!.textContent, /not on the pre-registered list/);
     assert.equal(page.redirectedTo, null);
   });
 
-  it('blocks submission until processing consent is ticked', async () => {
-    const { elements, requests } = await loadPage(() => [200, { open: true, active: 0, max: 30, locked: false, message: null }]);
+  it('joins with just a GitHub handle: no consent checkbox, consent_processing sent as true', async () => {
+    const { elements, requests, page } = await loadPage((url) =>
+      url.endsWith('/admission') ? [200, { open: true, active: 0, max: 30, locked: false, message: null }] : [201, { participant: {}, redirect: '/me' }],
+    );
+    assert.equal(elements.consent_processing, undefined);
     elements.github!.value = 'octocat';
     await submitForm(elements);
-    assert.equal(requests.some((r) => r.url === '/api/participants'), false);
-    assert.match(elements['consent_processing-error']!.textContent, /tick this box/);
+    const post = requests.find((r) => r.url === '/api/participants');
+    assert.equal((post?.body as { consent_processing: boolean }).consent_processing, true);
+    assert.equal(page.redirectedTo, '/me');
   });
 });
 
@@ -332,6 +333,8 @@ describe('onboarding API', () => {
     assert.match(html, /Display my @github handle on the 16:9 stage visualizer \(uncheck for anonymous alias\)/);
     assert.match(html, /<input type="checkbox" id="stage_display_consent" name="stage_display_consent" checked>/, 'stage display is pre-checked');
     assert.match(html, /must be publicly accessible with no login required/);
+    assert.doesNotMatch(html, /id="consent_processing"/, 'no analysis-consent checkbox');
+    assert.match(html, /By joining, you agree Ariadne analyzes your <strong>public<\/strong> GitHub profile/);
     assert.match(html, /id="prewarm-entry"/);
   });
 
