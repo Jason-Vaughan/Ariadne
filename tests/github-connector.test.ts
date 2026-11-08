@@ -14,9 +14,11 @@ import {
   fetchGithubSnapshot,
   fetchPublicWebsite,
   FINGERPRINT_AXES,
+  flagshipRepo,
   GithubFetchError,
   isPublicAddress,
   MAX_GITHUB_CALLS,
+  normalizeRepos,
   safeLookup,
   toEvidenceReceipts,
   TokenPool,
@@ -808,5 +810,99 @@ describe('24h snapshot cache', () => {
     assert.deepEqual(seen.find((s) => s.username === 'vip-one')?.website, 'https://vip.example/');
     assert.ok(readSnapshot(db, 'vip-one'));
     db.close();
+  });
+});
+
+describe('fingerprint rebalance for AI-agent and product builders (#58)', () => {
+  /**
+   * Builds a repository summary for fingerprint tests.
+   * @param fullName - `owner/repo`.
+   * @param extra - Overrides.
+   * @returns A repo summary.
+   */
+  function r(fullName: string, extra: Partial<GithubSnapshot['repos'][number]> = {}): GithubSnapshot['repos'][number] {
+    return { full_name: fullName, html_url: `https://github.com/${fullName}`, description: '', language: 'TypeScript', topics: [], stars: 3, pushed_at: '', updated_at: '', ...extra };
+  }
+
+  // Anonymized shapes of two real attendee profiles: agent tooling and shipped consumer apps written in JS/TS,
+  // described with everyday AI vocabulary (ai, llm, claude, gpt) that must not read as evaluation/ML depth.
+  const AGENT_PRODUCT_BUILDERS = {
+    personalOs: {
+      profile: { bio: 'Building AI tools with Claude and GPT', blog: 'https://builder-one.example' },
+      repos: [
+        r('builder-one/personal-os', { description: 'My AI personal operating system with LLM memory', topics: ['claude-code', 'obsidian', 'second-brain'], size: 900, forks: 2 }),
+        r('builder-one/habit-tracker', { description: 'Consumer app to track habits', homepage: 'https://habits.example', size: 400 }),
+        r('builder-one/builder-one', { description: 'Profile README', language: null }),
+      ],
+      readme: null,
+      website: null,
+    },
+    wrappedCli: {
+      profile: { bio: 'ai + llm hacker' },
+      repos: [
+        r('builder-two/claude-code-wrapped', { language: 'JavaScript', description: 'Spotify Wrapped for your Claude Code usage, a CLI', stars: 40, forks: 3 }),
+        r('builder-two/social-agi', { language: 'JavaScript', description: 'Autonomous social AGI agents with GPT', topics: ['agents'] }),
+      ],
+      readme: null,
+      website: null,
+    },
+  };
+
+  for (const [name, input] of Object.entries(AGENT_PRODUCT_BUILDERS)) {
+    test(`${name}: agent orchestration and product lead, LLM/Eval does not`, () => {
+      const fp = computeFingerprint(input);
+      const top2 = Object.entries(fp).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([axis]) => axis).sort();
+      assert.deepEqual(top2, ['agent_orchestration', 'product_gtm'], JSON.stringify(fp));
+      assert.ok(fp.llm_eval < fp.agent_orchestration && fp.llm_eval < fp.product_gtm, JSON.stringify(fp));
+    });
+  }
+
+  test('generic AI words alone no longer score LLM/Eval; real evaluation work still does', () => {
+    const generic = computeFingerprint({ profile: { bio: 'ai llm gpt claude openai anthropic gemini prompts' }, repos: [], readme: null, website: null });
+    assert.equal(generic.llm_eval, 0);
+    const evals = computeFingerprint({ profile: { bio: '' }, repos: [r('x/harness', { language: 'Python', topics: ['evals', 'benchmark', 'rlhf'] })], readme: null, website: null });
+    assert.equal(Object.entries(evals).sort((a, b) => b[1] - a[1])[0]?.[0], 'llm_eval');
+  });
+
+  test('JS/TS credits frontend only with UI signals; agent/CLI JS routes to agent, product and systems', () => {
+    const cli = computeFingerprint({ profile: { bio: '' }, repos: [r('x/deploy-cli', { language: 'JavaScript', description: 'command line tool' })], readme: null, website: null });
+    assert.equal(cli.frontend_ux, 0);
+    assert.ok(cli.agent_orchestration > 0 && cli.systems_infra > 0);
+    const ui = computeFingerprint({ profile: { bio: '' }, repos: [r('x/dashboard-ui', { language: 'JavaScript', topics: ['react'], description: 'React UI for the API' })], readme: null, website: null });
+    assert.ok(ui.frontend_ux > ui.agent_orchestration, 'an explicit UI signal wins over an incidental "api"');
+    const plain = computeFingerprint({ profile: { bio: '' }, repos: [r('x/thing', { language: 'JavaScript' })], readme: null, website: null });
+    assert.ok(plain.frontend_ux > 0, 'JS with no signal keeps its default mapping');
+  });
+
+  test('a blog, website, project homepage or profile README adds a product signal; nothing else does', () => {
+    const base = { profile: { bio: '' }, repos: [r('x/lib', { language: null })], readme: null, website: null };
+    assert.equal(computeFingerprint(base).product_gtm, 0);
+    assert.ok(computeFingerprint({ ...base, profile: { bio: '', blog: 'https://x.example' } }).product_gtm > 0);
+    assert.ok(computeFingerprint({ ...base, repos: [r('x/lib', { language: null, homepage: 'https://lib.example' })] }).product_gtm > 0);
+    assert.ok(computeFingerprint({ ...base, repos: [r('x/x', { language: null })] }).product_gtm > 0);
+  });
+
+  test('repo weight stays exactly the explainer formula (stars only, at most double), whatever the size or forks', () => {
+    const one = (extra: Partial<GithubSnapshot['repos'][number]>) =>
+      computeFingerprint({ profile: { bio: '' }, repos: [r('x/thing', { language: 'Go', ...extra })], readme: null, website: null });
+    const expected = (stars: number) => Math.round(100 * (1 - Math.exp(-(1 + Math.min(1, Math.log10(1 + stars) / 2)) / 2.5)));
+    assert.equal(one({ stars: 0 }).systems_infra, expected(0));
+    assert.equal(one({ stars: 50, size: 5000, forks: 30 }).systems_infra, expected(50));
+    assert.equal(one({ stars: 1_000_000, size: 99999, forks: 9999 }).systems_infra, expected(1_000_000), 'never above double');
+  });
+
+  test('normalizeRepos keeps size, forks, open issues and an https homepage; the flagship skips empty repos', () => {
+    const [repoA] = normalizeRepos(
+      [{ full_name: 'a/b', html_url: 'https://github.com/a/b', private: false, fork: false, visibility: 'public', stargazers_count: 1, size: 321, forks_count: 4, open_issues_count: 2, homepage: 'https://b.example', pushed_at: '2026-01-01T00:00:00Z' }],
+      '2026-11-07T00:00:00.000Z',
+    );
+    assert.equal(repoA?.size, 321);
+    assert.equal(repoA?.forks, 4);
+    assert.equal(repoA?.open_issues, 2);
+    assert.equal(repoA?.homepage, 'https://b.example/');
+    const [insecure] = normalizeRepos([{ full_name: 'a/c', html_url: 'https://github.com/a/c', private: false, fork: false, homepage: 'http://c.example', pushed_at: '2026-01-01T00:00:00Z' }], '2026-11-07T00:00:00.000Z');
+    assert.equal(insecure?.homepage, null);
+    assert.equal(flagshipRepo([r('a/empty', { stars: 99, size: 0 }), r('a/real', { stars: 2, size: 50 })])?.full_name, 'a/real');
+    assert.equal(flagshipRepo([r('a/legacy', { stars: 5 })])?.full_name, 'a/legacy', 'repos without a size (older cache) still qualify');
   });
 });
