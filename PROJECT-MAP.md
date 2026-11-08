@@ -11,8 +11,13 @@ to file paths — this maps the layout itself.
 ## Structure
 
 - `ISSUE_BACKLOG/` — Pre-hackathon H-Day GitHub issue drafts (`A-001.md` through `A-017.md` + `INDEX.md`), ready for publication after explicit Operator H-Day GO.
-- `.tangleclaw/plans/` — Mirrored planning specifications served via TangleClaw MagicDNS (`/plans/149/<file>.md`).
-- Root Markdown specifications (`PROJECT_CHARTER.md`, `PRODUCT_REQUIREMENTS.md`, `ARCHITECTURE.md`, `DATA_AND_EVENTS_CONTRACT.md`, `MATCH_SCORING_SPEC.md`, `GITHUB_INTELLIGENCE_SPEC.md`, `VISUALIZER_SPEC.md`, `PRIVACY_AND_SECURITY.md`, `FLEET_CHARTER.md`, `DEPENDENCY_DAG.md`, `RELEASE_PLAN.md`, `HACKATHON_RUNBOOK.md`, `DEMO_RUNBOOK.md`, `PROVENANCE_AND_JUDGING.md`, `PREFLIGHT_CHECKLIST.md`, `RISK_REGISTER.md`, `OPERATOR_APPROVAL_PACKET.md`) — Pre-event architecture and operational planning package for `ARIADNE-HACK-2026`.
+- `data/` — <!-- describe -->
+- `public/` — <!-- describe -->
+- `roadmap-board/` — <!-- describe -->
+- `scripts/` — <!-- describe -->
+- `sprint-reports/` — <!-- describe -->
+- `src/` — <!-- describe -->
+- `tests/` — <!-- describe -->
 
 ## Shared directories / doc groups
 
