@@ -161,6 +161,30 @@ describe('stage 1 (deterministic)', () => {
   });
 });
 
+describe('agent-builder technologies (#58)', () => {
+  test('Claude Code, Obsidian, second-brain/personal-os and modern JS tooling become cited claims', () => {
+    const snap = snapshot({
+      repos: [
+        repo('personal-os', { topics: ['claude-code', 'obsidian', 'second-brain', 'personal-os'], description: 'AI personal OS on Supabase and Vercel' }),
+        repo('social-bot', { language: 'JavaScript', topics: ['social-agi', 'bun', 'drizzle'], description: 'tRPC API tested with Playwright' }),
+      ],
+      readme: null,
+      website: null,
+    });
+    const analysis = analyzeStage1(snap, PARTICIPANT);
+    const byName = new Map(analysis.claims.map((c) => [c.name, c]));
+    for (const [name, category] of [
+      ['Claude Code', 'tooling'], ['Obsidian', 'tooling'], ['Knowledge management', 'domain'], ['Personal AI systems', 'domain'],
+      ['Social AI agents', 'domain'], ['Supabase', 'tooling'], ['Vercel', 'tooling'], ['Bun', 'tooling'],
+      ['Drizzle ORM', 'tooling'], ['tRPC', 'framework'], ['Playwright', 'tooling'],
+    ] as const) {
+      assert.equal(byName.get(name)?.category, category, name);
+      assert.equal(byName.get(name)?.epistemic_type, 'OBSERVED_FACT', name);
+    }
+    assert.equal(analysis.claims.filter((c) => c.name === 'Knowledge management').length, 1, 'pkm/second-brain aliases collapse to one claim');
+  });
+});
+
 describe('stage 2 (LLM enrichment)', () => {
   /**
    * Runs Stage 1 then Stage 2 with a fake model answering `answer(receipts)`.

@@ -247,6 +247,12 @@ export interface GithubRepoSummary {
   stars: number;
   pushed_at: string;
   updated_at: string;
+  /** Repository size in KB, forks and open issues (absent in older cached snapshots). */
+  size?: number;
+  forks?: number;
+  open_issues?: number;
+  /** Public project homepage (https only), when the repository declares one. */
+  homepage?: string | null;
 }
 
 export interface ReadmeExcerpt {
@@ -413,6 +419,10 @@ export function normalizeRepos(json: unknown, fetchedAt: string): GithubRepoSumm
       stars: count(item.stargazers_count),
       pushed_at: isoTime(item.pushed_at, fetchedAt),
       updated_at: isoTime(item.updated_at, fetchedAt),
+      size: count(item.size),
+      forks: count(item.forks_count),
+      open_issues: count(item.open_issues_count),
+      homepage: httpsUrl(item.homepage),
     });
   }
   repos.sort((a, b) => b.pushed_at.localeCompare(a.pushed_at) || a.full_name.localeCompare(b.full_name));
@@ -425,7 +435,8 @@ export function normalizeRepos(json: unknown, fetchedAt: string): GithubRepoSumm
  * @returns The chosen repository, or `undefined` when there are none.
  */
 export function flagshipRepo(repos: readonly GithubRepoSummary[]): GithubRepoSummary | undefined {
-  return [...repos].sort((a, b) => b.stars - a.stars || b.pushed_at.localeCompare(a.pushed_at))[0];
+  const nonEmpty = repos.filter((r) => r.size !== 0);
+  return [...(nonEmpty.length > 0 ? nonEmpty : repos)].sort((a, b) => b.stars - a.stars || b.pushed_at.localeCompare(a.pushed_at))[0];
 }
 
 // ---------------------------------------------------------------------------
@@ -736,27 +747,78 @@ const AXIS_KEYWORDS: Record<FingerprintAxis, readonly string[]> = {
     'observability', 'performance', 'ci', 'cli', 'systems', 'embedded', 'wasm', 'webassembly', 'sre',
   ],
   agent_orchestration: [
-    'agent', 'agents', 'agentic', 'multi-agent', 'orchestration', 'orchestrator', 'mcp', 'langchain', 'langgraph',
-    'autogen', 'crewai', 'tool-use', 'workflow', 'workflows', 'autonomous', 'copilot', 'assistant', 'swarm', 'planner',
+    'claude-code', 'codex', 'cursor', 'agent', 'agents', 'agentic', 'multi-agent', 'subagent', 'orchestration',
+    'orchestrator', 'mcp', 'langchain', 'langgraph', 'autogen', 'crewai', 'tool-use', 'tool-calling', 'function-calling',
+    'workflow', 'workflows', 'autonomous', 'automate', 'automation', 'copilot', 'assistant', 'swarm', 'planner',
+    'memory', 'second-brain', 'personal-os', 'agi', 'social-agi',
   ],
+  // Generic AI vocabulary (ai, llm, gpt, claude, openai, prompt…) is deliberately absent: nearly every builder uses
+  // these words, so they said nothing about evaluation/ML depth and drowned out agent and product work.
   llm_eval: [
-    'llm', 'llms', 'gpt', 'openai', 'anthropic', 'claude', 'gemini', 'eval', 'evals', 'evaluation', 'benchmark',
-    'prompt', 'prompts', 'rag', 'embedding', 'embeddings', 'fine-tuning', 'finetuning', 'transformer', 'transformers',
-    'machine-learning', 'ml', 'nlp', 'pytorch', 'tensorflow', 'huggingface', 'inference', 'ai',
+    'eval', 'evals', 'evaluation', 'benchmark', 'benchmarks', 'rag', 'embedding', 'embeddings', 'fine-tuning',
+    'finetuning', 'transformer', 'transformers', 'machine-learning', 'ml', 'nlp', 'pytorch', 'tensorflow', 'huggingface',
+    'inference', 'vllm', 'quantization', 'lora', 'rlhf', 'hallucination', 'guardrails',
   ],
   frontend_ux: [
     'react', 'nextjs', 'next', 'vue', 'svelte', 'frontend', 'ui', 'ux', 'design', 'design-system', 'css', 'tailwind',
     'figma', 'mobile', 'ios', 'android', 'web-app', 'webapp', 'accessibility', 'a11y', 'animation', 'components',
   ],
   product_gtm: [
-    'product', 'startup', 'saas', 'growth', 'marketing', 'community', 'founder', 'launch', 'customers', 'pricing',
-    'gtm', 'go-to-market', 'newsletter', 'seo', 'b2b', 'ecommerce', 'monetization', 'onboarding', 'roadmap',
+    'product', 'startup', 'saas', 'growth', 'marketing', 'community', 'founder', 'launch', 'customers', 'users',
+    'pricing', 'gtm', 'go-to-market', 'newsletter', 'seo', 'b2b', 'ecommerce', 'monetization', 'onboarding', 'roadmap',
+    'app', 'tracker', 'wrapped', 'dashboard', 'extension', 'productivity', 'budget', 'finance', 'obsidian', 'pkm',
+    'knowledge-management', 'social', 'consumer', 'ship', 'creator',
   ],
   data_pipelines: [
     'data', 'etl', 'elt', 'pipeline', 'pipelines', 'spark', 'kafka', 'airflow', 'dbt', 'sql', 'warehouse',
     'pandas', 'scraping', 'scraper', 'crawler', 'dataset', 'datasets', 'streaming', 'analytics', 'bigquery', 'duckdb',
   ],
 };
+
+// JavaScript/TypeScript are used for CLIs, agents and servers as often as for UIs; only explicit UI signals earn
+// frontend credit, and agent/CLI/backend signals route the language weight to the axes that work actually shows.
+const JS_LANGUAGES = new Set(['javascript', 'typescript']);
+const AGENT_OR_BACKEND_SIGNAL =
+  /(?<![a-z0-9])(?:agents?|claude-code|mcp|cli|command|commands|server|api|sdk|bot|worker|automate|automation|wrapped|personal-os)(?![a-z0-9])/;
+const UI_SIGNAL = /(?<![a-z0-9])(?:react|nextjs|next|vue|svelte|angular|tailwind|tailwindcss|css|html|figma|ui|ux|frontend|canvas|webgl)(?![a-z0-9])/;
+const JS_AGENT_ROUTING: Partial<FingerprintVector> = { agent_orchestration: 0.45, product_gtm: 0.3, systems_infra: 0.25 };
+
+/**
+ * Chooses how a repository's primary language credits the axes, using the repository's own text for JS/TS.
+ * @param language - Primary language as reported by GitHub.
+ * @param text - Lowercased repository name, topics and description.
+ * @returns Axis weights for the language, or `undefined` for an unmapped language.
+ */
+export function languageAxes(language: string | null, text: string): Partial<FingerprintVector> | undefined {
+  if (!language) return undefined;
+  const key = language.toLowerCase();
+  if (JS_LANGUAGES.has(key) && AGENT_OR_BACKEND_SIGNAL.test(text) && !UI_SIGNAL.test(text)) return JS_AGENT_ROUTING;
+  return LANGUAGE_AXES[key];
+}
+
+/**
+ * Whether a repository is a GitHub profile README repository (`<user>/<user>`).
+ * @param fullName - `owner/repo`.
+ * @returns True when owner and repository name match.
+ */
+export function isProfileReadmeRepo(fullName: string): boolean {
+  const [owner, name] = fullName.toLowerCase().split('/');
+  return Boolean(owner) && owner === name;
+}
+
+/**
+ * Accepts only https URLs (for repository homepages).
+ * @param value - Candidate URL.
+ * @returns The normalized URL, or `null`.
+ */
+function httpsUrl(value: unknown): string | null {
+  try {
+    const url = new URL(str(value));
+    return url.protocol === 'https:' ? url.href : null;
+  } catch {
+    return null;
+  }
+}
 
 const KEYWORD_PATTERNS: Record<FingerprintAxis, RegExp> = Object.fromEntries(
   FINGERPRINT_AXES.map((axis) => [
@@ -784,19 +846,26 @@ function keywordHits(text: string, axis: FingerprintAxis, cap: number): number {
  * @returns A 0–100 score per axis; all zeros when there is no signal.
  */
 export function computeFingerprint(input: {
-  profile: Pick<GithubProfile, 'bio'>;
+  profile: Pick<GithubProfile, 'bio'> & Partial<Pick<GithubProfile, 'blog'>>;
   repos: readonly GithubRepoSummary[];
   readme: ReadmeExcerpt | null;
   website: WebsiteSummary | null;
 }): FingerprintVector {
   const raw: FingerprintVector = { systems_infra: 0, agent_orchestration: 0, llm_eval: 0, frontend_ux: 0, product_gtm: 0, data_pipelines: 0 };
   for (const repo of input.repos) {
-    const weight = 1 + Math.min(1, Math.log10(1 + repo.stars) / 2);
-    const langAxes = repo.language ? LANGUAGE_AXES[repo.language.toLowerCase()] : undefined;
-    for (const axis of FINGERPRINT_AXES) raw[axis] += (langAxes?.[axis] ?? 0) * weight;
+    const weight =
+      1 + Math.min(1, Math.log10(1 + repo.stars) / 2) + ((repo.size ?? 0) > 200 ? 0.15 : 0) + ((repo.forks ?? 0) > 0 ? 0.1 : 0);
     const text = `${repo.full_name.split('/')[1] ?? ''} ${repo.topics.join(' ')} ${repo.description}`.toLowerCase().replace(/[_.]/g, '-');
+    const langAxes = languageAxes(repo.language, text);
+    for (const axis of FINGERPRINT_AXES) raw[axis] += (langAxes?.[axis] ?? 0) * weight;
     for (const axis of FINGERPRINT_AXES) raw[axis] += 0.5 * keywordHits(text, axis, 2) * weight;
   }
+  // Builders who ship to real users tend to keep a live site, a project homepage or a profile README.
+  const ships =
+    Boolean(input.profile.blog?.trim()) ||
+    input.website !== null ||
+    input.repos.some((r) => Boolean(r.homepage) || isProfileReadmeRepo(r.full_name));
+  if (ships) raw.product_gtm += 0.6;
   const readme = (input.readme?.excerpt ?? '').toLowerCase();
   const bio = input.profile.bio.toLowerCase();
   const site = input.website

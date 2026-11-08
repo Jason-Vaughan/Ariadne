@@ -105,6 +105,23 @@ const KNOWN_TECH: Record<string, { name: string; category: Category }> = {
   'event-driven': { name: 'Event-driven architecture', category: 'systems_architecture' },
   compiler: { name: 'Compilers', category: 'systems_architecture' },
   compilers: { name: 'Compilers', category: 'systems_architecture' },
+  'claude-code': { name: 'Claude Code', category: 'tooling' },
+  cursor: { name: 'Cursor', category: 'tooling' },
+  obsidian: { name: 'Obsidian', category: 'tooling' },
+  supabase: { name: 'Supabase', category: 'tooling' },
+  cloudflare: { name: 'Cloudflare', category: 'tooling' },
+  vercel: { name: 'Vercel', category: 'tooling' },
+  bun: { name: 'Bun', category: 'tooling' },
+  trpc: { name: 'tRPC', category: 'framework' },
+  prisma: { name: 'Prisma', category: 'tooling' },
+  drizzle: { name: 'Drizzle ORM', category: 'tooling' },
+  playwright: { name: 'Playwright', category: 'tooling' },
+  vllm: { name: 'vLLM', category: 'tooling' },
+  ollama: { name: 'Ollama', category: 'tooling' },
+  pkm: { name: 'Knowledge management', category: 'domain' },
+  'second-brain': { name: 'Knowledge management', category: 'domain' },
+  'personal-os': { name: 'Personal AI systems', category: 'domain' },
+  'social-agi': { name: 'Social AI agents', category: 'domain' },
 };
 
 const TECH_PATTERN = new RegExp(
