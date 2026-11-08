@@ -9,7 +9,7 @@ All notable changes to Ariadne-PM are documented in this file.
   - **Generic AI words removed from LLM/Eval:** `ai`, `llm`, `gpt`, `claude`, `openai`, `anthropic`, `gemini` and `prompt` no longer count. LLM/Eval now keys on real evaluation/ML signals (evals, benchmarks, RAG, embeddings, fine-tuning, RLHF, vLLM, guardrails…).
   - **Agent Orchestration and Product/GTM keywords expanded:** Claude Code, Codex, Cursor, tool-calling, automation, memory/second-brain/personal-OS on one side; apps, trackers, dashboards, extensions, productivity, finance, PKM, consumer, ship on the other.
   - **JavaScript/TypeScript credit Frontend/UX only with explicit UI signals.** CLI, agent and backend JS/TS repos route their language weight to Agent Orchestration, Product/GTM and Systems/Infra.
-  - **Repository weight** adds small bonuses for size and forks.
+  - **Repository weight is unchanged:** stars only, at most double, matching the stage explainer. Size and forks are recorded but don't weight the fingerprint.
   - **Product signal:** a profile blog, a fetched website, a project homepage or a `<user>/<user>` profile README adds a +0.6 Product/GTM signal. Nothing is fetched for this, so there are no extra API calls and no crawling of URLs the participant didn't submit.
   - **New repository fields:** `size`, `forks`, `open_issues` and an https `homepage`, all optional so older cached snapshots still load. The flagship repository skips empty repos.
   - **A-004 claims:** now recognizes Claude Code, Cursor, Obsidian, Supabase, Cloudflare, Vercel, Bun, tRPC, Prisma, Drizzle, Playwright, vLLM, Ollama, knowledge management (PKM/second-brain), personal AI systems and social AI agents.

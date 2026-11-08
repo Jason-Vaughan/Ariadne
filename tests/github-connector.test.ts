@@ -882,6 +882,15 @@ describe('fingerprint rebalance for AI-agent and product builders (#58)', () => 
     assert.ok(computeFingerprint({ ...base, repos: [r('x/x', { language: null })] }).product_gtm > 0);
   });
 
+  test('repo weight stays exactly the explainer formula (stars only, at most double), whatever the size or forks', () => {
+    const one = (extra: Partial<GithubSnapshot['repos'][number]>) =>
+      computeFingerprint({ profile: { bio: '' }, repos: [r('x/thing', { language: 'Go', ...extra })], readme: null, website: null });
+    const expected = (stars: number) => Math.round(100 * (1 - Math.exp(-(1 + Math.min(1, Math.log10(1 + stars) / 2)) / 2.5)));
+    assert.equal(one({ stars: 0 }).systems_infra, expected(0));
+    assert.equal(one({ stars: 50, size: 5000, forks: 30 }).systems_infra, expected(50));
+    assert.equal(one({ stars: 1_000_000, size: 99999, forks: 9999 }).systems_infra, expected(1_000_000), 'never above double');
+  });
+
   test('normalizeRepos keeps size, forks, open issues and an https homepage; the flagship skips empty repos', () => {
     const [repoA] = normalizeRepos(
       [{ full_name: 'a/b', html_url: 'https://github.com/a/b', private: false, fork: false, visibility: 'public', stargazers_count: 1, size: 321, forks_count: 4, open_issues_count: 2, homepage: 'https://b.example', pushed_at: '2026-01-01T00:00:00Z' }],

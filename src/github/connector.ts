@@ -853,8 +853,8 @@ export function computeFingerprint(input: {
 }): FingerprintVector {
   const raw: FingerprintVector = { systems_infra: 0, agent_orchestration: 0, llm_eval: 0, frontend_ux: 0, product_gtm: 0, data_pipelines: 0 };
   for (const repo of input.repos) {
-    const weight =
-      1 + Math.min(1, Math.log10(1 + repo.stars) / 2) + ((repo.size ?? 0) > 200 ? 0.15 : 0) + ((repo.forks ?? 0) > 0 ? 0.1 : 0);
+    // Kept exactly in step with the stage's View 2 explainer (public/stage/explainers.js): stars only, never above 2.
+    const weight = 1 + Math.min(1, Math.log10(1 + repo.stars) / 2);
     const text = `${repo.full_name.split('/')[1] ?? ''} ${repo.topics.join(' ')} ${repo.description}`.toLowerCase().replace(/[_.]/g, '-');
     const langAxes = languageAxes(repo.language, text);
     for (const axis of FINGERPRINT_AXES) raw[axis] += (langAxes?.[axis] ?? 0) * weight;
